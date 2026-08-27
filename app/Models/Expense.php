@@ -3,20 +3,29 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use App\Models\Department;
 
 class Expense extends Model
 {
-    protected $fillable = [
-        'title',
-        'description',
-        'amount',
-        'category',
-        'expense_date',
-        'user_id'
+    protected $guarded = [];
+
+    protected $casts = [
+        'amount' => 'decimal:2',
+        'expense_date' => 'date',
     ];
 
-    public function user()
+    public function category()
     {
-        return $this->belongsTo(User::class);
+        return $this->belongsTo(ExpenseCategory::class, 'expense_category_id');
+    }
+
+    public function createdBy()
+    {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    public function department()
+    {
+        return $this->belongsTo(Department::class);
     }
 }

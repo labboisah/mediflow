@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('services', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('category_id')->constrained()->cascadeOnDelete();
-            $table->string('name');
-            $table->decimal('price', 10, 2);
-            $table->timestamps();
+        if (! Schema::hasTable('services')) {
+            return;
+        }
+
+        Schema::table('services', function (Blueprint $table) {
+            if (! Schema::hasColumn('services', 'category_id')) {
+                $table->foreignId('category_id')->nullable()->after('department_id')->constrained()->nullOnDelete();
+            }
         });
     }
 
@@ -25,6 +27,14 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('services');
+        if (! Schema::hasTable('services')) {
+            return;
+        }
+
+        Schema::table('services', function (Blueprint $table) {
+            if (Schema::hasColumn('services', 'category_id')) {
+                $table->dropConstrainedForeignId('category_id');
+            }
+        });
     }
 };

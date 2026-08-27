@@ -11,14 +11,22 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('payments', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('bill_id')->constrained()->cascadeOnDelete();
-            $table->decimal('amount', 12, 2);
-            $table->string('payment_method')->nullable(); // cash, transfer etc.
-            $table->text('note')->nullable();
-            $table->foreignId('user_id')->constrained(); // who recorded
-            $table->timestamps();
+        if (! Schema::hasTable('payments')) {
+            return;
+        }
+
+        Schema::table('payments', function (Blueprint $table) {
+            if (! Schema::hasColumn('payments', 'payment_method')) {
+                $table->string('payment_method')->nullable()->after('payment_method_id');
+            }
+
+            if (! Schema::hasColumn('payments', 'note')) {
+                $table->text('note')->nullable()->after('notes');
+            }
+
+            if (! Schema::hasColumn('payments', 'user_id')) {
+                $table->foreignId('user_id')->nullable()->after('paid_by')->constrained()->nullOnDelete();
+            }
         });
     }
 
@@ -27,6 +35,20 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('payments');
+        if (! Schema::hasTable('payments')) {
+            return;
+        }
+
+        Schema::table('payments', function (Blueprint $table) {
+            if (Schema::hasColumn('payments', 'user_id')) {
+                $table->dropConstrainedForeignId('user_id');
+            }
+
+            foreach (['payment_method', 'note'] as $column) {
+                if (Schema::hasColumn('payments', $column)) {
+                    $table->dropColumn($column);
+                }
+            }
+        });
     }
 };

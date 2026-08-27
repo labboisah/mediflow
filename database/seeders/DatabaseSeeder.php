@@ -2,10 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
-use Hash;
 
 class DatabaseSeeder extends Seeder
 {
@@ -16,22 +14,37 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        User::create([
-            'name' => 'System Admin',
-            'email' => 'admin@annex.com',
-            'password' => Hash::make('password123'),
-            'role' => 'admin',
-        ]);
+        // Create roles
+        $this->call(RoleSeeder::class);
 
-        User::create([
-            'name' => 'Data Officer',
-            'email' => 'user@annex.com',
-            'password' => Hash::make('password123'),
-            'role' => 'user',
-        ]);
+        // Create permissions and assign to roles
+        $this->call(PermissionSeeder::class);
 
-        $this->call([
-            CategoryServiceSeeder::class,
-        ]);
+        // Create modules and attach them to roles
+        $this->call(ModulePermissionSeeder::class);
+
+        // Create default client license for module filtering
+        $this->call(ClientLicenseSeeder::class);
+
+        // Create Medical Director role and scoped oversight access
+        $this->call(MedicalDirectorSeeder::class);
+
+        // Create admin user
+        $this->call(AdminUserSeeder::class);
+
+        // Preserve current user access while module access management is introduced
+        $this->call(ModuleUserAccessSeeder::class);
+
+        // Create accountant role and permissions
+        $this->call(AccountantSeeder::class);
+
+        // Create services
+        $this->call(ServiceSeeder::class);
+        
+        $this->call(InvestigationSeeder::class);
+        
+        $this->call(RouteSeeder::class);
+        
+        $this->call(ConsumableSeeder::class);
     }
 }

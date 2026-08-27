@@ -1,78 +1,132 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>@yield('title', 'Annex System')</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <!-- Tailwind CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+        <title>{{ config('app.name', 'Fatima Yahaya Hospital') }}</title>
+        
+        @vite(['resources/css/guest.css', 'resources/js/app.js']) 
+        
+        <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/png">
 
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#0F2D5C',
-                        secondary: '#1E4E8C',
-                        accent: '#16A34A',
-                        lightbg: '#E6F0FA'
+           
+    </head>
+    <body>
+        
+
+        <div class="auth-container">
+            
+            <div class="auth-body">
+                <div class="text text-center"><img src="{{asset('images/logo.png')}}" width="100" alt=""></div>
+                
+                {{ $slot }}
+                
+            </div>
+        </div>
+
+        <!-- Bootstrap JS -->
+        <script>
+            (function () {
+                const pageLoader = document.getElementById('page-loader');
+
+                const hidePageLoader = () => {
+                    if (pageLoader) {
+                        pageLoader.classList.add('hidden');
                     }
-                }
-            }
-        }
-    </script>
-</head>
+                };
 
-<body class="min-h-screen bg-lightbg">
+                const disableElement = (element) => {
+                    if (!element || element.dataset.loading === 'true') {
+                        return;
+                    }
 
-    <div class="min-h-screen grid md:grid-cols-2">
+                    element.dataset.loading = 'true';
 
-        <!-- LEFT SIDE (FORM AREA) -->
-        <div class="flex items-center justify-center p-10 bg-white">
+                    if (element.tagName === 'A') {
+                        element.style.pointerEvents = 'none';
+                        element.setAttribute('aria-disabled', 'true');
+                        element.classList.add('disabled');
+                        return;
+                    }
 
-            <div class="w-full max-w-md">
-                @yield('content')
-            </div>
+                    element.disabled = true;
+                };
 
-        </div>
+                const setButtonLoading = (button, label) => {
+                    if (!button || button.dataset.loading === 'true') {
+                        return;
+                    }
 
-        <!-- RIGHT SIDE (IMAGE BACKGROUND STYLE) -->
-        <div class="hidden md:flex relative items-center justify-center">
+                    disableElement(button);
+                    button.dataset.originalHtml = button.innerHTML;
+                    button.innerHTML = `
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                        ${label}
+                    `;
+                };
 
-            <!-- Background Image -->
-            <div class="absolute inset-0 bg-cover bg-center"
-                style="background-image: url('/images/hero.png');">
-            </div>
+                const isActionableLink = (link) => {
+                    if (!link || !link.href) {
+                        return false;
+                    }
 
-            <!-- Dark Overlay -->
-            <div class="absolute inset-0 bg-gradient-to-br 
-                        from-primary/90 
-                        via-secondary/85 
-                        to-primary/95 
-                        backdrop-blur-sm">
-            </div>
+                    const href = link.getAttribute('href');
+                    if (!href || href.startsWith('#') || href.startsWith('javascript:') || href === 'mailto:' || href === 'tel:') {
+                        return false;
+                    }
 
-            <!-- Content -->
-            <div class="relative z-10 text-center text-white px-12 max-w-md">
+                    if (link.target && link.target !== '_self') {
+                        return false;
+                    }
 
-                <h2 class="text-3xl font-bold">
-                    Annex System
-                </h2>
+                    if (link.hasAttribute('download')) {
+                        return false;
+                    }
 
-                <p class="mt-4 text-gray-200">
-                    Transparent Diagnostic Record Management
-                </p>
+                    return link.hostname === window.location.hostname;
+                };
 
-                <div class="mt-6 text-sm text-gray-300">
-                    Automated 40% Allocation • Expense Tracking • Daily Reporting
-                </div>
+                document.addEventListener('DOMContentLoaded', function () {
+                    hidePageLoader();
 
-            </div>
+                    document.querySelectorAll('a').forEach(link => {
+                        if (!isActionableLink(link)) {
+                            return;
+                        }
 
-        </div>
+                        link.addEventListener('click', function () {
+                            disableElement(link);
+                        });
+                    });
 
-    </div>
+                    document.querySelectorAll('button, input[type="submit"], input[type="button"], input[type="reset"]').forEach(control => {
+                        control.addEventListener('click', function (event) {
+                            const button = event.currentTarget;
 
-</body>
+                            if (button.matches('[data-bs-toggle], [data-toggle], .dropdown-toggle')) {
+                                return;
+                            }
+
+                            if (button.closest('form') && (button.type === 'submit' || button.getAttribute('type') === 'submit')) {
+                                return;
+                            }
+
+                            setButtonLoading(button, button.dataset.loadingText || 'Loading...');
+                        });
+                    });
+
+                    document.querySelectorAll('form').forEach(form => {
+                        form.addEventListener('submit', function () {
+                            const button = form.querySelector("button[type='submit'], input[type='submit']");
+                            if (button) {
+                                setButtonLoading(button, button.dataset.loadingText || 'Processing...');
+                            }
+                        });
+                    });
+                });
+            })();
+        </script>
+    </body>
 </html>

@@ -11,12 +11,18 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('audit_logs', function (Blueprint $table) {
-            $table->id();
-            $table->string('action');
-            $table->text('description');
-            $table->foreignId('user_id')->constrained();
-            $table->timestamps();
+        if (! Schema::hasTable('audit_logs')) {
+            return;
+        }
+
+        Schema::table('audit_logs', function (Blueprint $table) {
+            if (! Schema::hasColumn('audit_logs', 'description')) {
+                $table->text('description')->nullable()->after('action');
+            }
+
+            if (! Schema::hasColumn('audit_logs', 'user_id')) {
+                $table->foreignId('user_id')->nullable()->after('description')->constrained()->nullOnDelete();
+            }
         });
     }
 
@@ -25,6 +31,18 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('audit_logs');
+        if (! Schema::hasTable('audit_logs')) {
+            return;
+        }
+
+        Schema::table('audit_logs', function (Blueprint $table) {
+            if (Schema::hasColumn('audit_logs', 'user_id')) {
+                $table->dropConstrainedForeignId('user_id');
+            }
+
+            if (Schema::hasColumn('audit_logs', 'description')) {
+                $table->dropColumn('description');
+            }
+        });
     }
 };

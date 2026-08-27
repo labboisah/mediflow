@@ -1,51 +1,79 @@
 @extends('layouts.app')
 
-@section('page-title', 'Create User')
+@section('title', 'Create User')
+
+@section('header')
+<h1 class="h3 d-flex align-items-center mb-0">
+    <i class="bi bi-person-plus-fill me-2 text-success"></i>
+    Create New User
+</h1>
+@endsection
 
 @section('content')
+<div class="row">
+    <div class="col-12 col-lg-8">
+        <div class="card shadow-sm">
+            <div class="card-body">
+                <form action="{{ route('admin.users.store') }}" method="POST">
+                    @csrf
 
-<div class="max-w-3xl mx-auto bg-white p-8 rounded-xl shadow">
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                        <input type="text" id="name" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}" required>
+                        @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
 
-<form method="POST" action="{{ route('admin.users.store') }}">
-@csrf
+                    <div class="mb-3">
+                        <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
+                        <input type="email" id="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" required>
+                        @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
 
-<div class="space-y-6">
+                    <div class="mb-3">
+                        <label for="password" class="form-label">Password</label>
+                        <input type="password" id="password" name="password" class="form-control @error('password') is-invalid @enderror" placeholder="Leave blank to auto-generate">
+                        @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
 
-<input type="text" name="name" placeholder="Full Name"
-class="w-full px-4 py-3 border rounded-xl">
+                    <div class="mb-3">
+                        <label for="password_confirmation" class="form-label">Confirm Password</label>
+                        <input type="password" id="password_confirmation" name="password_confirmation" class="form-control">
+                    </div>
 
-<input type="email" name="email" placeholder="Email"
-class="w-full px-4 py-3 border rounded-xl">
+                    <div class="mb-3">
+                        <label class="form-label">Assign Roles</label>
+                        <div class="border rounded p-3">
+                            @forelse($roles as $role)
+                                <div class="form-check mb-2">
+                                    <input class="form-check-input" type="checkbox" id="role_{{ $role->id }}" name="roles[]" value="{{ $role->id }}">
+                                    <label class="form-check-label" for="role_{{ $role->id }}">{{ $role->name }}</label>
+                                </div>
+                            @empty
+                                <p class="text-muted">No roles available.</p>
+                            @endforelse
+                        </div>
+                    </div>
 
-<input type="password" name="password" placeholder="Password"
-class="w-full px-4 py-3 border rounded-xl">
+                    <!-- department -->
+                    <div class="mb-3">
+                        <label for="department_id" class="form-label">Assign Department</label>
+                        <select id="department_id" name="department_id" class="form-select @error('department_id') is-invalid @enderror">
+                            <option value="">Select Department (optional)</option>
+                            @foreach(App\Models\Department::all() as $department)
+                                <option value="{{ $department->id }}" {{ old('department_id') == $department->id ? 'selected' : '' }}>{{ $department->name }}</option>
+                            @endforeach
+                        </select>
+                        @error('department_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                    </div>
 
-<input type="password" name="password_confirmation"
-placeholder="Confirm Password"
-class="w-full px-4 py-3 border rounded-xl">
-
-<select name="role"
-class="w-full px-4 py-3 border rounded-xl">
-<option value="user">User</option>
-<option value="staff">Staff</option>
-<option value="admin">Admin</option>
-</select>
-
-<select name="staff_type"
-class="w-full px-4 py-3 border rounded-xl">
-<option value="staff">Staff Commission</option>
-<option value="radiologist">Radiologist Commission</option>
-<option value="radiographer">Radiographer Commission</option>
-</select>
-
-<button class="bg-accent text-white px-6 py-3 rounded-xl">
-Create User
-</button>
-
-</div>
-
-</form>
-
+                    <div class="d-flex gap-2">
+                        <button class="btn btn-success" type="submit"><i class="bi bi-check-circle me-1"></i>Create User</button>
+                        <a class="btn btn-secondary" href="{{ route('admin.users.index') }}">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
 </div>
 
 @endsection

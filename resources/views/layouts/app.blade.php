@@ -1,506 +1,154 @@
 <!DOCTYPE html>
-<html lang="en" class="scroll-smooth">
-<head>
-    <meta charset="UTF-8">
-    <title>@yield('title', 'Annex System')</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- Tailwind -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css" />
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        primary: '#0F2D5C',
-                        secondary: '#1E4E8C',
-                        accent: '#16A34A',
-                        lightbg: '#E6F0FA'
-                    }
-                }
-            }
-        }
-    </script>
-    <style>
-        #nprogress .bar {
-            background: #16A34A !important; /* accent green */
-            height: 3px;
-        }
-    </style>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
+<head>
+
+<meta charset="utf-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1">
+
+<meta name="csrf-token"
+      content="{{ csrf_token() }}">
+
+<title>
+    {{ config('app.name') }}
+    | @yield('title')
+</title>
+
+<link rel="icon"
+      href="{{ asset('images/logo.png') }}"
+      type="image/png">
+
+@vite(['resources/css/app.css', 'resources/js/app.js'])
+
+
+
+@livewireStyles
+@stack('styles')
+
+
 </head>
 
-<body class="bg-lightbg dark:bg-primary transition-all duration-300">
+<body>
 
-<div class="flex min-h-screen">
+<div class="min-vh-100 d-flex flex-column">
 
-    <!-- SIDEBAR -->
-    <aside class="w-64 bg-primary text-white hidden md:flex flex-col">
+    @include('layouts.partials.navbar')
 
-        <!-- Logo -->
-        <div class="p-6 text-2xl font-extrabold border-b border-secondary">
-            ANNEX <span class="text-accent">SYSTEM</span>
-        </div>
+    @if(Auth::check())
+        <div class="admin-layout flex-grow-1">
+            @include('layouts.partials.admin-sidebar')
 
-        <!-- Navigation -->
-        <nav class="flex-1 p-6 space-y-4 text-sm">
+            <div class="admin-content">
+                @include('layouts.partials.breadcrumb')
 
-           {{-- DASHBOARD --}}
-            <a href="{{ route('dashboard') }}"
-            class="flex items-center gap-3 px-4 py-2 rounded-lg transition
-            {{ request()->routeIs('dashboard') ? 'bg-secondary text-white' : 'hover:bg-secondary' }}">
+                @hasSection('header')
 
-                <!-- Dashboard Icon -->
-                <svg class="w-5 h-5 text-accent"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M3 3h7v7H3V3zm11 0h7v11h-7V3zM3 14h7v7H3v-7zm11 4h7v3h-7v-3z"/>
-                </svg>
+                    <header class="bg-white shadow-sm">
 
-                <span>Dashboard</span>
-            </a>
+                        <div class="container-fluid py-4">
 
+                            @yield('header')
 
-            @if(auth()->user()->role == 'user')
+                        </div>
 
-            {{-- PAYMENTS --}}
-            <a href="{{route('payments.index')}}"
-            class="flex items-center gap-3 px-4 py-2 rounded-lg transition
-            {{ request()->routeIs('payments.*') ? 'bg-secondary text-white' : 'hover:bg-secondary' }}">
+                    </header>
 
-                <!-- Payment Icon -->
-                <svg class="w-5 h-5 text-accent"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M3 7h18M3 10h18M5 14h6"/>
-                </svg>
+                @endif
 
-                <span>Payments</span>
-            </a>
+                <main class="flex-grow-1 py-4">
 
+                    <div class="container-fluid">
 
-            {{-- BILLS --}}
-            <a href="{{route('bills.index')}}"
-            class="flex items-center gap-3 px-4 py-2 rounded-lg transition
-            {{ request()->routeIs('bills.*') ? 'bg-secondary text-white' : 'hover:bg-secondary' }}">
+                        @include('layouts.partials.alerts')
 
-                <!-- Bill Icon -->
-                <svg class="w-5 h-5 text-accent"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M9 12h6m-6 4h6M9 8h6M5 3h14a2 2 0 012 2v16l-4-2-4 2-4-2-4 2V5a2 2 0 012-2z"/>
-                </svg>
+                        @yield('content')
 
-                <span>Bills</span>
-            </a>
+                    </div>
 
-
-            {{-- EXPENSES --}}
-            <a href="{{route('expenses.index')}}"
-            class="flex items-center gap-3 px-4 py-2 rounded-lg transition
-            {{ request()->routeIs('expenses.*') ? 'bg-secondary text-white' : 'hover:bg-secondary' }}">
-
-                <!-- Expense Icon -->
-                <svg class="w-5 h-5 text-accent"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24">
-                    <path stroke-linecap="round"
-                        stroke-linejoin="round"
-                        stroke-width="2"
-                        d="M17 9V7a4 4 0 10-8 0v2m-2 0h12l1 12H4L5 9z"/>
-                </svg>
-
-                <span>Expenses</span>
-            </a>
-
-            @endif
-
-            @if(auth()->user()->role == 'staff')
-                <a href="{{ route('staff.results.index') }}"
-                class="flex items-center gap-3 px-4 py-2 rounded-lg transition
-                {{ request()->routeIs('staff.results.index') || request()->routeIs('staff.results.entry') ? 'bg-secondary text-white' : 'hover:bg-secondary' }}">
-
-                    <svg class="w-5 h-5 text-accent"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M9 12h6m-6 4h6M7 4h10a2 2 0 012 2v14l-4-2-4 2-4-2-4 2V6a2 2 0 012-2z"/>
-                    </svg>
-
-                    <span>Result Entry</span>
-                </a>
-
-                <a href="{{ route('staff.results.reports') }}"
-                class="flex items-center gap-3 px-4 py-2 rounded-lg transition
-                {{ request()->routeIs('staff.results.reports') || request()->routeIs('staff.results.print') ? 'bg-secondary text-white' : 'hover:bg-secondary' }}">
-
-                    <svg class="w-5 h-5 text-accent"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M9 17v-6m4 6V7m4 10v-4M3 3v18h18"/>
-                    </svg>
-
-                    <span>Report</span>
-                </a>
-
-                <a href="{{ route('staff.results.commission') }}"
-                class="flex items-center gap-3 px-4 py-2 rounded-lg transition
-                {{ request()->routeIs('staff.results.commission') ? 'bg-secondary text-white' : 'hover:bg-secondary' }}">
-
-                    <svg class="w-5 h-5 text-accent"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V6m0 10v2m8-6a8 8 0 11-16 0 8 8 0 0116 0z"/>
-                    </svg>
-
-                    <span>Commission</span>
-                </a>
-            @endif
-
-            @if(auth()->user()->role == 'admin')
-                <a href="{{route('admin.categories.index')}}"
-                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-secondary transition">
-                    
-                    <!-- Category Icon (Folder) -->
-                    <svg class="w-5 h-5 text-accent"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M3 7a2 2 0 012-2h4l2 2h8a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V7z"/>
-                    </svg>
-
-                    <span>Categories</span>
-                </a>
-
-
-                <a href="{{route('admin.services.index')}}"
-                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-secondary transition">
-
-                    <!-- Services Icon (Clipboard List) -->
-                    <svg class="w-5 h-5 text-accent"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M9 5h6m-6 4h6m-6 4h4m5 7H6a2 2 0 01-2-2V5a2 2 0 012-2h3l1-1h4l1 1h3a2 2 0 012 2v13a2 2 0 01-2 2z"/>
-                    </svg>
-
-                    <span>Services</span>
-                </a>
-
-
-                <a href="{{route('admin.users.index')}}"
-                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-secondary transition">
-
-                    <!-- Users Icon -->
-                    <svg class="w-5 h-5 text-accent"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M17 20h5v-2a4 4 0 00-5-3.87M9 20H4v-2a4 4 0 015-3.87m8-4a4 4 0 11-8 0 4 4 0 018 0z"/>
-                    </svg>
-
-                    <span>Users</span>
-                </a>
-
-
-                <a href="{{route('admin.finances.index')}}"
-                class="flex items-center gap-3 px-4 py-2 rounded-lg hover:bg-secondary transition">
-
-                    <!-- Finance Icon (Chart Bar) -->
-                    <svg class="w-5 h-5 text-accent"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M3 3v18h18M9 17V9m4 8V5m4 12v-6"/>
-                    </svg>
-
-                    <span>Finance</span>
-                </a>
-
-                <a href="{{ route('admin.salaries.index') }}"
-                class="flex items-center gap-3 px-4 py-2 rounded-lg transition
-                {{ request()->routeIs('admin.salaries.*') ? 'bg-secondary text-white' : 'hover:bg-secondary' }}">
-
-                    <svg class="w-5 h-5 text-accent"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8V6m0 10v2m8-6a8 8 0 11-16 0 8 8 0 0116 0z"/>
-                    </svg>
-
-                    <span>Salary</span>
-                </a>
-
-                <a href="{{ route('admin.reports.index') }}"
-                class="flex items-center gap-3 px-4 py-2 rounded-lg transition
-                {{ request()->routeIs('reports.*') ? 'bg-secondary text-white border-l-4 border-accent' : 'hover:bg-secondary' }}">
-
-                    <!-- Report / Analytics Icon -->
-                    <svg class="w-5 h-5 text-accent"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M9 17v-6m4 6V7m4 10v-4M3 3v18h18"/>
-                    </svg>
-
-                    <span>Reports</span>
-                </a>
-
-                <a href="{{ route('admin.staff-reports.index') }}"
-                class="flex items-center gap-3 px-4 py-2 rounded-lg transition
-                {{ request()->routeIs('admin.staff-reports.*') ? 'bg-secondary text-white' : 'hover:bg-secondary' }}">
-
-                    <svg class="w-5 h-5 text-accent"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24">
-                        <path stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M9 17v-6m4 6V7m4 10v-4M5 20h14M5 4h14"/>
-                    </svg>
-
-                    <span>Staff Reports</span>
-                </a>
-            @endif
-
-        </nav>
-
-        <!-- Bottom User Info -->
-        <div class="p-6 border-t border-secondary">
-
-            <div class="text-sm">
-                <div class="font-semibold">
-                    {{ auth()->user()->name }}
-                </div>
-
-                <div class="text-xs text-gray-300 mt-1">
-                    Role: 
-                    <span class="text-accent font-bold uppercase">
-                        {{ auth()->user()->role }}
-                    </span>
-                </div>
+                </main>
             </div>
-
-            <!-- Logout -->
-            <form method="POST" action="{{ route('logout') }}" class="mt-4">
-                @csrf
-                <button class="w-full bg-accent text-primary py-2 rounded-lg font-semibold hover:bg-green-500 transition">
-                    Logout
-                </button>
-            </form>
-
         </div>
-    </aside>
+    @else
 
+    @include('layouts.partials.breadcrumb')
 
-    <!-- MAIN CONTENT AREA -->
-    <div class="flex-1 flex flex-col">
+    @hasSection('header')
 
-        <!-- TOP NAVBAR -->
-        <header class="bg-white dark:bg-secondary shadow-md px-6 py-4 flex justify-between items-center">
+        <header class="bg-white shadow-sm">
 
-            <h1 class="text-xl font-bold text-primary dark:text-white">
-                @yield('page-title', 'Dashboard')
-            </h1>
+            <div class="container py-4">
 
-            <div class="flex items-center gap-4">
-
-                <!-- Dark Mode Toggle -->
-                <button onclick="toggleDarkMode()" 
-                    class="bg-gray-200 dark:bg-gray-700 px-3 py-1 rounded-lg">
-                    🌙
-                </button>
+                @yield('header')
 
             </div>
 
         </header>
 
-        <!-- PAGE CONTENT -->
-        <main class="flex-1 p-6">
-            @if(session('success'))
-            <div id="toast"
-                class="fixed top-5 right-5 bg-accent text-white px-6 py-3 rounded-xl shadow-lg">
-                {{ session('success') }}
-            </div>
+    @endif
 
-            <script>
-                setTimeout(() => {
-                    document.getElementById("toast").remove();
-                }, 3000);
-            </script>
-            @endif
+    <main class="flex-grow-1 py-4">
 
+        <div class="container">
+
+            @include('layouts.partials.alerts')
 
             @yield('content')
 
-        </main>
+        </div>
 
-    </div>
-
+    </main>
+    @endif
+    @livewireScripts
 </div>
 
+<div class="toast-container position-fixed top-0 end-0 p-3">
+    <div id="livewireToast"
+         class="toast align-items-center text-bg-success border-0"
+         role="alert">
+        <div class="d-flex">
+            <div class="toast-body">Success</div>
+            <button type="button"
+                    class="btn-close btn-close-white me-2 m-auto"
+                    data-bs-dismiss="toast">
+            </button>
+        </div>
+    </div>
+</div>
 
-<!-- DARK MODE SCRIPT -->
 <script>
-    function toggleDarkMode() {
-        document.documentElement.classList.toggle('dark');
-    }
-</script>
+document.addEventListener('livewire:init', () => {
+    Livewire.on('toast', (event) => {
+        const toastEl = document.getElementById('livewireToast');
+        const toastBody = toastEl.querySelector('.toast-body');
 
+        toastBody.innerText = event.message;
+        toastEl.classList.remove('text-bg-success', 'text-bg-danger', 'text-bg-warning');
 
-
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-
-    /* ==========================================
-       CONFIGURE NPROGRESS (TOP LOADING BAR)
-    ========================================== */
-
-    if (typeof NProgress !== 'undefined') {
-        NProgress.configure({
-            showSpinner: false,
-            trickleSpeed: 120
-        });
-    }
-
-    /* ==========================================
-       SMOOTH PAGE FADE-IN EFFECT
-    ========================================== */
-
-    document.body.classList.add("opacity-0");
-
-    setTimeout(() => {
-        document.body.classList.remove("opacity-0");
-        document.body.classList.add("transition-opacity", "duration-300", "opacity-100");
-    }, 50);
-
-
-    /* ==========================================
-       INTERNAL LINK NAVIGATION HANDLER
-    ========================================== */
-
-    document.querySelectorAll("a").forEach(link => {
-
-        const href = link.getAttribute("href");
-
-        const isInternal =
-            link.hostname === window.location.hostname &&
-            href &&
-            !href.startsWith("#") &&
-            !link.hasAttribute("target");
-
-        if (isInternal) {
-            link.addEventListener("click", function () {
-                if (typeof NProgress !== 'undefined') {
-                    NProgress.start();
-                }
-            });
+        switch (event.type) {
+            case 'danger':
+                toastEl.classList.add('text-bg-danger');
+            break;
+            case 'warning':
+                toastEl.classList.add('text-bg-warning');
+            break;
+            default:
+                toastEl.classList.add('text-bg-success');
         }
+
+        new bootstrap.Toast(toastEl).show();
     });
-
-    window.addEventListener("load", function () {
-        if (typeof NProgress !== 'undefined') {
-            NProgress.done();
-        }
-    });
-
-
-    /* ==========================================
-       FORM SUBMISSION SPINNER
-    ========================================== */
-
-    document.querySelectorAll("form").forEach(form => {
-
-        form.addEventListener("submit", function () {
-
-            const button = form.querySelector("button[type='submit']");
-
-            if (button && !button.disabled) {
-
-                button.disabled = true;
-
-                const originalText = button.innerHTML;
-
-                button.innerHTML = `
-                    <span class="flex items-center justify-center gap-2">
-                        <svg class="animate-spin h-5 w-5 text-white"
-                             xmlns="http://www.w3.org/2000/svg"
-                             fill="none"
-                             viewBox="0 0 24 24">
-                            <circle class="opacity-25"
-                                    cx="12" cy="12" r="10"
-                                    stroke="currentColor"
-                                    stroke-width="4">
-                            </circle>
-                            <path class="opacity-75"
-                                  fill="currentColor"
-                                  d="M4 12a8 8 0 018-8v8H4z">
-                            </path>
-                        </svg>
-                        Processing...
-                    </span>
-                `;
-
-                // Safety fallback (re-enable button after 5s if something fails)
-                setTimeout(() => {
-                    button.disabled = false;
-                    button.innerHTML = originalText;
-                }, 5000);
-            }
-
-        });
-
-    });
-
 });
-
 </script>
-@yield('scripts')
+
+@stack('vite')
+
+
+@stack('scripts')
+
+
 </body>
+
 </html>

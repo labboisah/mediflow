@@ -1,69 +1,68 @@
-@extends('layouts.guest')
+<x-guest-layout>
+    <!-- Session Status -->
+    <x-auth-session-status class="mb-3" :status="session('status')" />
 
-@section('title', 'Login')
+    <form method="POST" action="{{ route('login') }}" novalidate class="needs-validation">
+        @csrf
 
-@section('content')
+        <h5 style="margin-bottom: 1.5rem; color: #27AE60; font-weight: 700;" class="d-flex align-items-center justify-content-center">
+            Login <i class="bi bi-box-arrow-in-right"></i>
+        </h5>
 
-<div class="mb-8 text-center">
-    <h1 class="text-3xl font-extrabold text-primary">
-        Welcome Back
-    </h1>
-    <p class="text-gray-600 mt-2">
-        Login to access Annex System
-    </p>
-</div>
+        <!-- Email Address -->
+        <div class="mb-3">
+            <label for="email" class="form-label">Email Address</label>
+            <div class="input-group">
+                <span class="input-group-text" style="background: #f8f9fa; border: 2px solid #e0e0e0;">
+                    <i class="bi bi-envelope" style="color: #FF8C42;"></i>
+                </span>
+                <input 
+                    id="email" 
+                    class="form-control @error('email') is-invalid @enderror" 
+                    type="email" 
+                    name="email" 
+                    value="{{ old('email') }}" 
+                    required 
+                    autofocus 
+                    autocomplete="username"
+                    placeholder="your@email.com"
+                />
+                @error('email')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+        </div>
 
-<form method="POST" action="{{ route('login') }}" class="space-y-6">
-    @csrf
+        <!-- Password -->
+        <div class="mb-3">
+            <label for="password" class="form-label">Password</label>
+            <div class="input-group">
+                <span class="input-group-text" style="background: #f8f9fa; border: 2px solid #e0e0e0;">
+                    <i class="bi bi-lock" style="color: #FF8C42;"></i>
+                </span>
+                <input 
+                    id="password" 
+                    class="form-control @error('password') is-invalid @enderror"
+                    type="password"
+                    name="password"
+                    required 
+                    autocomplete="current-password"
+                    placeholder="Enter your password"
+                />
+                @error('password')
+                    <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+            </div>
+        </div>
 
-    <!-- Email -->
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-            Email Address
-        </label>
-
-        <input type="email"
-               name="email"
-               required
-               autofocus
-               class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-accent focus:outline-none">
-
-        @error('email')
-            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-        @enderror
-    </div>
-
-    <!-- Password -->
-    <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-            Password
-        </label>
-
-        <input type="password"
-               name="password"
-               required
-               class="w-full px-4 py-3 border rounded-xl focus:ring-2 focus:ring-accent focus:outline-none">
-
-        @error('password')
-            <p class="text-red-500 text-sm mt-1">{{ $message }}</p>
-        @enderror
-    </div>
-
-    <!-- Remember -->
-    <div class="flex items-center justify-between">
-        <label class="flex items-center">
-            <input type="checkbox" name="remember"
-                   class="rounded text-accent focus:ring-accent">
-            <span class="ml-2 text-sm text-gray-600">Remember me</span>
-        </label>
-    </div>
-
-    <!-- Submit -->
-    <button type="submit"
-            class="w-full bg-accent text-white py-3 rounded-xl font-semibold hover:bg-green-600 transition shadow-lg">
-        Login
-    </button>
-
-</form>
-
-@endsection
+        
+        <div class="auth-links">
+            <p style="margin: 0; color: #666; font-size: 0.9rem;">
+                <a href="/">Go Back toHome</a>
+                <button type="submit" class="btn btn-success" style="min-width: 100px;">
+                    <i class="bi bi-box-arrow-in-right"></i> Login
+                </button>
+            </p>
+        </div>
+    </form>
+</x-guest-layout>
