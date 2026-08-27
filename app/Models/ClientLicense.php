@@ -3,14 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ClientLicense extends Model
 {
     protected $fillable = [
+        'client_id',
         'client_name',
         'plan',
         'license_key',
+        'branch_limit',
         'starts_at',
         'expires_at',
         'is_active',
@@ -19,11 +22,17 @@ class ClientLicense extends Model
     protected $casts = [
         'starts_at' => 'datetime',
         'expires_at' => 'datetime',
+        'branch_limit' => 'integer',
         'is_active' => 'boolean',
     ];
 
     public function enabledModules(): HasMany
     {
         return $this->hasMany(ClientEnabledModule::class);
+    }
+
+    public function client(): BelongsTo
+    {
+        return $this->belongsTo(Client::class);
     }
 }

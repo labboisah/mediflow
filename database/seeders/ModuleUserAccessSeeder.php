@@ -31,8 +31,10 @@ class ModuleUserAccessSeeder extends Seeder
         User::with('roles')->get()->each(function (User $user) use ($modulesByRole, $allModules) {
             $modules = collect();
 
-            if ($user->isSuperAdmin() || $user->hasRole('administrator')) {
-                $modules = $allModules;
+            if ($user->hasRole('administrator')) {
+                $modules = $allModules->reject(fn (string $module) => in_array($module, config('mediflow_modules.platform_modules', ['platform']), true));
+            } elseif ($user->isSuperAdmin()) {
+                $modules = collect(config('mediflow_modules.platform_modules', ['platform']));
             } else {
                 foreach ($user->roles as $role) {
                     $modules = $modules->merge($modulesByRole->get($role->name, collect()));

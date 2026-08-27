@@ -23,12 +23,20 @@ use Illuminate\Support\Facades\Schema;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class Dashboard extends Component
 {
     public function render()
     {
+        $canViewTechnicalRecords = auth()->user()?->hasRole('administrator') ?? false;
+        $pageTitle = $canViewTechnicalRecords ? 'Superadmin Dashboard' : 'Medical Director Dashboard';
+        $pageSubtitle = $canViewTechnicalRecords
+            ? 'Live hospital, finance, access, and sync overview.'
+            : 'Live hospital, patient flow, setup, and finance overview.';
+
         return view('components.admin.dashboard', [
+            'pageTitle' => $pageTitle,
+            'pageSubtitle' => $pageSubtitle,
             'accessMetrics' => $this->accessMetrics(),
             'hospitalMetrics' => $this->hospitalMetrics(),
             'financeMetrics' => $this->financeMetrics(),
@@ -38,7 +46,7 @@ class Dashboard extends Component
             'billStatusRows' => $this->billStatusRows(),
             'recentActivities' => $this->recentActivities(),
             'lastUpdated' => now(),
-            'canViewTechnicalRecords' => auth()->user()?->hasRole('administrator') ?? false,
+            'canViewTechnicalRecords' => $canViewTechnicalRecords,
         ]);
     }
 

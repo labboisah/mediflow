@@ -23,10 +23,13 @@ use App\Http\Controllers\Admin\ExpenseController;
 use App\Http\Controllers\Admin\PatientRegisterController as AdminPatientRegisterController;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Livewire\Admin\AccessControlManager;
+use App\Livewire\Admin\AgentManagement;
 use App\Livewire\Admin\BillManagement;
+use App\Livewire\Admin\ClientManagement;
 use App\Livewire\Admin\ExpenseCategoryManagement;
 use App\Livewire\Admin\ExpenseManagement;
 use App\Livewire\Admin\FileTypeManagement;
+use App\Livewire\Admin\LicenseManagement;
 use App\Livewire\Admin\PaymentManagement;
 use App\Livewire\Admin\RevenueCategoryManagement;
 use App\Livewire\Admin\RevenueManagement;
@@ -85,6 +88,18 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('access-control', AccessControlManager::class)
         ->middleware('access:role:administrator,permission:role.read,permission:permission.read')
         ->name('access-control');
+
+    Route::get('license-management', LicenseManagement::class)
+        ->middleware(['module:platform', 'access:role:superadmin,permission:license.manage'])
+        ->name('license-management');
+
+    Route::get('clients', ClientManagement::class)
+        ->middleware(['module:platform', 'access:role:superadmin,permission:client.manage'])
+        ->name('clients.index');
+
+    Route::get('agents', AgentManagement::class)
+        ->middleware(['module:platform', 'access:role:superadmin,permission:agent.manage'])
+        ->name('agents.index');
 
     Route::middleware('role:administrator,medical_director')->group(function () {
         Route::get('patient-register', [AdminPatientRegisterController::class, 'index'])->name('patient-register.index');

@@ -16,13 +16,13 @@ class RoleSeeder extends Seeder
             [
                 'name' => 'superadmin',
                 'display_name' => 'Super Admin',
-                'description' => 'Top-level platform owner with unrestricted access across all clients, modules, and system controls',
+                'description' => 'Platform owner for modules, licenses, activation, invoices, payments, and partner management',
             ],
 
             [
                 'name' => 'administrator',
                 'display_name' => 'Administrator',
-                'description' => 'Full system access with ability to manage all users, roles, and permissions',
+                'description' => 'Hospital administrator with full hospital access inside activated plan modules',
             ],
 
             [

@@ -66,10 +66,6 @@ class SidebarService
             return false;
         }
 
-        if ($user->isSuperAdmin()) {
-            return true;
-        }
-
         $permissionNames = $module->permissions->pluck('name')->filter()->all();
 
         if ($permissionNames !== [] && $user->hasAnyPermission($permissionNames)) {

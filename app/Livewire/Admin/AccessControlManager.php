@@ -16,7 +16,7 @@ use Illuminate\Validation\Rule;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class AccessControlManager extends Component
 {
     private const PROTECTED_ROLES = ['superadmin', 'administrator'];
@@ -44,6 +44,8 @@ class AccessControlManager extends Component
     public function render()
     {
         return view('components.admin.access-control-manager', [
+            'pageTitle' => 'Access Control',
+            'pageSubtitle' => 'Manage role permissions, licensed module access, and user assignments.',
             'roles' => $this->roles(),
             'selectedRole' => $this->selectedRole(),
             'permissionGroups' => $this->permissionGroups(),
@@ -201,7 +203,7 @@ class AccessControlManager extends Component
         $user = User::with('roles')->findOrFail($userId);
 
         if ($user->isSuperAdmin()) {
-            $this->dispatch('toast', message: 'Super admin always has all module access.', type: 'warning');
+            $this->dispatch('toast', message: 'Super admin platform access is managed by the system role.', type: 'warning');
             return;
         }
 
@@ -298,6 +300,7 @@ class AccessControlManager extends Component
 
         return Module::query()
             ->whereNotNull('license_module')
+            ->whereNotIn('license_module', config('mediflow_modules.platform_modules', ['platform']))
             ->when(
                 ! in_array('*', $enabledModules, true),
                 fn ($query) => $query->whereIn('license_module', $enabledModules)

@@ -1,79 +1,78 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'Create User')
-
-@section('header')
-<h1 class="h3 d-flex align-items-center mb-0">
-    <i class="bi bi-person-plus-fill me-2 text-success"></i>
-    Create New User
-</h1>
-@endsection
+@section('page-title', 'Create User')
+@section('page-subtitle', 'Add a staff account and assign department and role access.')
 
 @section('content')
-<div class="row">
-    <div class="col-12 col-lg-8">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <form action="{{ route('admin.users.store') }}" method="POST">
+    <x-ui.page title="Create User" subtitle="Add a staff account and assign department and role access.">
+        <div class="grid gap-6 xl:grid-cols-12">
+            <x-ui.card class="xl:col-span-8" title="User Details">
+                <form action="{{ route('admin.users.store') }}" method="POST" class="space-y-5">
                     @csrf
 
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Full Name <span class="text-danger">*</span></label>
-                        <input type="text" id="name" name="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}" required>
-                        @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <x-ui.input label="Full Name" name="name" value="{{ old('name') }}" required />
+                        <x-ui.input label="Email" name="email" type="email" value="{{ old('email') }}" required />
+                        <x-ui.input label="Password" name="password" type="password" placeholder="Leave blank to auto-generate" />
+                        <x-ui.input label="Confirm Password" name="password_confirmation" type="password" />
 
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                        <input type="email" id="email" name="email" class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}" required>
-                        @error('email')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Password</label>
-                        <input type="password" id="password" name="password" class="form-control @error('password') is-invalid @enderror" placeholder="Leave blank to auto-generate">
-                        @error('password')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="password_confirmation" class="form-label">Confirm Password</label>
-                        <input type="password" id="password_confirmation" name="password_confirmation" class="form-control">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Assign Roles</label>
-                        <div class="border rounded p-3">
-                            @forelse($roles as $role)
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="role_{{ $role->id }}" name="roles[]" value="{{ $role->id }}">
-                                    <label class="form-check-label" for="role_{{ $role->id }}">{{ $role->name }}</label>
-                                </div>
-                            @empty
-                                <p class="text-muted">No roles available.</p>
-                            @endforelse
+                        <div class="md:col-span-2">
+                            <x-ui.select label="Department" name="department_id" required>
+                                <option value="">Select department</option>
+                                @foreach($departments as $department)
+                                    <option value="{{ $department->id }}" @selected(old('department_id') == $department->id)>
+                                        {{ $department->name }}
+                                    </option>
+                                @endforeach
+                            </x-ui.select>
                         </div>
                     </div>
 
-                    <!-- department -->
-                    <div class="mb-3">
-                        <label for="department_id" class="form-label">Assign Department</label>
-                        <select id="department_id" name="department_id" class="form-select @error('department_id') is-invalid @enderror">
-                            <option value="">Select Department (optional)</option>
-                            @foreach(App\Models\Department::all() as $department)
-                                <option value="{{ $department->id }}" {{ old('department_id') == $department->id ? 'selected' : '' }}>{{ $department->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('department_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
+                    <section class="rounded-md border border-med-line bg-white">
+                        <div class="border-b border-med-line bg-med-canvas px-4 py-3">
+                            <h2 class="text-base font-semibold text-med-ink">Assign Roles</h2>
+                        </div>
+                        <div class="grid gap-3 p-4 md:grid-cols-2">
+                            @forelse($roles as $role)
+                                <label class="flex cursor-pointer items-start gap-3 rounded-md border border-med-line bg-white p-3 transition hover:bg-med-canvas">
+                                    <input class="mt-1 h-4 w-4 rounded border-med-line text-med-primary"
+                                           type="checkbox"
+                                           name="roles[]"
+                                           value="{{ $role->id }}"
+                                           @checked(in_array($role->id, old('roles', [])))>
+                                    <span>
+                                        <span class="block font-semibold text-med-ink">{{ $role->display_name ?: $role->name }}</span>
+                                        @if($role->description)
+                                            <span class="mt-1 block text-sm text-med-muted">{{ $role->description }}</span>
+                                        @endif
+                                    </span>
+                                </label>
+                            @empty
+                                <x-ui.empty-state title="No roles available" />
+                            @endforelse
+                        </div>
+                    </section>
 
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-success" type="submit"><i class="bi bi-check-circle me-1"></i>Create User</button>
-                        <a class="btn btn-secondary" href="{{ route('admin.users.index') }}">Cancel</a>
+                    <div class="flex flex-wrap gap-3 border-t border-med-line pt-5">
+                        <x-ui.button type="submit">
+                            <i class="bi bi-check-circle"></i>
+                            Create User
+                        </x-ui.button>
+
+                        <a href="{{ route('admin.users.index') }}">
+                            <x-ui.button type="button" variant="secondary">Cancel</x-ui.button>
+                        </a>
                     </div>
                 </form>
-            </div>
-        </div>
-    </div>
-</div>
+            </x-ui.card>
 
+            <x-ui.card class="xl:col-span-4" title="Account Setup">
+                <div class="space-y-4 text-base text-med-muted">
+                    <p>Users need a department and at least one role before they can work naturally inside licensed modules.</p>
+                    <p>If password is left blank, the system generates one and attempts to email the user.</p>
+                </div>
+            </x-ui.card>
+        </div>
+    </x-ui.page>
 @endsection

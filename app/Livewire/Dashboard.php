@@ -3,10 +3,14 @@
 namespace App\Livewire;
 
 use App\Models\AuditLog;
+use App\Models\Agent;
 use App\Models\Bill;
+use App\Models\Client;
+use App\Models\ClientLicense;
 use App\Models\InvestigationRequest;
 use App\Models\Medicine;
 use App\Models\MedicineBatch;
+use App\Models\Module;
 use App\Models\Patient;
 use App\Models\PatientVisit;
 use App\Models\Payment;
@@ -20,15 +24,24 @@ use Carbon\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('layouts.live')]
 class Dashboard extends Component
 {
     public function render()
     {
         $user = auth()->user();
+
+        if ($user?->isSuperAdmin()) {
+            return view('components.superadmin.dashboard', [
+                'pageTitle' => 'Platform Dashboard',
+                'pageSubtitle' => 'Manage MediFlow licensing, activations, modules, and platform access.',
+                'summary' => $this->platformSummary(),
+                'recentLicenses' => $this->recentLicenses(),
+                'recentActivities' => $this->platformActivities(),
+                'lastUpdated' => now(),
+            ])->layout('layouts.modern');
+        }
 
         return view('components.dashboard', [
             'user' => $user,
@@ -37,7 +50,57 @@ class Dashboard extends Component
             'recentActivities' => $this->recentActivities($user),
             'pharmacyDashboard' => ($user->hasRole('pharmacist') || $this->canManagePharmacy($user)) ? $this->pharmacyDashboard() : null,
             'lastUpdated' => now(),
-        ]);
+        ])->layout('layouts.live');
+    }
+
+    private function platformSummary(): array
+    {
+        return [
+            'clients' => Schema::hasTable('clients') ? Client::count() : 0,
+            'active_clients' => Schema::hasTable('clients') ? Client::where('status', 'active')->count() : 0,
+            'agents' => Schema::hasTable('agents') ? Agent::count() : 0,
+            'active_agents' => Schema::hasTable('agents') ? Agent::where('status', 'active')->count() : 0,
+            'licenses' => Schema::hasTable('client_licenses') ? ClientLicense::count() : 0,
+            'active_licenses' => Schema::hasTable('client_licenses') ? ClientLicense::where('is_active', true)->count() : 0,
+            'enabled_features' => Schema::hasTable('client_enabled_modules')
+                ? DB::table('client_enabled_modules')->where('is_enabled', true)->distinct('module_name')->count('module_name')
+                : 0,
+            'platform_modules' => Schema::hasTable('modules')
+                ? Module::whereIn('license_module', config('mediflow_modules.platform_modules', ['platform']))->count()
+                : 0,
+            'hospital_features' => count(config('mediflow_modules.features', [])),
+            'license_groups' => count(config('mediflow_modules.plans', [])),
+        ];
+    }
+
+    private function recentLicenses(): Collection
+    {
+        if (! Schema::hasTable('client_licenses')) {
+            return collect();
+        }
+
+        return ClientLicense::query()
+            ->latest('updated_at')
+            ->limit(6)
+            ->get();
+    }
+
+    private function platformActivities(): Collection
+    {
+        if (! Schema::hasTable('audit_logs')) {
+            return collect();
+        }
+
+        return AuditLog::with('actor')
+            ->where(fn ($query) => $query
+                ->where('action', 'like', 'license.%')
+                ->orWhere('action', 'like', 'module.%')
+                ->orWhere('action', 'like', 'activation.%')
+                ->orWhere('action', 'like', 'partner.%')
+                ->orWhere('action', 'like', 'agent.%'))
+            ->latest()
+            ->limit(8)
+            ->get();
     }
 
     private function cards($user): Collection

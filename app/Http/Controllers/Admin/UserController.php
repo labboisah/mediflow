@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Models\User;
 use App\Models\Role;
 use App\Models\AuditLog;
+use App\Models\Department;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Str;
@@ -15,7 +16,7 @@ class UserController extends Controller
 {
     public function index()
     {
-        $query = User::with('roles');
+        $query = User::with(['roles', 'department']);
 
         // search and filters
         if ($search = request('search')) {
@@ -36,14 +37,16 @@ class UserController extends Controller
         }
 
         $users = $query->paginate(15)->withQueryString();
-        $roles = Role::all();
+        $roles = Role::orderBy('name')->get();
         return view('admin.users.index', compact('users', 'roles'));
     }
 
     public function create()
     {
-        $roles = Role::all();
-        return view('admin.users.create', compact('roles'));
+        $roles = Role::orderBy('name')->get();
+        $departments = Department::orderBy('name')->get();
+
+        return view('admin.users.create', compact('roles', 'departments'));
     }
 
     public function edit(User $user)
@@ -52,14 +55,18 @@ class UserController extends Controller
             return redirect()->route('admin.users.index')->with('error', 'You cannot edit your own roles here.');
         }
 
-        $roles = Role::all();
+        $roles = Role::orderBy('name')->get();
+        $departments = Department::orderBy('name')->get();
         $userRoles = $user->roles->pluck('id')->toArray();
-        return view('admin.users.edit', compact('user', 'roles', 'userRoles'));
+
+        return view('admin.users.edit', compact('user', 'roles', 'departments', 'userRoles'));
     }
 
     public function show(User $user)
     {
-        $roles = Role::all();
+        $user->load(['roles', 'department']);
+
+        $roles = Role::orderBy('name')->get();
         $userRoles = $user->roles->pluck('id')->toArray();
         return view('admin.users.show', compact('user', 'roles', 'userRoles'));
     }

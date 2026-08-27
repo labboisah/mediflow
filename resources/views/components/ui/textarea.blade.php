@@ -8,9 +8,11 @@
         <span class="mb-1 block text-sm font-medium text-med-ink">{{ $label }}</span>
     @endif
 
-    <textarea name="{{ $name }}" {{ $attributes->merge(['class' => 'mf-focus block w-full rounded-md border-med-line text-sm text-med-ink shadow-sm placeholder:text-med-muted/70']) }}>{{ $slot }}</textarea>
+    <textarea name="{{ $name }}" {{ $attributes->merge(['class' => 'mf-focus block w-full rounded-md border border-med-line px-3 py-2.5 text-sm text-med-ink shadow-sm placeholder:text-med-muted/70 disabled:bg-med-canvas disabled:text-med-muted']) }}>{{ $slot }}</textarea>
 
-    @error($name)
-        <span class="mt-1 block text-sm text-med-danger">{{ $message }}</span>
-    @enderror
+    @if($name)
+        @error($name)
+            <span class="mt-1 block text-sm text-med-danger">{{ $message }}</span>
+        @enderror
+    @endif
 </label>

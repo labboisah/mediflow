@@ -2,9 +2,12 @@
     $sidebarUser = Auth::user();
     $sidebarService = app(\App\Services\SidebarService::class);
     $sidebarGroups = $sidebarService->groupsFor($sidebarUser);
-    $dashboardRoute = $sidebarUser?->hasRole('medical_director')
-        ? route('medical-director.index')
-        : ($sidebarUser?->hasRole('administrator') ? route('admin.index') : route('dashboard'));
+    $dashboardRoute = $sidebarUser?->isSuperAdmin()
+        ? route('dashboard')
+        : ($sidebarUser?->hasRole('medical_director')
+            ? route('medical-director.index')
+            : ($sidebarUser?->hasRole('administrator') ? route('admin.index') : route('dashboard')));
+    $dashboardLabel = $sidebarUser?->isSuperAdmin() ? 'Platform' : 'Dashboard';
 
     $isRouteActive = function (array $patterns) {
         return collect($patterns)->contains(fn ($pattern) => request()->routeIs($pattern));
@@ -33,7 +36,7 @@
     <nav class="admin-sidebar-nav">
         <a class="admin-sidebar-link {{ request()->routeIs('dashboard') || request()->routeIs('admin.index') || request()->routeIs('medical-director.index') ? 'active' : '' }}" href="{{ $dashboardRoute }}">
             <i class="bi bi-speedometer2"></i>
-            Dashboard
+            {{ $dashboardLabel }}
         </a>
 
         @foreach($sidebarGroups as $group)

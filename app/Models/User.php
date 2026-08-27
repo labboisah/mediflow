@@ -116,15 +116,7 @@ class User extends Authenticatable
     public function hasRole(string|array $role): bool
     {
         if (is_array($role)) {
-            if ($this->isSuperAdmin()) {
-                return true;
-            }
-
             return $this->roles()->whereIn('name', $role)->exists();
-        }
-
-        if ($role !== 'superadmin' && $this->isSuperAdmin()) {
-            return true;
         }
 
         return $this->roles()->where('name', $role)->exists();
@@ -135,10 +127,6 @@ class User extends Authenticatable
      */
     public function hasAnyRole(array $roles): bool
     {
-        if ($this->isSuperAdmin()) {
-            return true;
-        }
-
         return $this->roles()->whereIn('name', $roles)->exists();
     }
 
@@ -147,10 +135,6 @@ class User extends Authenticatable
      */
     public function hasAllRoles(array $roles): bool
     {
-        if ($this->isSuperAdmin()) {
-            return true;
-        }
-
         return $this->roles()->whereIn('name', $roles)->count() === count($roles);
     }
 
@@ -159,10 +143,6 @@ class User extends Authenticatable
      */
     public function hasPermission(string|array $permission): bool
     {
-        if ($this->isSuperAdmin()) {
-            return true;
-        }
-
         if (is_array($permission)) {
             return $this->getAllPermissions()->whereIn('name', $permission)->count() === count($permission);
         }
@@ -175,10 +155,6 @@ class User extends Authenticatable
      */
     public function hasAnyPermission(array $permissions): bool
     {
-        if ($this->isSuperAdmin()) {
-            return true;
-        }
-
         return $this->getAllPermissions()->whereIn('name', $permissions)->count() > 0;
     }
 
@@ -187,10 +163,6 @@ class User extends Authenticatable
      */
     public function getAllPermissions()
     {
-        if ($this->isSuperAdmin()) {
-            return Permission::all();
-        }
-
         $permissions = collect();
 
         // Get permissions from roles

@@ -1,247 +1,208 @@
 @php
     $maxVisitCount = max($visitStatusRows->max('count') ?: 1, 1);
     $maxBillCount = max($billStatusRows->max('count') ?: 1, 1);
+    $dashboardTitle = $pageTitle;
+    $dashboardSubtitle = $pageSubtitle;
+
+    $metricCards = [
+        [
+            'label' => 'Patients',
+            'value' => number_format($hospitalMetrics['patients']),
+            'meta' => number_format($hospitalMetrics['walkin_patients']) . ' walk-in',
+            'icon' => 'bi-people-fill',
+            'tone' => 'text-med-primary',
+        ],
+        [
+            'label' => 'Active Visits',
+            'value' => number_format($hospitalMetrics['active_visits']),
+            'meta' => number_format($hospitalMetrics['today_visits']) . ' today',
+            'icon' => 'bi-clipboard-pulse',
+            'tone' => 'text-med-info',
+        ],
+    ];
+
+    if ($canViewTechnicalRecords) {
+        $metricCards[] = [
+            'label' => 'Collected Today',
+            'value' => number_format($financeMetrics['collected_today'], 2),
+            'meta' => number_format($financeMetrics['payments_today']) . ' payments',
+            'icon' => 'bi-cash-coin',
+            'tone' => 'text-med-primary',
+        ];
+        $metricCards[] = [
+            'label' => 'Sync Queue',
+            'value' => number_format($syncMetrics['pending']),
+            'meta' => number_format($syncMetrics['failed']) . ' failed',
+            'icon' => 'bi-cloud-arrow-up',
+            'tone' => $syncMetrics['failed'] > 0 ? 'text-med-danger' : 'text-med-accent',
+        ];
+    }
 @endphp
 
 <div wire:poll.10s>
-    <div class="d-flex flex-wrap gap-3 justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-1">
-                <i class="bi bi-speedometer2 me-2 text-success"></i>
-                {{ $canViewTechnicalRecords ? 'Admin Dashboard' : 'Medical Director Dashboard' }}
-            </h1>
-            <p class="text-muted mb-0">{{ $canViewTechnicalRecords ? 'Live hospital, finance, access, and sync overview.' : 'Live hospital, patient flow, setup, and finance overview.' }}</p>
-        </div>
-
-        <div class="text-muted small text-end">
-            <div wire:ignore>
-                <i class="bi bi-calendar-event me-1"></i>
-                <span id="admin-dashboard-local-date">{{ $lastUpdated->format('F j, Y') }}</span>
-            </div>
-            <div wire:ignore>
-                <i class="bi bi-clock me-1"></i>
-                <span id="admin-dashboard-local-time">{{ $lastUpdated->format('h:i:s A') }}</span>
-            </div>
-            <div>
-                <i class="bi bi-arrow-repeat me-1"></i>
-                Data refreshed {{ $lastUpdated->format('h:i:s A') }}
-            </div>
-        </div>
-    </div>
-
-    <div class="row g-3 mb-4">
-        <div class="col-md-6 col-xl-3">
-            <div class="border rounded bg-white p-3 h-100">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <p class="text-muted small mb-1">Patients</p>
-                        <h3 class="mb-0">{{ number_format($hospitalMetrics['patients']) }}</h3>
-                        <small class="text-muted">{{ number_format($hospitalMetrics['walkin_patients']) }} walk-in</small>
-                    </div>
-                    <i class="bi bi-people-fill fs-2 text-success"></i>
+    <x-ui.page :title="$dashboardTitle" :subtitle="$dashboardSubtitle">
+        <x-slot:actions>
+            <div class="rounded-md border border-med-line bg-white px-3 py-2 text-right text-xs text-med-muted shadow-sm">
+                <div wire:ignore>
+                    <i class="bi bi-calendar-event mr-1 text-med-primary"></i>
+                    <span id="admin-dashboard-local-date">{{ $lastUpdated->format('F j, Y') }}</span>
+                </div>
+                <div wire:ignore>
+                    <i class="bi bi-clock mr-1 text-med-primary"></i>
+                    <span id="admin-dashboard-local-time">{{ $lastUpdated->format('h:i:s A') }}</span>
+                </div>
+                <div>
+                    <i class="bi bi-arrow-repeat mr-1 text-med-primary"></i>
+                    Refreshed {{ $lastUpdated->format('h:i:s A') }}
                 </div>
             </div>
-        </div>
+        </x-slot:actions>
 
-        <div class="col-md-6 col-xl-3">
-            <div class="border rounded bg-white p-3 h-100">
-                <div class="d-flex justify-content-between align-items-start">
-                    <div>
-                        <p class="text-muted small mb-1">Active Visits</p>
-                        <h3 class="mb-0">{{ number_format($hospitalMetrics['active_visits']) }}</h3>
-                        <small class="text-muted">{{ number_format($hospitalMetrics['today_visits']) }} today</small>
-                    </div>
-                    <i class="bi bi-clipboard-pulse fs-2 text-primary"></i>
-                </div>
-            </div>
-        </div>
-
-        @if($canViewTechnicalRecords)
-            <div class="col-md-6 col-xl-3">
-                <div class="border rounded bg-white p-3 h-100">
-                    <div class="d-flex justify-content-between align-items-start">
+        <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            @foreach($metricCards as $card)
+                <div class="rounded-md border border-med-line bg-white p-6 shadow-sm">
+                    <div class="flex items-start justify-between gap-4">
                         <div>
-                            <p class="text-muted small mb-1">Collected Today</p>
-                            <h3 class="mb-0">{{ number_format($financeMetrics['collected_today'], 2) }}</h3>
-                            <small class="text-muted">{{ number_format($financeMetrics['payments_today']) }} payments</small>
+                            <p class="text-base font-medium text-med-muted">{{ $card['label'] }}</p>
+                            <p class="mt-3 text-4xl font-semibold leading-tight text-med-ink">{{ $card['value'] }}</p>
+                            <p class="mt-2 text-base text-med-muted">{{ $card['meta'] }}</p>
                         </div>
-                        <i class="bi bi-cash-coin fs-2 text-success"></i>
+                        <span class="mf-icon-box {{ $card['tone'] }}">
+                            <i class="bi {{ $card['icon'] }} text-xl"></i>
+                        </span>
                     </div>
                 </div>
-            </div>
-        @endif
-
-        @if($canViewTechnicalRecords)
-            <div class="col-md-6 col-xl-3">
-                <div class="border rounded bg-white p-3 h-100">
-                    <div class="d-flex justify-content-between align-items-start">
-                        <div>
-                            <p class="text-muted small mb-1">Sync Queue</p>
-                            <h3 class="mb-0">{{ number_format($syncMetrics['pending']) }}</h3>
-                            <small class="{{ $syncMetrics['failed'] > 0 ? 'text-danger' : 'text-muted' }}">{{ number_format($syncMetrics['failed']) }} failed</small>
-                        </div>
-                        <i class="bi bi-cloud-arrow-up fs-2 text-warning"></i>
-                    </div>
-                </div>
-            </div>
-        @endif
-    </div>
-
-    <div class="row g-3 mb-4">
-        @if($canViewTechnicalRecords)
-            <div class="col-md-6 col-xl-3">
-                <div class="border rounded bg-white p-3 h-100">
-                    <p class="text-muted small mb-1">Bills</p>
-                    <h4 class="mb-0">{{ number_format($financeMetrics['bills']) }}</h4>
-                    <small class="text-muted">{{ number_format($financeMetrics['open_bills']) }} open, {{ number_format($financeMetrics['today_bills']) }} today</small>
-                </div>
-            </div>
-
-            <div class="col-md-6 col-xl-3">
-                <div class="border rounded bg-white p-3 h-100">
-                    <p class="text-muted small mb-1">Today Billed</p>
-                    <h4 class="mb-0">{{ number_format($financeMetrics['total_billed_today'], 2) }}</h4>
-                    <small class="text-muted">{{ number_format($financeMetrics['payments']) }} total payments</small>
-                </div>
-            </div>
-        @endif
-
-        @if($canViewTechnicalRecords)
-            <div class="col-md-6 col-xl-3">
-                <div class="border rounded bg-white p-3 h-100">
-                    <p class="text-muted small mb-1">Access Control</p>
-                    <h4 class="mb-0">{{ number_format($accessMetrics['users']) }} users</h4>
-                    <small class="text-muted">{{ number_format($accessMetrics['roles']) }} roles, {{ number_format($accessMetrics['permissions']) }} permissions</small>
-                </div>
-            </div>
-        @endif
-
-        <div class="col-md-6 col-xl-3">
-            <div class="border rounded bg-white p-3 h-100">
-                <p class="text-muted small mb-1">Bed Occupancy</p>
-                <h4 class="mb-0">{{ number_format($setupMetrics['occupied_beds']) }} / {{ number_format($setupMetrics['beds']) }}</h4>
-                <small class="text-muted">{{ number_format($setupMetrics['wards']) }} wards</small>
-            </div>
+            @endforeach
         </div>
-    </div>
 
-    <div class="row g-4 mb-4">
-        <div class="col-lg-7">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Live Patient Flow</h5>
-                    <span class="badge text-bg-success">Polling every 10s</span>
-                </div>
-                <div class="card-body">
+        <div class="grid gap-5 md:grid-cols-2 xl:grid-cols-4">
+            @if($canViewTechnicalRecords)
+                <x-ui.card>
+                    <p class="text-base font-medium text-med-muted">Bills</p>
+                    <p class="mt-3 text-3xl font-semibold leading-tight text-med-ink">{{ number_format($financeMetrics['bills']) }}</p>
+                    <p class="mt-2 text-base text-med-muted">{{ number_format($financeMetrics['open_bills']) }} open, {{ number_format($financeMetrics['today_bills']) }} today</p>
+                </x-ui.card>
+
+                <x-ui.card>
+                    <p class="text-base font-medium text-med-muted">Today Billed</p>
+                    <p class="mt-3 text-3xl font-semibold leading-tight text-med-ink">{{ number_format($financeMetrics['total_billed_today'], 2) }}</p>
+                    <p class="mt-2 text-base text-med-muted">{{ number_format($financeMetrics['payments']) }} total payments</p>
+                </x-ui.card>
+
+                <x-ui.card>
+                    <p class="text-base font-medium text-med-muted">Access Control</p>
+                    <p class="mt-3 text-3xl font-semibold leading-tight text-med-ink">{{ number_format($accessMetrics['users']) }} users</p>
+                    <p class="mt-2 text-base text-med-muted">{{ number_format($accessMetrics['roles']) }} roles, {{ number_format($accessMetrics['permissions']) }} permissions</p>
+                </x-ui.card>
+            @endif
+
+            <x-ui.card>
+                <p class="text-base font-medium text-med-muted">Bed Occupancy</p>
+                <p class="mt-3 text-3xl font-semibold leading-tight text-med-ink">{{ number_format($setupMetrics['occupied_beds']) }} / {{ number_format($setupMetrics['beds']) }}</p>
+                <p class="mt-2 text-base text-med-muted">{{ number_format($setupMetrics['wards']) }} wards</p>
+            </x-ui.card>
+        </div>
+
+        <div class="grid gap-6 xl:grid-cols-12">
+            <x-ui.card class="xl:col-span-7" title="Live Patient Flow">
+                <x-slot:actions>
+                    <x-ui.badge variant="success">Polling every 10s</x-ui.badge>
+                </x-slot:actions>
+
+                <div class="space-y-4">
                     @forelse($visitStatusRows as $row)
                         @php $width = max(5, ($row->count / $maxVisitCount) * 100); @endphp
-                        <div class="mb-3">
-                            <div class="d-flex justify-content-between small mb-1">
-                                <span>{{ $row->label }}</span>
-                                <strong>{{ number_format($row->count) }}</strong>
+                        <div>
+                            <div class="mb-2 flex justify-between text-base">
+                                <span class="font-medium text-med-ink">{{ $row->label }}</span>
+                                <strong class="text-med-muted">{{ number_format($row->count) }}</strong>
                             </div>
-                            <div class="progress" style="height: 18px;">
-                                <div class="progress-bar bg-success" style="width: {{ $width }}%;"></div>
+                            <div class="h-4 overflow-hidden rounded-full bg-med-canvas">
+                                <div class="h-full rounded-full bg-med-primary" style="width: {{ $width }}%;"></div>
                             </div>
                         </div>
                     @empty
-                        <div class="text-center text-muted py-5">No visit data yet.</div>
+                        <x-ui.empty-state title="No visit data yet" />
                     @endforelse
                 </div>
-            </div>
-        </div>
+            </x-ui.card>
 
-        @if($canViewTechnicalRecords)
-            <div class="col-lg-5">
-                <div class="card shadow-sm h-100">
-                    <div class="card-header bg-light">
-                        <h5 class="mb-0">Bill Status</h5>
-                    </div>
-                    <div class="card-body">
+            @if($canViewTechnicalRecords)
+                <x-ui.card class="xl:col-span-5" title="Bill Status">
+                    <div class="space-y-4">
                         @forelse($billStatusRows as $row)
                             @php $width = max(5, ($row->count / $maxBillCount) * 100); @endphp
-                            <div class="mb-3">
-                                <div class="d-flex justify-content-between small mb-1">
-                                    <span>{{ ucfirst($row->label) }}</span>
-                                    <strong>{{ number_format($row->count) }}</strong>
+                            <div>
+                                <div class="mb-2 flex justify-between text-base">
+                                    <span class="font-medium text-med-ink">{{ ucfirst($row->label) }}</span>
+                                    <strong class="text-med-muted">{{ number_format($row->count) }}</strong>
                                 </div>
-                                <div class="progress" style="height: 18px;">
-                                    <div class="progress-bar bg-primary" style="width: {{ $width }}%;"></div>
+                                <div class="h-4 overflow-hidden rounded-full bg-med-canvas">
+                                    <div class="h-full rounded-full bg-med-info" style="width: {{ $width }}%;"></div>
                                 </div>
-                                <div class="text-end text-muted small">{{ number_format($row->amount ?? 0, 2) }}</div>
+                                <p class="mt-2 text-right text-sm text-med-muted">{{ number_format($row->amount ?? 0, 2) }}</p>
                             </div>
                         @empty
-                            <div class="text-center text-muted py-5">No bill data yet.</div>
+                            <x-ui.empty-state title="No bill data yet" />
                         @endforelse
                     </div>
-                </div>
-            </div>
-        @endif
-    </div>
-
-    <div class="row g-4">
-        <div class="col-lg-4">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Management Snapshot</h5>
-                </div>
-                <div class="card-body">
-                    <div class="d-flex justify-content-between mb-3"><span>Departments</span><strong>{{ number_format($setupMetrics['departments']) }}</strong></div>
-                    <div class="d-flex justify-content-between mb-3"><span>Services</span><strong>{{ number_format($setupMetrics['services']) }}</strong></div>
-                    <div class="d-flex justify-content-between mb-3"><span>Investigations</span><strong>{{ number_format($setupMetrics['investigations']) }}</strong></div>
-                    @if($canViewTechnicalRecords)
-                        <div class="d-flex justify-content-between mb-3"><span>Administrators</span><strong>{{ number_format($accessMetrics['administrators']) }}</strong></div>
-                        <div class="d-flex justify-content-between"><span>Temporary Permissions</span><strong>{{ number_format($accessMetrics['temporary_permissions']) }}</strong></div>
-                    @endif
-                </div>
-            </div>
+                </x-ui.card>
+            @endif
         </div>
 
-        @if($canViewTechnicalRecords)
-            <div class="col-lg-8">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Recent System Activity</h5>
-                        @if($syncMetrics['latest'])
-                            <span class="text-muted small">Latest sync: {{ $syncMetrics['latest']->updated_at?->diffForHumans() }}</span>
-                        @endif
-                    </div>
-                    <div class="card-body p-0">
-                        <div class="list-group list-group-flush" style="max-height: 430px; overflow-y: auto;">
-                            @forelse($recentActivities as $activity)
-                                @php
-                                    $actionLabel = ucwords(str_replace(['.', '_'], [' ', ' '], $activity->action));
-                                    $modelLabel = $activity->model_type ? class_basename($activity->model_type) : null;
-                                @endphp
-                                <div class="list-group-item">
-                                    <div class="d-flex justify-content-between gap-3">
-                                        <div>
-                                            <div class="fw-semibold">{{ $activity->actor?->name ?? 'System' }}</div>
-                                            <div class="small text-muted">
-                                                {{ $actionLabel }}
-                                                @if($modelLabel)
-                                                    on {{ $modelLabel }}
-                                                    @if($activity->model_id)
-                                                        #{{ $activity->model_id }}
-                                                    @endif
-                                                @endif
-                                            </div>
-                                        </div>
-                                        <div class="text-end text-muted small">
-                                            {{ $activity->created_at?->format('M j, h:i A') }}
-                                            <div>{{ $activity->created_at?->diffForHumans() }}</div>
-                                        </div>
-                                    </div>
-                                </div>
-                            @empty
-                                <div class="text-center text-muted py-5">No recent activity yet.</div>
-                            @endforelse
-                        </div>
-                    </div>
+        <div class="grid gap-6 xl:grid-cols-12">
+            <x-ui.card class="xl:col-span-4" title="Management Snapshot">
+                <div class="divide-y divide-med-line text-base">
+                    <div class="flex justify-between gap-4 py-4"><span class="text-med-muted">Departments</span><strong>{{ number_format($setupMetrics['departments']) }}</strong></div>
+                    <div class="flex justify-between gap-4 py-4"><span class="text-med-muted">Services</span><strong>{{ number_format($setupMetrics['services']) }}</strong></div>
+                    <div class="flex justify-between gap-4 py-4"><span class="text-med-muted">Investigations</span><strong>{{ number_format($setupMetrics['investigations']) }}</strong></div>
+                    @if($canViewTechnicalRecords)
+                        <div class="flex justify-between gap-4 py-4"><span class="text-med-muted">Administrators</span><strong>{{ number_format($accessMetrics['administrators']) }}</strong></div>
+                        <div class="flex justify-between gap-4 py-4"><span class="text-med-muted">Temporary Permissions</span><strong>{{ number_format($accessMetrics['temporary_permissions']) }}</strong></div>
+                    @endif
                 </div>
-            </div>
-        @endif
-    </div>
+            </x-ui.card>
+
+            @if($canViewTechnicalRecords)
+                <x-ui.card class="xl:col-span-8" title="Recent System Activity">
+                    <x-slot:actions>
+                        @if($syncMetrics['latest'])
+                            <span class="text-xs text-med-muted">Latest sync: {{ $syncMetrics['latest']->updated_at?->diffForHumans() }}</span>
+                        @endif
+                    </x-slot:actions>
+
+                    <div class="max-h-[430px] divide-y divide-med-line overflow-y-auto">
+                        @forelse($recentActivities as $activity)
+                            @php
+                                $actionLabel = ucwords(str_replace(['.', '_'], [' ', ' '], $activity->action));
+                                $modelLabel = $activity->model_type ? class_basename($activity->model_type) : null;
+                            @endphp
+                            <div class="flex flex-col gap-2 py-5 sm:flex-row sm:items-start sm:justify-between">
+                                <div>
+                                    <p class="text-base font-semibold text-med-ink">{{ $activity->actor?->name ?? 'System' }}</p>
+                                    <p class="mt-1 text-base leading-6 text-med-muted">
+                                        {{ $actionLabel }}
+                                        @if($modelLabel)
+                                            on {{ $modelLabel }}
+                                            @if($activity->model_id)
+                                                #{{ $activity->model_id }}
+                                            @endif
+                                        @endif
+                                    </p>
+                                </div>
+                                <div class="shrink-0 text-left text-sm leading-6 text-med-muted sm:text-right">
+                                    <p>{{ $activity->created_at?->format('M j, h:i A') }}</p>
+                                    <p>{{ $activity->created_at?->diffForHumans() }}</p>
+                                </div>
+                            </div>
+                        @empty
+                            <x-ui.empty-state title="No recent activity yet" />
+                        @endforelse
+                    </div>
+                </x-ui.card>
+            @endif
+        </div>
+    </x-ui.page>
 </div>
 
 @push('scripts')

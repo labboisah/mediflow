@@ -9,8 +9,8 @@
             </button>
 
             <div class="min-w-0">
-                <p class="truncate text-sm font-semibold text-med-ink">@yield('page-title', 'Workspace')</p>
-                <p class="truncate text-xs text-med-muted">@yield('page-subtitle', config('app.name'))</p>
+                <p class="truncate text-base font-semibold text-med-ink">{{ $modernPageTitle ?? 'Workspace' }}</p>
+                <p class="truncate text-sm text-med-muted">{{ $modernPageSubtitle ?? config('app.name') }}</p>
             </div>
         </div>
 

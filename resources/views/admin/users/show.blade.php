@@ -1,105 +1,101 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'User: ' . $user->name)
-
-@section('header')
-<h1 class="h3 d-flex align-items-center mb-0">
-    <i class="bi bi-person-circle me-2 text-info"></i>
-    User Details: <span class="ms-2">{{ $user->name }}</span>
-</h1>
-@endsection
+@section('page-title', 'User Details')
+@section('page-subtitle', 'Review account status, department, and assigned roles.')
 
 @section('content')
+    <x-ui.page title="User Details" subtitle="Review account status, department, and assigned roles.">
+        <x-slot:actions>
+            <a href="{{ route('admin.users.index') }}">
+                <x-ui.button type="button" variant="secondary">
+                    <i class="bi bi-arrow-left"></i>
+                    Back
+                </x-ui.button>
+            </a>
+        </x-slot:actions>
 
-<div class="row">
-    <div class="col-12 col-lg-8">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <div class="mb-4">
-                    <label class="form-label text-muted">Full Name</label>
-                    <p class="h5">{{ $user->name }}</p>
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label text-muted">Email</label>
-                    <p class="h5">{{ $user->email }}</p>
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label text-muted">Account Status</label>
-                    <p>
-                        @if($user->trashed())
-                            <span class="badge bg-danger">Deleted</span>
-                        @else
-                            <span class="badge bg-success">Active</span>
-                        @endif
-                    </p>
-                </div>
-
-                <div class="mb-4">
-                    <label class="form-label text-muted">Registered</label>
-                    <p class="h5">{{ $user->created_at->format('M d, Y \a\t H:i') }}</p>
-                </div>
-
-                @if($user->updated_at->ne($user->created_at))
-                    <div class="mb-4">
-                        <label class="form-label text-muted">Last Updated</label>
-                        <p class="h5">{{ $user->updated_at->format('M d, Y \a\t H:i') }}</p>
-                    </div>
-                @endif
-
-                <div class="mb-4">
-                    <label class="form-label text-muted">Assigned Roles</label>
+        <div class="grid gap-6 xl:grid-cols-12">
+            <x-ui.card class="xl:col-span-8" title="{{ $user->name }}" subtitle="{{ $user->email }}">
+                <dl class="grid gap-5 md:grid-cols-2">
                     <div>
-                        @forelse($userRoles as $roleId)
-                            @php
-                                $role = $roles->find($roleId);
-                            @endphp
-                            @if($role)
-                                <span class="badge bg-info me-2 mb-2">{{ $role->display_name ?? $role->name }}</span>
-                            @endif
-                        @empty
-                            <span class="text-muted">No roles assigned</span>
-                        @endforelse
+                        <dt class="text-sm font-medium text-med-muted">Full Name</dt>
+                        <dd class="mt-2 text-xl font-semibold text-med-ink">{{ $user->name }}</dd>
                     </div>
-                </div>
 
-                <hr>
+                    <div>
+                        <dt class="text-sm font-medium text-med-muted">Email</dt>
+                        <dd class="mt-2 text-xl font-semibold text-med-ink">{{ $user->email }}</dd>
+                    </div>
 
-                <div class="d-flex gap-2">
+                    <div>
+                        <dt class="text-sm font-medium text-med-muted">Department</dt>
+                        <dd class="mt-2 text-xl font-semibold text-med-ink">{{ $user->department->name ?? 'Not assigned' }}</dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-sm font-medium text-med-muted">Account Status</dt>
+                        <dd class="mt-2">
+                            @if($user->trashed())
+                                <x-ui.badge variant="danger">Deleted</x-ui.badge>
+                            @else
+                                <x-ui.badge variant="success">Active</x-ui.badge>
+                            @endif
+                        </dd>
+                    </div>
+
+                    <div>
+                        <dt class="text-sm font-medium text-med-muted">Registered</dt>
+                        <dd class="mt-2 text-base font-semibold text-med-ink">{{ $user->created_at->format('M d, Y H:i') }}</dd>
+                    </div>
+
+                    @if($user->updated_at->ne($user->created_at))
+                        <div>
+                            <dt class="text-sm font-medium text-med-muted">Last Updated</dt>
+                            <dd class="mt-2 text-base font-semibold text-med-ink">{{ $user->updated_at->format('M d, Y H:i') }}</dd>
+                        </div>
+                    @endif
+                </dl>
+
+                <div class="mt-6 flex flex-wrap gap-3 border-t border-med-line pt-5">
                     @if ($user->id !== auth()->id())
-                        <a href="{{ route('admin.users.edit', $user->id) }}" class="btn btn-outline-info">
-                            <i class="bi bi-pencil me-1"></i>Edit User
+                        <a href="{{ route('admin.users.edit', $user->id) }}">
+                            <x-ui.button type="button" variant="secondary">
+                                <i class="bi bi-pencil"></i>
+                                Edit User
+                            </x-ui.button>
                         </a>
-                        <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" style="display:inline;">
+
+                        <form action="{{ route('admin.users.destroy', $user->id) }}" method="POST" onsubmit="return confirm('Are you sure you want to delete this user?');">
                             @csrf
                             @method('DELETE')
-                            <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Are you sure you want to delete this user?');">
-                                <i class="bi bi-trash me-1"></i>Delete User
-                            </button>
+                            <x-ui.button type="submit" variant="danger">
+                                <i class="bi bi-trash"></i>
+                                Delete User
+                            </x-ui.button>
                         </form>
                     @else
-                        <span class="text-muted">This is your account</span>
+                        <span class="text-base text-med-muted">This is your account</span>
                     @endif
                 </div>
-            </div>
-        </div>
-    </div>
+            </x-ui.card>
 
-    <div class="col-12 col-lg-4">
-        <div class="card shadow-sm">
-            <div class="card-header bg-light">
-                <h5 class="card-title mb-0">Quick Actions</h5>
-            </div>
-            <div class="card-body">
-                <div class="d-grid gap-2">
-                    <a href="{{ route('admin.users.index') }}" class="btn btn-outline-secondary">
-                        <i class="bi bi-arrow-left me-1"></i>Back to Users
-                    </a>
-                </div>
-            </div>
+            <x-ui.card class="xl:col-span-4" title="Assigned Roles">
+                @if (count($userRoles) > 0)
+                    <div class="space-y-3">
+                        @foreach ($user->roles as $role)
+                            <div class="rounded-md border border-med-line bg-white p-3">
+                                <x-ui.badge variant="info">{{ $role->display_name ?: $role->name }}</x-ui.badge>
+                                @if($role->description)
+                                    <p class="mt-2 text-sm text-med-muted">{{ $role->description }}</p>
+                                @endif
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <x-ui.empty-state title="No roles assigned" />
+                @endif
+            </x-ui.card>
         </div>
-    </div>
-</div>
-
+    </x-ui.page>
 @endsection

@@ -4,6 +4,8 @@
 
 Move Mediflow to a cleaner, module-based healthcare interface without breaking existing screens. The current Bootstrap layouts remain available while new or migrated modules use the modern Tailwind layout.
 
+For continuation prompts and remaining migration order, see `docs/UI_MODERN_MIGRATION_CONTINUATION_GUIDE.md`.
+
 ## Stack Direction
 
 - Laravel remains the application backend.
@@ -47,9 +49,17 @@ use Livewire\Attributes\Layout;
 #[Layout('layouts.modern')]
 class PatientManagement extends Component
 {
-    //
+    public function render()
+    {
+        return view('components.patient.patient-management', [
+            'pageTitle' => 'Patients',
+            'pageSubtitle' => 'Patient records and active visits',
+        ]);
+    }
 }
 ```
+
+Livewire pages should pass `pageTitle` and `pageSubtitle` from `render()` because the modern topbar is rendered by the layout before the page body is displayed. Blade controller views may continue using `@section('page-title')` and `@section('page-subtitle')`.
 
 ## Assets
 
@@ -163,3 +173,5 @@ Recommended first modules:
 - Convert one module at a time.
 - Keep sidebar records tied to license modules and permissions.
 - Use `layouts.modern` only when the screen has been visually migrated.
+- Every migrated Livewire screen must define `pageTitle` and `pageSubtitle`.
+- Every migrated page should compile with `php artisan view:cache`.

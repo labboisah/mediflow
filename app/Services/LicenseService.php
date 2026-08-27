@@ -30,27 +30,31 @@ class LicenseService
 
     public function currentPlan(): ?string
     {
-        return $this->currentLicense()?->plan ?? config('mediflow_modules.default_plan');
+        $plan = $this->currentLicense()?->plan ?? config('mediflow_modules.default_plan');
+
+        return config("mediflow_modules.legacy_plan_aliases.{$plan}", $plan);
     }
 
     public function enabledModules(): array
     {
         $plan = $this->currentPlan();
-        $modules = config("mediflow_modules.plans.{$plan}", []);
+        $modules = config("mediflow_modules.plans.{$plan}.modules", []);
 
         if (in_array('*', $modules, true)) {
-            return ['*'];
+            $modules = $this->allKnownModules($modules);
         }
 
         $license = $this->currentLicense();
 
         if ($license && Schema::hasTable('client_enabled_modules')) {
-            $addons = $license->enabledModules()
+            $savedModules = $license->enabledModules()
                 ->where('is_enabled', true)
                 ->pluck('module_name')
                 ->all();
 
-            $modules = array_merge($modules, $addons);
+            if ($savedModules !== []) {
+                return collect($savedModules)->filter()->unique()->values()->all();
+            }
         }
 
         return collect($modules)->filter()->unique()->values()->all();
@@ -64,7 +68,28 @@ class LicenseService
 
         $enabledModules = $this->enabledModules();
 
-        return in_array('*', $enabledModules, true) || in_array($module, $enabledModules, true);
+        return in_array($module, $enabledModules, true);
+    }
+
+    private function allKnownModules(array $extraModules = []): array
+    {
+        $configuredModules = collect(config('mediflow_modules.features', []))->keys();
+
+        if (Schema::hasTable('modules')) {
+            $configuredModules = $configuredModules
+                ->merge(\App\Models\Module::query()
+                    ->whereNotNull('license_module')
+                    ->distinct()
+                    ->pluck('license_module'));
+        }
+
+        return $configuredModules
+            ->merge(collect($extraModules)->reject(fn (string $module) => $module === '*'))
+            ->filter()
+            ->reject(fn (string $module) => $this->isPlatformModule($module))
+            ->unique()
+            ->values()
+            ->all();
     }
 
     public function userHasModuleAccess(User $user, ?string $module): bool
@@ -73,11 +98,19 @@ class LicenseService
             return true;
         }
 
+        if ($this->isPlatformModule($module)) {
+            return $user->isSuperAdmin();
+        }
+
+        if ($user->isSuperAdmin()) {
+            return false;
+        }
+
         if (! $this->moduleEnabled($module)) {
             return false;
         }
 
-        if ($user->isSuperAdmin() || $user->hasRole('administrator')) {
+        if ($user->hasRole('administrator')) {
             return true;
         }
 
@@ -97,5 +130,14 @@ class LicenseService
                     ->orWhere('expires_at', '>=', now());
             })
             ->exists();
+    }
+
+    public function isPlatformModule(?string $module): bool
+    {
+        if ($module === null || $module === '') {
+            return false;
+        }
+
+        return in_array($module, config('mediflow_modules.platform_modules', ['platform']), true);
     }
 }

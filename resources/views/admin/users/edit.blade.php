@@ -1,119 +1,93 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'Edit User: ' . $user->name)
-
-@section('header')
-<h1 class="h3 d-flex align-items-center mb-0">
-    <i class="bi bi-pencil me-2 text-info"></i>
-    Manage Roles for: <span class="ms-2">{{ $user->name }}</span>
-</h1>
-@endsection
+@section('page-title', 'Edit User')
+@section('page-subtitle', 'Update staff account details, department, password, and assigned roles.')
 
 @section('content')
-
-@if ($message = Session::get('error'))
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-circle me-2"></i>
-        {{ $message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
-
-<div class="row">
-    <div class="col-12 col-lg-8">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <h5 class="card-subtitle mb-3 text-muted">
-                    <strong>{{ $user->email }}</strong>
-                </h5>
-
-                <form action="{{ route('admin.users.update', $user) }}" method="POST">
+    <x-ui.page title="Edit User" subtitle="Update staff account details, department, password, and assigned roles.">
+        <div class="grid gap-6 xl:grid-cols-12">
+            <x-ui.card class="xl:col-span-8" title="{{ $user->name }}" subtitle="{{ $user->email }}">
+                <form action="{{ route('admin.users.update', $user) }}" method="POST" class="space-y-5">
                     @csrf
                     @method('PUT')
 
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Full Name <span class="text-danger">*</span></label>
-                        <input type="text" id="name" name="name" class="form-control" value="{{ old('name', $user->name) }}" required>
-                    </div>
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <x-ui.input label="Full Name" name="name" value="{{ old('name', $user->name) }}" required />
+                        <x-ui.input label="Email" name="email" type="email" value="{{ old('email', $user->email) }}" required />
+                        <x-ui.input label="Set Password" name="password" type="password" placeholder="Leave blank to keep existing" />
+                        <x-ui.input label="Confirm Password" name="password_confirmation" type="password" />
 
-                    <div class="mb-3">
-                        <label for="email" class="form-label">Email <span class="text-danger">*</span></label>
-                        <input type="email" id="email" name="email" class="form-control" value="{{ old('email', $user->email) }}" required>
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="password" class="form-label">Set Password (optional)</label>
-                        <input type="password" id="password" name="password" class="form-control" placeholder="Leave blank to keep existing">
-                    </div>
-
-                    <div class="mb-3">
-                        <label for="password_confirmation" class="form-label">Confirm Password</label>
-                        <input type="password" id="password_confirmation" name="password_confirmation" class="form-control">
-                    </div>
-
-                    <div class="mb-3">
-                        <label class="form-label">Assign Roles</label>
-                        <div class="border rounded p-3">
-                            @forelse ($roles as $role)
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" id="role_{{ $role->id }}" name="roles[]" value="{{ $role->id }}" 
-                                        @if(in_array($role->id, $userRoles)) checked @endif>
-                                    <label class="form-check-label" for="role_{{ $role->id }}">
-                                        <strong>{{ $role->name }}</strong>
-                                        <small class="text-muted">{{ $role->description }}</small>
-                                    </label>
-                                </div>
-                            @empty
-                                <p class="text-muted">No roles available.</p>
-                            @endforelse
+                        <div class="md:col-span-2">
+                            <x-ui.select label="Department" name="department_id" required>
+                                <option value="">Select department</option>
+                                @foreach($departments as $department)
+                                    <option value="{{ $department->id }}" @selected(old('department_id', $user->department_id) == $department->id)>
+                                        {{ $department->name }}
+                                    </option>
+                                @endforeach
+                            </x-ui.select>
                         </div>
                     </div>
-                    <div class="mb-3">
-                        <label for="department_id" class="form-label">Department</label>
-                        <select id="department_id" name="department_id" class="form-select @error('department_id') is-invalid @enderror">
-                            <option value="{{$user->department->id ?? ''}}">{{$user->department->name ?? 'Select Department'}}</option>
-                            @foreach(App\Models\Department::all() as $department)
-                                <option value="{{ $department->id }}" {{ old('department_id') == $department->id ? 'selected' : '' }}>{{ $department->name }}</option>
-                            @endforeach
-                        </select>
-                        @error('department_id')<div class="invalid-feedback">{{ $message }}</div>@enderror
+
+                    <section class="rounded-md border border-med-line bg-white">
+                        <div class="border-b border-med-line bg-med-canvas px-4 py-3">
+                            <h2 class="text-base font-semibold text-med-ink">Assigned Roles</h2>
+                        </div>
+                        <div class="grid gap-3 p-4 md:grid-cols-2">
+                            @forelse ($roles as $role)
+                                <label class="flex cursor-pointer items-start gap-3 rounded-md border border-med-line bg-white p-3 transition hover:bg-med-canvas">
+                                    <input class="mt-1 h-4 w-4 rounded border-med-line text-med-primary"
+                                           type="checkbox"
+                                           name="roles[]"
+                                           value="{{ $role->id }}"
+                                           @checked(in_array($role->id, old('roles', $userRoles)))>
+                                    <span>
+                                        <span class="block font-semibold text-med-ink">{{ $role->display_name ?: $role->name }}</span>
+                                        @if($role->description)
+                                            <span class="mt-1 block text-sm text-med-muted">{{ $role->description }}</span>
+                                        @endif
+                                    </span>
+                                </label>
+                            @empty
+                                <x-ui.empty-state title="No roles available" />
+                            @endforelse
+                        </div>
+                    </section>
+
+                    <div class="rounded-md border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-med-info">
+                        Select one or more roles to assign permissions to this user. Licensed module access is managed from Access Control.
                     </div>
 
-                    <div class="alert alert-info alert-sm" role="alert">
-                        <i class="bi bi-info-circle me-2"></i>
-                        <small>Select one or more roles to assign permissions to this user.</small>
-                    </div>
+                    <div class="flex flex-wrap gap-3 border-t border-med-line pt-5">
+                        <x-ui.button type="submit">
+                            <i class="bi bi-check-circle"></i>
+                            Update User
+                        </x-ui.button>
 
-                    <div class="d-flex gap-2">
-                        <button type="submit" class="btn btn-info">
-                            <i class="bi bi-check-circle me-1"></i>
-                            Update User Roles
-                        </button>
-                        <a href="{{ route('admin.users.index') }}" class="btn btn-secondary">Cancel</a>
+                        <a href="{{ route('admin.users.index') }}">
+                            <x-ui.button type="button" variant="secondary">Cancel</x-ui.button>
+                        </a>
                     </div>
                 </form>
-            </div>
-        </div>
-    </div>
+            </x-ui.card>
 
-    <div class="col-12 col-lg-4">
-        <div class="card shadow-sm border-0 bg-light">
-            <div class="card-body">
-                <h5 class="card-title">Current Roles</h5>
+            <x-ui.card class="xl:col-span-4" title="Current Roles">
                 @if (count($userRoles) > 0)
-                    <ul class="list-unstyled">
+                    <div class="space-y-3">
                         @foreach ($user->roles as $role)
-                            <li class="mb-2">
-                                <span class="badge bg-info">{{ $role->name }}</span>
-                                <small class="text-muted">{{ $role->description }}</small>
-                            </li>
+                            <div class="rounded-md border border-med-line bg-white p-3">
+                                <x-ui.badge variant="info">{{ $role->display_name ?: $role->name }}</x-ui.badge>
+                                @if($role->description)
+                                    <p class="mt-2 text-sm text-med-muted">{{ $role->description }}</p>
+                                @endif
+                            </div>
                         @endforeach
-                    </ul>
+                    </div>
                 @else
-                    <p class="text-muted">No roles assigned.</p>
+                    <x-ui.empty-state title="No roles assigned" />
                 @endif
-            </div>
+            </x-ui.card>
         </div>
-    </div>
-</div>
+    </x-ui.page>
 @endsection

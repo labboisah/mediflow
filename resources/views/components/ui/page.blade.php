@@ -4,16 +4,16 @@
     'actions' => null,
 ])
 
-<section {{ $attributes->merge(['class' => 'space-y-6']) }}>
+<section {{ $attributes->merge(['class' => 'space-y-7']) }}>
     @if($title || $subtitle || $actions)
-        <div class="flex flex-col gap-4 border-b border-med-line pb-5 sm:flex-row sm:items-end sm:justify-between">
+        <div class="flex flex-col gap-5 border-b border-med-line pb-6 sm:flex-row sm:items-end sm:justify-between">
             <div class="min-w-0">
                 @if($title)
-                    <h1 class="text-2xl font-semibold text-med-ink">{{ $title }}</h1>
+                    <h1 class="text-3xl font-semibold leading-tight text-med-ink">{{ $title }}</h1>
                 @endif
 
                 @if($subtitle)
-                    <p class="mt-1 max-w-3xl text-sm text-med-muted">{{ $subtitle }}</p>
+                    <p class="mt-2 max-w-3xl text-base leading-6 text-med-muted">{{ $subtitle }}</p>
                 @endif
             </div>
 

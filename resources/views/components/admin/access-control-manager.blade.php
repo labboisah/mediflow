@@ -3,271 +3,249 @@
         $selectedRoleIsProtected = $selectedRole && in_array($selectedRole->name, ['superadmin', 'administrator'], true);
     @endphp
 
-    <div class="d-flex flex-wrap gap-3 justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-1">
-                <i class="bi bi-shield-check me-2 text-success"></i>
-                Access Control
-            </h1>
-            <p class="text-muted mb-0">Create custom roles, define permissions, and assign users.</p>
+    <x-ui.page :title="$pageTitle" :subtitle="$pageSubtitle">
+        <x-slot:actions>
+            <x-ui.button wire:click="createRole">
+                <i class="bi bi-plus-circle"></i>
+                New Role
+            </x-ui.button>
+        </x-slot:actions>
+
+        <div class="grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
+            <x-ui.card>
+                <p class="text-base font-medium text-med-muted">Roles</p>
+                <p class="mt-3 text-3xl font-semibold leading-tight text-med-ink">{{ number_format($summary['roles']) }}</p>
+            </x-ui.card>
+
+            <x-ui.card>
+                <p class="text-base font-medium text-med-muted">Permissions</p>
+                <p class="mt-3 text-3xl font-semibold leading-tight text-med-ink">{{ number_format($summary['permissions']) }}</p>
+            </x-ui.card>
+
+            <x-ui.card>
+                <p class="text-base font-medium text-med-muted">Users</p>
+                <p class="mt-3 text-3xl font-semibold leading-tight text-med-ink">{{ number_format($summary['users']) }}</p>
+            </x-ui.card>
+
+            <x-ui.card>
+                <p class="text-base font-medium text-med-muted">Temp Permissions</p>
+                <p class="mt-3 text-3xl font-semibold leading-tight text-med-ink">{{ number_format($summary['temporary_permissions']) }}</p>
+            </x-ui.card>
         </div>
 
-        <button type="button" class="btn btn-success" wire:click="createRole">
-            <i class="bi bi-plus-circle me-1"></i>
-            New Role
-        </button>
-    </div>
-
-    <div class="row g-3 mb-4">
-        <div class="col-md-3">
-            <div class="border rounded bg-white p-3 h-100">
-                <p class="text-muted small mb-1">Roles</p>
-                <h4 class="mb-0">{{ number_format($summary['roles']) }}</h4>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="border rounded bg-white p-3 h-100">
-                <p class="text-muted small mb-1">Permissions</p>
-                <h4 class="mb-0">{{ number_format($summary['permissions']) }}</h4>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="border rounded bg-white p-3 h-100">
-                <p class="text-muted small mb-1">Users</p>
-                <h4 class="mb-0">{{ number_format($summary['users']) }}</h4>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="border rounded bg-white p-3 h-100">
-                <p class="text-muted small mb-1">Temp Permissions</p>
-                <h4 class="mb-0">{{ number_format($summary['temporary_permissions']) }}</h4>
-            </div>
-        </div>
-    </div>
-
-    <div class="card shadow-sm mb-4">
-        <div class="card-header bg-light d-flex flex-wrap gap-2 justify-content-between align-items-center">
-            <div>
-                <h5 class="mb-0">Module Access</h5>
-                <small class="text-muted">Attach users to licensed modules before role permissions are applied.</small>
-            </div>
-        </div>
-        <div class="card-body">
+        <x-ui.card title="Module Access" subtitle="Attach users to licensed modules before role permissions are applied.">
             @if($licenseModules->isEmpty())
-                <div class="text-center text-muted py-4">No licensed modules are available.</div>
+                <x-ui.empty-state title="No licensed modules are available" />
             @else
-                <div class="table-responsive">
-                    <table class="table table-sm align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th style="min-width: 220px;">User</th>
+                <x-ui.table>
+                    <thead class="bg-med-canvas">
+                        <tr>
+                            <th class="min-w-56 px-4 py-3 text-left text-sm font-semibold text-med-ink">User</th>
+                            @foreach($licenseModules as $licenseModule)
+                                <th class="whitespace-nowrap px-4 py-3 text-center text-sm font-semibold text-med-ink">
+                                    {{ ucfirst(str_replace('_', ' ', $licenseModule)) }}
+                                </th>
+                            @endforeach
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-med-line">
+                        @foreach($users as $user)
+                            @php($isSuperAdminUser = $user->roles->contains('name', 'superadmin'))
+                            <tr class="hover:bg-med-canvas">
+                                <td class="px-4 py-4">
+                                    <p class="font-semibold text-med-ink">{{ $user->name }}</p>
+                                    <p class="mt-1 text-sm text-med-muted">{{ $user->email }}</p>
+                                </td>
                                 @foreach($licenseModules as $licenseModule)
-                                    <th class="text-center text-nowrap">{{ ucfirst(str_replace('_', ' ', $licenseModule)) }}</th>
+                                    @php($hasAccess = $isSuperAdminUser || ($moduleAccessMap[$user->id . ':' . $licenseModule] ?? false))
+                                    <td class="px-4 py-4 text-center">
+                                        <button type="button"
+                                                class="inline-flex h-9 w-9 items-center justify-center rounded-md border text-sm transition {{ $hasAccess ? 'border-med-primary bg-green-50 text-med-primary' : 'border-med-line bg-white text-med-muted hover:bg-med-canvas' }}"
+                                                wire:click="toggleUserModuleAccess({{ $user->id }}, '{{ $licenseModule }}')"
+                                                @disabled($isSuperAdminUser)
+                                                title="{{ $hasAccess ? 'Module enabled for user' : 'Module disabled for user' }}">
+                                            <i class="bi {{ $hasAccess ? 'bi-check2' : 'bi-dash' }}"></i>
+                                        </button>
+                                    </td>
                                 @endforeach
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($users as $user)
-                                @php($isSuperAdminUser = $user->roles->contains('name', 'superadmin'))
-                                <tr>
-                                    <td>
-                                        <div class="fw-semibold">{{ $user->name }}</div>
-                                        <small class="text-muted">{{ $user->email }}</small>
-                                    </td>
-                                    @foreach($licenseModules as $licenseModule)
-                                        @php($hasAccess = $isSuperAdminUser || ($moduleAccessMap[$user->id . ':' . $licenseModule] ?? false))
-                                        <td class="text-center">
-                                            <button type="button"
-                                                    class="btn btn-sm {{ $hasAccess ? 'btn-success' : 'btn-outline-secondary' }}"
-                                                    wire:click="toggleUserModuleAccess({{ $user->id }}, '{{ $licenseModule }}')"
-                                                    @disabled($isSuperAdminUser)
-                                                    title="{{ $hasAccess ? 'Module enabled for user' : 'Module disabled for user' }}">
-                                                <i class="bi {{ $hasAccess ? 'bi-check2' : 'bi-dash' }}"></i>
-                                            </button>
-                                        </td>
-                                    @endforeach
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+                        @endforeach
+                    </tbody>
+                </x-ui.table>
             @endif
-        </div>
-    </div>
+        </x-ui.card>
 
-    <div class="row g-4">
-        <div class="col-lg-3">
-            <div class="card shadow-sm h-100">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Roles</h5>
+        <div class="grid gap-6 xl:grid-cols-12">
+            <x-ui.card class="xl:col-span-3" title="Roles">
+                <x-ui.input type="search"
+                            placeholder="Search roles"
+                            wire:model.live.debounce.300ms="roleSearch" />
+
+                <div class="mt-4 max-h-[620px] space-y-2 overflow-y-auto pr-1">
+                    @forelse($roles as $role)
+                        <button type="button"
+                                wire:click="selectRole({{ $role->id }})"
+                                class="w-full rounded-md border px-4 py-3 text-left transition {{ $selectedRole?->id === $role->id ? 'border-med-primary bg-green-50 text-med-primary shadow-sm' : 'border-med-line bg-white text-med-ink hover:bg-med-canvas' }}">
+                            <span class="flex items-start justify-between gap-3">
+                                <span class="min-w-0">
+                                    <span class="block font-semibold">{{ $role->display_name ?: ucfirst(str_replace('_', ' ', $role->name)) }}</span>
+                                    <span class="mt-1 block truncate text-sm text-med-muted">{{ $role->name }}</span>
+                                </span>
+                                <x-ui.badge>{{ $role->permissions_count }}</x-ui.badge>
+                            </span>
+                        </button>
+                    @empty
+                        <x-ui.empty-state title="No roles found" />
+                    @endforelse
                 </div>
-                <div class="card-body">
-                    <input type="search" class="form-control mb-3" placeholder="Search roles" wire:model.live.debounce.300ms="roleSearch">
+            </x-ui.card>
 
-                    <div class="list-group" style="max-height: 620px; overflow-y: auto;">
-                        @forelse($roles as $role)
-                            <button type="button" wire:click="selectRole({{ $role->id }})" class="list-group-item list-group-item-action {{ $selectedRole?->id === $role->id ? 'active' : '' }}">
-                                <div class="d-flex justify-content-between align-items-start">
-                                    <div>
-                                        <div class="fw-semibold">{{ $role->display_name ?: ucfirst(str_replace('_', ' ', $role->name)) }}</div>
-                                        <small>{{ $role->name }}</small>
-                                    </div>
-                                    <span class="badge {{ $selectedRole?->id === $role->id ? 'text-bg-light' : 'text-bg-secondary' }}">{{ $role->permissions_count }}</span>
-                                </div>
-                            </button>
-                        @empty
-                            <div class="text-center text-muted py-4">No roles found.</div>
-                        @endforelse
+            <x-ui.card class="xl:col-span-6" title="Role Builder">
+                <x-slot:actions>
+                    @if($selectedRoleIsProtected)
+                        <x-ui.badge variant="warning">Protected</x-ui.badge>
+                    @endif
+                </x-slot:actions>
+
+                <div class="grid gap-4 md:grid-cols-2">
+                    <x-ui.input label="Role Name"
+                                placeholder="billing_supervisor"
+                                wire:model.defer="roleName"
+                                :disabled="$selectedRoleIsProtected" />
+
+                    <x-ui.input label="Display Name"
+                                placeholder="Billing Supervisor"
+                                wire:model.defer="roleDisplayName"
+                                :disabled="$selectedRoleIsProtected" />
+
+                    <div class="md:col-span-2">
+                        <x-ui.textarea label="Description"
+                                       rows="3"
+                                       wire:model.defer="roleDescription"
+                                       :disabled="$selectedRoleIsProtected" />
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <div class="col-lg-6">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-light d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">Role Builder</h5>
-                    @if($selectedRoleIsProtected)
-                        <span class="badge text-bg-warning">Protected</span>
+                <div class="mt-6 flex flex-col gap-3 border-t border-med-line pt-5 lg:flex-row lg:items-center lg:justify-between">
+                    <h3 class="text-lg font-semibold text-med-ink">Permissions</h3>
+                    <div class="grid gap-3 sm:grid-cols-2 lg:w-[26rem]">
+                        <x-ui.input type="search"
+                                    placeholder="Search permissions"
+                                    wire:model.live.debounce.300ms="permissionSearch" />
+                        <x-ui.select wire:model.live="moduleFilter">
+                            <option value="">All Modules</option>
+                            @foreach($modules as $module)
+                                <option value="{{ $module }}">{{ ucfirst(str_replace('_', ' ', $module)) }}</option>
+                            @endforeach
+                        </x-ui.select>
+                    </div>
+                </div>
+
+                <div class="mt-4 max-h-[520px] space-y-4 overflow-y-auto pr-1">
+                    @forelse($permissionGroups as $module => $permissions)
+                        <section class="rounded-md border border-med-line bg-white">
+                            <div class="flex flex-col gap-3 border-b border-med-line bg-med-canvas px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                                <strong class="text-base text-med-ink">{{ ucfirst(str_replace(['_', '-'], ' ', $module)) }}</strong>
+                                @if(! $selectedRoleIsProtected)
+                                    <div class="flex gap-2">
+                                        <x-ui.button variant="secondary" wire:click="selectModulePermissions('{{ $module }}')">Select</x-ui.button>
+                                        <x-ui.button variant="ghost" wire:click="clearModulePermissions('{{ $module }}')">Clear</x-ui.button>
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="grid gap-3 p-4 md:grid-cols-2">
+                                @foreach($permissions as $permission)
+                                    <label class="flex cursor-pointer items-start gap-3 rounded-md border border-med-line bg-white p-3 transition hover:bg-med-canvas">
+                                        <input class="mt-1 h-4 w-4 rounded border-med-line text-med-primary"
+                                               type="checkbox"
+                                               value="{{ $permission->id }}"
+                                               wire:model.live="selectedPermissionIds"
+                                               @disabled($selectedRoleIsProtected)>
+                                        <span>
+                                            <span class="block font-semibold text-med-ink">{{ $permission->display_name ?: $permission->name }}</span>
+                                            <span class="mt-1 block text-sm text-med-muted">{{ $permission->name }}</span>
+                                        </span>
+                                    </label>
+                                @endforeach
+                            </div>
+                        </section>
+                    @empty
+                        <x-ui.empty-state title="No permissions found" />
+                    @endforelse
+                </div>
+
+                <div class="mt-5 flex flex-wrap gap-3 border-t border-med-line pt-5">
+                    <x-ui.button wire:click="saveRole" :disabled="$selectedRoleIsProtected">
+                        <i class="bi bi-check-circle"></i>
+                        Save Role
+                    </x-ui.button>
+
+                    @if($selectedRole && ! $selectedRoleIsProtected)
+                        <x-ui.button variant="danger" wire:click="deleteRole" wire:confirm="Delete this role?">
+                            <i class="bi bi-trash"></i>
+                            Delete Role
+                        </x-ui.button>
                     @endif
                 </div>
-                <div class="card-body">
-                    <div class="row g-3 mb-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Role Name</label>
-                            <input type="text" class="form-control @error('roleName') is-invalid @enderror" wire:model.defer="roleName" placeholder="billing_supervisor" @disabled($selectedRoleIsProtected)>
-                            @error('roleName')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Display Name</label>
-                            <input type="text" class="form-control @error('roleDisplayName') is-invalid @enderror" wire:model.defer="roleDisplayName" placeholder="Billing Supervisor" @disabled($selectedRoleIsProtected)>
-                            @error('roleDisplayName')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">Description</label>
-                            <textarea class="form-control @error('roleDescription') is-invalid @enderror" rows="2" wire:model.defer="roleDescription" @disabled($selectedRoleIsProtected)></textarea>
-                            @error('roleDescription')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                        </div>
-                    </div>
+            </x-ui.card>
 
-                    <div class="d-flex flex-wrap gap-2 justify-content-between align-items-center mb-3">
-                        <h6 class="mb-0">Permissions</h6>
-                        <div class="d-flex gap-2">
-                            <input type="search" class="form-control form-control-sm" placeholder="Search permissions" wire:model.live.debounce.300ms="permissionSearch">
-                            <select class="form-select form-select-sm" wire:model.live="moduleFilter">
-                                <option value="">All Modules</option>
-                                @foreach($modules as $module)
-                                    <option value="{{ $module }}">{{ ucfirst(str_replace('_', ' ', $module)) }}</option>
-                                @endforeach
-                            </select>
-                        </div>
-                    </div>
+            <div class="space-y-6 xl:col-span-3">
+                <x-ui.card title="Create Permission">
+                    <div class="space-y-4">
+                        <x-ui.input label="Permission Name"
+                                    placeholder="billing.approve"
+                                    wire:model.defer="permissionName" />
 
-                    <div style="max-height: 520px; overflow-y: auto;">
-                        @forelse($permissionGroups as $module => $permissions)
-                            <div class="border rounded mb-3">
-                                <div class="bg-light px-3 py-2 d-flex justify-content-between align-items-center">
-                                    <strong>{{ ucfirst(str_replace(['_', '-'], ' ', $module)) }}</strong>
-                                    @if(! $selectedRoleIsProtected)
-                                        <div class="btn-group btn-group-sm">
-                                            <button type="button" class="btn btn-outline-success" wire:click="selectModulePermissions('{{ $module }}')">Select</button>
-                                            <button type="button" class="btn btn-outline-secondary" wire:click="clearModulePermissions('{{ $module }}')">Clear</button>
-                                        </div>
-                                    @endif
-                                </div>
-                                <div class="p-3">
-                                    <div class="row g-2">
-                                        @foreach($permissions as $permission)
-                                            <div class="col-md-6">
-                                                <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" value="{{ $permission->id }}" id="permission{{ $permission->id }}" wire:model.live="selectedPermissionIds" @disabled($selectedRoleIsProtected)>
-                                                    <label class="form-check-label" for="permission{{ $permission->id }}">
-                                                        <span class="fw-semibold">{{ $permission->display_name ?: $permission->name }}</span>
-                                                        <span class="d-block text-muted small">{{ $permission->name }}</span>
-                                                    </label>
-                                                </div>
-                                            </div>
-                                        @endforeach
-                                    </div>
-                                </div>
-                            </div>
-                        @empty
-                            <div class="text-center text-muted py-5">No permissions found.</div>
-                        @endforelse
-                    </div>
+                        <x-ui.input label="Display Name"
+                                    placeholder="Approve Billing"
+                                    wire:model.defer="permissionDisplayName" />
 
-                    <div class="d-flex gap-2 mt-3">
-                        <button type="button" class="btn btn-success" wire:click="saveRole" @disabled($selectedRoleIsProtected)>
-                            <i class="bi bi-check-circle me-1"></i>
-                            Save Role
-                        </button>
-                        @if($selectedRole && ! $selectedRoleIsProtected)
-                            <button type="button" class="btn btn-outline-danger" wire:click="deleteRole" wire:confirm="Delete this role?">
-                                <i class="bi bi-trash me-1"></i>
-                                Delete Role
-                            </button>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
+                        <x-ui.input label="Module"
+                                    placeholder="billing"
+                                    wire:model.defer="permissionModule" />
 
-        <div class="col-lg-3">
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Create Permission</h5>
-                </div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label class="form-label">Permission Name</label>
-                        <input type="text" class="form-control @error('permissionName') is-invalid @enderror" wire:model.defer="permissionName" placeholder="billing.approve">
-                        @error('permissionName')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Display Name</label>
-                        <input type="text" class="form-control" wire:model.defer="permissionDisplayName" placeholder="Approve Billing">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Module</label>
-                        <input type="text" class="form-control" wire:model.defer="permissionModule" placeholder="billing">
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label">Description</label>
-                        <textarea class="form-control" rows="2" wire:model.defer="permissionDescription"></textarea>
-                    </div>
-                    <button type="button" class="btn btn-outline-success w-100" wire:click="savePermission">
-                        <i class="bi bi-plus-circle me-1"></i>
-                        Add Permission
-                    </button>
-                </div>
-            </div>
+                        <x-ui.textarea label="Description"
+                                       rows="3"
+                                       wire:model.defer="permissionDescription" />
 
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Users In Role</h5>
-                </div>
-                <div class="card-body">
+                        <x-ui.button variant="secondary" class="w-full" wire:click="savePermission">
+                            <i class="bi bi-plus-circle"></i>
+                            Add Permission
+                        </x-ui.button>
+                    </div>
+                </x-ui.card>
+
+                <x-ui.card title="Users In Role">
                     @if($selectedRole)
-                        <div style="max-height: 360px; overflow-y: auto;">
+                        <div class="max-h-[360px] space-y-3 overflow-y-auto pr-1">
                             @foreach($users as $user)
-                                <div class="form-check mb-2">
-                                    <input class="form-check-input" type="checkbox" value="{{ $user->id }}" id="roleUser{{ $user->id }}" wire:model.live="selectedUserIds" @disabled($selectedRoleIsProtected)>
-                                    <label class="form-check-label" for="roleUser{{ $user->id }}">
-                                        <span class="fw-semibold">{{ $user->name }}</span>
-                                        <span class="d-block text-muted small">{{ $user->email }}</span>
-                                    </label>
-                                </div>
+                                <label class="flex cursor-pointer items-start gap-3 rounded-md border border-med-line bg-white p-3 transition hover:bg-med-canvas">
+                                    <input class="mt-1 h-4 w-4 rounded border-med-line text-med-primary"
+                                           type="checkbox"
+                                           value="{{ $user->id }}"
+                                           wire:model.live="selectedUserIds"
+                                           @disabled($selectedRoleIsProtected)>
+                                    <span class="min-w-0">
+                                        <span class="block font-semibold text-med-ink">{{ $user->name }}</span>
+                                        <span class="mt-1 block truncate text-sm text-med-muted">{{ $user->email }}</span>
+                                    </span>
+                                </label>
                             @endforeach
                         </div>
-                        <button type="button" class="btn btn-outline-primary w-100 mt-3" wire:click="syncRoleUsers" @disabled($selectedRoleIsProtected)>
-                            <i class="bi bi-people me-1"></i>
+
+                        <x-ui.button variant="secondary"
+                                     class="mt-4 w-full"
+                                     wire:click="syncRoleUsers"
+                                     :disabled="$selectedRoleIsProtected">
+                            <i class="bi bi-people"></i>
                             Update Users
-                        </button>
+                        </x-ui.button>
                     @else
-                        <div class="text-muted text-center py-4">Save or select a role first.</div>
+                        <x-ui.empty-state title="Select a role first" message="Save or select a role before assigning users." />
                     @endif
-                </div>
+                </x-ui.card>
             </div>
         </div>
-    </div>
+    </x-ui.page>
 </div>

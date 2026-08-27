@@ -5,16 +5,44 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
-    <title>{{ trim(config('app.name') . ' ' . (trim($__env->yieldContent('title')) ? '| ' . trim($__env->yieldContent('title')) : '')) }}</title>
+    @php
+        $modernPageTitle = $pageTitle ?? trim($__env->yieldContent('page-title')) ?: 'Workspace';
+        $modernPageSubtitle = $pageSubtitle ?? trim($__env->yieldContent('page-subtitle')) ?: config('app.name');
+        $modernBrowserTitle = trim($__env->yieldContent('title')) ?: $modernPageTitle;
+        $viteManifest = public_path('build/manifest.json');
+        $hasModernAssets = file_exists($viteManifest)
+            && str_contains(file_get_contents($viteManifest), 'resources/css/modern.css')
+            && str_contains(file_get_contents($viteManifest), 'resources/js/modern.js');
+    @endphp
+
+    <title>{{ config('app.name') }} | {{ $modernBrowserTitle }}</title>
 
     <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/png">
 
-    @vite(['resources/css/modern.css', 'resources/js/modern.js'])
+    @if($hasModernAssets)
+        @vite(['resources/css/modern.css', 'resources/js/modern.js'])
+    @else
+        <link rel="stylesheet" href="{{ asset('vendor/bootstrap-icons/font/bootstrap-icons.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/modern-fallback.css') }}">
+        @vite('resources/js/app.js')
+    @endif
     @livewireStyles
     @stack('styles')
 </head>
 <body class="antialiased">
-    <div x-data="{ sidebarOpen: false }" class="mf-shell">
+    <div x-data="{
+            sidebarOpen: false,
+            sidebarCollapsed: localStorage.getItem('modern-sidebar-collapsed') === 'true',
+            toggleSidebarCollapsed() {
+                this.sidebarCollapsed = ! this.sidebarCollapsed;
+                localStorage.setItem('modern-sidebar-collapsed', this.sidebarCollapsed ? 'true' : 'false');
+            },
+            expandSidebar() {
+                this.sidebarCollapsed = false;
+                localStorage.setItem('modern-sidebar-collapsed', 'false');
+            }
+        }"
+        class="mf-shell">
         @auth
             <div x-show="sidebarOpen"
                  x-transition.opacity
@@ -24,7 +52,8 @@
 
             @include('layouts.partials.modern-sidebar')
 
-            <div class="min-h-screen lg:pl-72">
+            <div class="min-h-screen transition-all duration-200"
+                 :class="{ 'lg:pl-24': sidebarCollapsed, 'lg:pl-80': ! sidebarCollapsed }">
                 @include('layouts.partials.modern-topbar')
 
                 <main class="px-4 py-6 sm:px-6 lg:px-8">
