@@ -3,6 +3,19 @@
 return [
     'default_plan' => env('MEDIFLOW_DEFAULT_PLAN', 'hospital'),
 
+    'required' => ['core', 'access_control'],
+
+    'dependencies' => [
+        'clinical_care' => ['patient_records'],
+        'doctor' => ['patient_records', 'clinical_care'],
+        'nursing' => ['patient_records', 'clinical_care'],
+        'maternity' => ['patient_records'],
+        'laboratory' => ['patient_records'],
+        'radiology' => ['patient_records'],
+        'finance' => ['billing'],
+        'wards_beds' => ['clinical_care'],
+    ],
+
     'features' => [
         'core' => 'Core System',
         'patient_records' => 'Patient Records',
@@ -87,7 +100,7 @@ return [
         'hospital' => [
             'label' => 'Hospital',
             'description' => 'Full single-branch hospital operations.',
-            'modules' => ['*'],
+            'modules' => ['core', 'access_control', 'patient_records', 'clinical_care', 'doctor', 'nursing', 'maternity', 'laboratory', 'radiology', 'pharmacy', 'billing', 'finance', 'reports', 'wards_beds', 'department_management', 'maintenance', 'medical_director'],
         ],
 
         'enterprise_hospital' => [

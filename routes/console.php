@@ -114,3 +114,20 @@ Artisan::command('bill:copy-amount-to-due-amount {--dry-run}', function () {
         $this->info('Dry-run mode: no records were modified.');
     }
 })->purpose('Copy each bill amount into due_amount for existing bills');
+
+Artisan::command('installation:admin {email} {--revoke}', function () {
+    $user = \App\Models\User::where('email', $this->argument('email'))->first();
+    if (! $user) {
+        $this->error('Account not found. Create the user before granting installation access.');
+        return 1;
+    }
+    $user->is_installation_admin = ! $this->option('revoke');
+    $user->saveQuietly();
+    \App\Models\AuditLog::create([
+        'actor_id' => $user->id, 'action' => 'installation.admin_changed',
+        'model_type' => \App\Models\User::class, 'model_id' => $user->id,
+        'after' => ['is_installation_admin' => $user->is_installation_admin],
+        'meta' => ['source' => 'console'],
+    ]);
+    $this->info($user->is_installation_admin ? 'Installation access granted.' : 'Installation access revoked.');
+})->purpose('Grant or revoke installation configuration access for an existing account');

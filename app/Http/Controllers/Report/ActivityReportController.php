@@ -184,7 +184,8 @@ class ActivityReportController extends Controller
 
     private function definitionIsAvailable(array $definition): bool
     {
-        return Schema::hasTable($definition['table'])
+        return app(\App\Services\LicenseService::class)->reportTableEnabled($definition['table'])
+            && Schema::hasTable($definition['table'])
             && Schema::hasColumn($definition['table'], $definition['user_column'])
             && Schema::hasColumn($definition['table'], $definition['date_column']);
     }

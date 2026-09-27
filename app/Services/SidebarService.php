@@ -54,7 +54,7 @@ class SidebarService
 
     public function canShowItem(User $user, Module $module): bool
     {
-        if (! $this->license->userHasModuleAccess($user, $module->license_module)) {
+        if (! $this->license->routeEnabled($module->route) || ! $this->license->userHasModuleAccess($user, $module->license_module)) {
             return false;
         }
 

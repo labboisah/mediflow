@@ -51,6 +51,7 @@ class UserController extends Controller
 
     public function edit(User $user)
     {
+        abort_if($user->is_installation_admin && ! auth()->user()?->is_installation_admin, 403);
         if ($user->id === auth()->id()) {
             return redirect()->route('admin.users.index')->with('error', 'You cannot edit your own roles here.');
         }
@@ -73,6 +74,7 @@ class UserController extends Controller
 
     public function update(Request $request, User $user)
     {
+        abort_if($user->is_installation_admin && ! auth()->user()?->is_installation_admin, 403);
         if ($user->id === auth()->id()) {
             return redirect()->route('admin.users.index')->with('error', 'You cannot edit your own roles.');
         }
@@ -152,6 +154,7 @@ class UserController extends Controller
 
     public function destroy(User $user)
     {
+        abort_if($user->is_installation_admin && ! auth()->user()?->is_installation_admin, 403);
         if ($user->id === auth()->id()) {
             return redirect()->route('admin.users.index')->with('error', 'You cannot delete your own account.');
         }

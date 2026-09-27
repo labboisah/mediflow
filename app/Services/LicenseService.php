@@ -14,18 +14,7 @@ class LicenseService
             return null;
         }
 
-        return ClientLicense::query()
-            ->where('is_active', true)
-            ->where(function ($query) {
-                $query->whereNull('starts_at')
-                    ->orWhere('starts_at', '<=', now());
-            })
-            ->where(function ($query) {
-                $query->whereNull('expires_at')
-                    ->orWhere('expires_at', '>=', now());
-            })
-            ->latest('id')
-            ->first();
+        return ClientLicense::query()->latest('id')->first();
     }
 
     public function currentPlan(): ?string
@@ -35,29 +24,81 @@ class LicenseService
         return config("mediflow_modules.legacy_plan_aliases.{$plan}", $plan);
     }
 
-    public function enabledModules(): array
+    public function planModules(string $plan): array
     {
-        $plan = $this->currentPlan();
         $modules = config("mediflow_modules.plans.{$plan}.modules", []);
 
-        if (in_array('*', $modules, true)) {
-            $modules = $this->allKnownModules($modules);
-        }
+        return in_array('*', $modules, true) ? $this->allKnownModules($modules) : $modules;
+    }
 
+    public function configuredModules(): array
+    {
         $license = $this->currentLicense();
-
         if ($license && Schema::hasTable('client_enabled_modules')) {
-            $savedModules = $license->enabledModules()
-                ->where('is_enabled', true)
-                ->pluck('module_name')
-                ->all();
-
-            if ($savedModules !== []) {
-                return collect($savedModules)->filter()->unique()->values()->all();
+            $saved = $license->enabledModules()->get();
+            // An explicit all-disabled selection must never restore the package defaults.
+            if ($saved->isNotEmpty()) {
+                return $saved->where('is_enabled', true)->pluck('module_name')->unique()->values()->all();
             }
         }
 
-        return collect($modules)->filter()->unique()->values()->all();
+        return $this->planModules($this->currentPlan() ?? '');
+    }
+
+    public function enabledModules(): array
+    {
+        $license = $this->currentLicense();
+        if ($license && (! $license->is_active
+            || ($license->starts_at && $license->starts_at->isFuture())
+            || ($license->expires_at && $license->expires_at->isPast()))) {
+            return config('mediflow_modules.required', ['core']);
+        }
+
+        return $this->configuredModules();
+    }
+
+    public function routeEnabled(?string $name, ?string $path = null): bool
+    {
+        if ($path && str_starts_with(ltrim($path, '/'), 'api/v1/sync')) {
+            return $this->moduleEnabled('synchronization');
+        }
+        foreach (config('installation_routes', []) as $pattern => $requirements) {
+            if (! $name || ! \Illuminate\Support\Str::is($pattern, $name)) {
+                continue;
+            }
+            foreach ($requirements as $requirement) {
+                $allowed = false;
+                foreach (explode('|', $requirement) as $module) {
+                    $allowed = $allowed || $this->moduleEnabled($module);
+                }
+                if (! $allowed) {
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    public function reportTableEnabled(string $table): bool
+    {
+        $modules = match ($table) {
+            'patient_visits', 'visit_activities' => ['patient_records'],
+            'service_requests', 'vital_signs', 'observations', 'fluid_balances',
+            'continuations', 'prescriptions', 'admissions', 'patient_admissions' => ['clinical_care'],
+            'investigation_requests' => ['laboratory', 'radiology'],
+            'antenatal_cares', 'labours', 'labour_progress', 'deliveries', 'newborns',
+            'newborn_examinations', 'postnatal_examinations', 'child_follow_ups' => ['maternity'],
+            default => [],
+        };
+
+        foreach ($modules as $module) {
+            if ($this->moduleEnabled($module)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function moduleEnabled(?string $module): bool

@@ -2,7 +2,7 @@
     $sidebarUser = Auth::user();
     $sidebarService = app(\App\Services\SidebarService::class);
     $sidebarGroups = $sidebarService->groupsFor($sidebarUser);
-    $dashboardRoute = $sidebarUser?->hasRole('medical_director')
+    $dashboardRoute = $sidebarUser?->hasRole('medical_director') && app(\App\Services\LicenseService::class)->moduleEnabled('medical_director')
         ? route('medical-director.index')
         : ($sidebarUser?->hasRole('administrator') ? route('admin.index') : route('dashboard'));
     $dashboardLabel = 'Dashboard';
@@ -52,6 +52,13 @@
             <span class="mf-icon-box"><i class="bi bi-speedometer2"></i></span>
             <span x-show="! sidebarCollapsed">{{ $dashboardLabel }}</span>
         </a>
+
+        @if($sidebarUser?->is_installation_admin)
+            <a href="{{ route('admin.installation') }}" class="mf-sidebar-link {{ request()->routeIs('admin.installation') ? 'mf-sidebar-link-active' : '' }}" title="Installation Setup">
+                <span class="mf-icon-box"><i class="bi bi-sliders"></i></span>
+                <span x-show="! sidebarCollapsed">Installation Setup</span>
+            </a>
+        @endif
 
         @foreach($sidebarGroups as $group)
             @continue($group['key'] === 'dashboard')

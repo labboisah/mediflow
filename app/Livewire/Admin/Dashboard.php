@@ -28,6 +28,14 @@ class Dashboard extends Component
 {
     public function render()
     {
+        $license = app(\App\Services\LicenseService::class);
+        if ($license->currentLicense()) {
+            return view('components.installation-dashboard', [
+                'packageLabel' => config('mediflow_modules.plans.'.$license->currentPlan().'.label', 'Installation'),
+                'groups' => app(\App\Services\SidebarService::class)->groupsFor(auth()->user()),
+            ])->layout('layouts.modern');
+        }
+
         $canViewTechnicalRecords = auth()->user()?->hasRole('administrator') ?? false;
         $pageTitle = $canViewTechnicalRecords ? 'Superadmin Dashboard' : 'Medical Director Dashboard';
         $pageSubtitle = $canViewTechnicalRecords

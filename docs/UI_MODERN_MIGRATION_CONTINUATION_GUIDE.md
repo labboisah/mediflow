@@ -4,6 +4,10 @@
 
 Use this document as the prompt guide for continuing the Mediflow modern UI migration later. It records where the work stopped, what has already been completed, and the exact order to follow until the full system is migrated.
 
+## Installation Configuration Update
+
+Super admin Installation Setup is available at `/admin/installation`. See [INSTALLATION_SETUP.md](INSTALLATION_SETUP.md) for package configuration, account provisioning, route enforcement, and tests.
+
 ## Current Stop Point
 
 Phase 8 billing, finance, and reports are complete. Continue with the final cleanup phase for remaining legacy/fallback screens.

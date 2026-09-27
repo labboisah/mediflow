@@ -25,6 +25,11 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        \Livewire\Livewire::addPersistentMiddleware([
+            \App\Http\Middleware\EnsureInstallationModules::class,
+            \App\Http\Middleware\EnsureInstallationAdmin::class,
+        ]);
+
         // Register audit observer for core models that use the Auditable trait
         User::observe(AuditModelObserver::class);
         Role::observe(AuditModelObserver::class);

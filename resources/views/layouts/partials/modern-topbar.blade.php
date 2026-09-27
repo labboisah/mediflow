@@ -15,9 +15,11 @@
         </div>
 
         <div class="flex items-center gap-3">
+            @if(app(\App\Services\LicenseService::class)->moduleEnabled('reports'))
             <a href="{{ route('reports.my-activities.index') }}" class="mf-focus hidden rounded-md border border-med-line bg-white px-3 py-2 text-sm font-medium text-med-muted hover:text-med-primary sm:inline-flex">
                 My Activities
             </a>
+            @endif
 
             <div x-data="{ open: false }" class="relative">
                 <button type="button" class="mf-focus flex items-center gap-2 rounded-md border border-med-line bg-white px-3 py-2 text-sm font-semibold text-med-ink" @click="open = ! open">
@@ -31,7 +33,9 @@
                      @click.outside="open = false"
                      class="absolute right-0 mt-2 w-56 rounded-md border border-med-line bg-white py-2 shadow-panel">
                     <a href="{{ route('profile.edit') }}" class="block px-4 py-2 text-sm text-med-muted hover:bg-med-canvas hover:text-med-primary">Profile</a>
+                    @if(app(\App\Services\LicenseService::class)->moduleEnabled('reports'))
                     <a href="{{ route('reports.my-activities.index') }}" class="block px-4 py-2 text-sm text-med-muted hover:bg-med-canvas hover:text-med-primary">My Activities</a>
+                    @endif
                     <div class="my-2 border-t border-med-line"></div>
                     <form method="POST" action="{{ route('logout') }}">
                         @csrf

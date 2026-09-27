@@ -84,8 +84,9 @@
 
         <style>.thermal-receipt{font-family:monospace;color:#000;width:72mm;max-width:72mm;font-size:13.5px;line-height:1.25}.thermal-receipt p{margin:0 0 3px}.thermal-receipt table{width:100%;border-collapse:collapse}.thermal-receipt td{padding:2px 0;vertical-align:top}.thermal-receipt .divider{border-top:1px dashed #000;margin:6px 0}.thermal-receipt .text-right{text-align:right}</style>
         @push('scripts')
+        @include('pharmacy.partials.thermal-printer')
             <script>
-                function printPharmacyThermalReceipt(){var template=document.getElementById('pharmacy-thermal-receipt');if(!template){return alert('Pharmacy receipt template not found.')}var printWindow=window.open('','_blank','width=360,height=640');if(!printWindow){return alert('Please allow popups to print the thermal receipt.')}printWindow.document.write('<html><head><title>Pharmacy Receipt</title>');printWindow.document.write('<style>body{margin:8px;font-family:monospace;color:#000}.divider{border-top:1px dashed #000;margin:8px 0}table{width:100%;border-collapse:collapse}td{padding:2px 0;vertical-align:top}.text-right{text-align:right}.text-center{text-align:center}.fw-bold{font-weight:700}.small{font-size:12px}h5{margin:0 0 3px}p{margin:0 0 3px}</style>');printWindow.document.write('</head><body>');printWindow.document.write(template.innerHTML);printWindow.document.write('</body></html>');printWindow.document.close();printWindow.focus();setTimeout(function(){printWindow.print();printWindow.close()},300)}
+                function printPharmacyThermalReceipt(){var template=document.getElementById('pharmacy-thermal-receipt');if(!template){return alert('Pharmacy receipt template not found.')}printPharmacyReceipt(template.innerHTML)}
                 document.addEventListener('livewire:init',function(){Livewire.on('print-pharmacy-thermal',function(){setTimeout(printPharmacyThermalReceipt,400)})});
             </script>
         @endpush

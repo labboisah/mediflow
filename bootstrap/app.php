@@ -10,9 +10,15 @@ return Application::configure(basePath: dirname(__DIR__))
         api: __DIR__.'/../routes/api.php',
         commands: __DIR__.'/../routes/console.php',
         health: '/up',
+        then: function () {
+            foreach (\Illuminate\Support\Facades\Route::getRoutes() as $route) {
+                $route->middleware(\App\Http\Middleware\EnsureInstallationModules::class);
+            }
+        },
     )
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
+            'installation.admin' => \App\Http\Middleware\EnsureInstallationAdmin::class,
             'role' => \App\Http\Middleware\CheckRole::class,
             'permission' => \App\Http\Middleware\CheckPermission::class,
             'access' => \App\Http\Middleware\CheckRoleOrPermission::class,

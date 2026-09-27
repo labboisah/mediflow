@@ -15,23 +15,23 @@ trait Reportable
 
         if($this->hasRole('admin')) {
             $reportData = $this->generateAdminReport($startDate, $endDate);
-        }elseif($this->hasRole('doctor')) {
+        }elseif($this->hasRole('doctor') && app(\App\Services\LicenseService::class)->moduleEnabled('doctor')) {
             $reportData = $this->generateDoctorReport($startDate, $endDate);
-        }elseif($this->hasRole('nurse')) {
+        }elseif($this->hasRole('nurse') && app(\App\Services\LicenseService::class)->moduleEnabled('nursing')) {
             $reportData = $this->generateNurseReport($startDate, $endDate);
-        }elseif($this->hasRole('record')) {
+        }elseif($this->hasRole('record') && app(\App\Services\LicenseService::class)->moduleEnabled('patient_records')) {
             $reportData = $this->generateRecordOfficerReport($startDate, $endDate);
-        }elseif($this->hasRole('pharmacy')) {
+        }elseif($this->hasRole('pharmacy') && app(\App\Services\LicenseService::class)->moduleEnabled('pharmacy')) {
             $reportData = $this->generatePharmacyReport($startDate, $endDate);
-        }elseif($this->hasRole('lab')) {
+        }elseif($this->hasRole('lab') && app(\App\Services\LicenseService::class)->moduleEnabled('laboratory')) {
             $reportData = $this->generateLabReport($startDate, $endDate);
-        }elseif($this->hasRole('accountant')) {
+        }elseif($this->hasRole('accountant') && app(\App\Services\LicenseService::class)->moduleEnabled('billing')) {
             $reportData = $this->generateAccountantReport($startDate, $endDate);
-        }elseif($this->hasRole('radiology')) {
+        }elseif($this->hasRole('radiology') && app(\App\Services\LicenseService::class)->moduleEnabled('radiology')) {
             $reportData = $this->generateRadiologyReport($startDate, $endDate);
-        }elseif($this->hasRole('midwife')) {
+        }elseif($this->hasRole('midwife') && app(\App\Services\LicenseService::class)->moduleEnabled('maternity')) {
             $reportData = $this->generateMidwifeReport($startDate, $endDate);
-        }elseif($this->hasRole('pharmacist')) {
+        }elseif($this->hasRole('pharmacist') && app(\App\Services\LicenseService::class)->moduleEnabled('pharmacy')) {
             $reportData = $this->generatePharmacistReport($startDate, $endDate);
         }
         
