@@ -1,4 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.modern')
+
+@section('title', ' param($m) $m.Value.ToUpper() reate. param($m) $m.Value.ToUpper() lade')
+@section('page-title', ' param($m) $m.Value.ToUpper() reate. param($m) $m.Value.ToUpper() lade')
+@section('page-subtitle', 'Billing, finance, and reporting workspace.')
 @section('title', 'Add Investigation to Bill - ' . $bill->bill_number)
 @section('content')
 <div class="container">

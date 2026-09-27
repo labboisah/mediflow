@@ -9,7 +9,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class TransactionIndex extends Component
 {
     use WithPagination;
@@ -20,7 +20,7 @@ class TransactionIndex extends Component
     public string $paymentMethod = '';
     public string $createdBy = '';
 
-    protected string $paginationTheme = 'bootstrap';
+    protected string $paginationTheme = 'tailwind';
 
     public function render()
     {
@@ -78,3 +78,4 @@ class TransactionIndex extends Component
             ->when($this->createdBy !== '', fn ($query) => $query->where('created_by', $this->createdBy));
     }
 }
+

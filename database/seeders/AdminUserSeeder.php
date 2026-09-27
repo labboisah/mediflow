@@ -14,24 +14,16 @@ class AdminUserSeeder extends Seeder
      */
     public function run(): void
     {
-        User::where('email', 'superadmin@mediflow.local')->each(function (User $user) {
-            $user->roles()->detach();
-            $user->delete();
-        });
+        User::withTrashed()
+            ->whereIn('email', ['superadmin@mediflow.local', 'isahlabbo@mediflow.ng'])
+            ->get()
+            ->each(function (User $user) {
+                $user->roles()->detach();
 
-        $superAdmin = User::firstOrCreate(
-            ['email' => 'isahlabbo@mediflow.ng'],
-            [
-                'name' => 'Super Admin',
-                'password' => Hash::make('superadmin@2026'),
-            ]
-        );
-
-        $superAdminRole = Role::where('name', 'superadmin')->first();
-
-        if ($superAdminRole) {
-            $superAdmin->roles()->sync([$superAdminRole->id]);
-        }
+                if (! $user->trashed()) {
+                    $user->delete();
+                }
+            });
 
         $admin = User::firstOrCreate(
             ['email' => 'muhammad.muntaka@fayhos.com'],

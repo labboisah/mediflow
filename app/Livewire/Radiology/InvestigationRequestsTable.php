@@ -11,7 +11,7 @@ class InvestigationRequestsTable extends Component
 
     public string $search = '';
 
-    protected $paginationTheme = 'bootstrap';
+    protected $paginationTheme = 'tailwind';
 
     public function updatingSearch(): void
     {
@@ -65,3 +65,4 @@ class InvestigationRequestsTable extends Component
         ]);
     }
 }
+

@@ -3,13 +3,11 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ClientLicense extends Model
 {
     protected $fillable = [
-        'client_id',
         'client_name',
         'plan',
         'license_key',
@@ -31,8 +29,4 @@ class ClientLicense extends Model
         return $this->hasMany(ClientEnabledModule::class);
     }
 
-    public function client(): BelongsTo
-    {
-        return $this->belongsTo(Client::class);
-    }
 }

@@ -1,4 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.modern')
+
+@section('title', 'Show.Blade')
+@section('page-title', 'Show.Blade')
+@section('page-subtitle', 'Mediflow workspace.')
 @php 
 $patient = $prescription->patientVisit->patient;
 @endphp
@@ -320,3 +324,4 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 </script>
 @endsection
+

@@ -1,46 +1,34 @@
-@extends('layouts.app')
+@extends('layouts.modern')
+
+@section('title', 'Edit Department')
+@section('page-title', 'Edit Department')
+@section('page-subtitle', 'Update the department name used across staff, services, and reports.')
 
 @section('content')
+    <x-ui.page title="Edit Department" subtitle="Update the department name used across staff, services, and reports.">
+        <div class="grid gap-6 xl:grid-cols-12">
+            <x-ui.card class="xl:col-span-7" title="Department Details">
+                <form method="POST" action="{{ route('admin.departments.update', $department) }}" class="space-y-5">
+                    @csrf
+                    @method('PUT')
 
-<div class="container">
+                    <x-ui.input label="Name" name="name" value="{{ old('name', $department->name) }}" placeholder="Enter department name" required />
 
-<div class="d-flex justify-content-between mb-3">
+                    <div class="flex flex-wrap gap-3 border-t border-med-line pt-5">
+                        <x-ui.button type="submit">
+                            <i class="bi bi-check-circle"></i>
+                            Save Changes
+                        </x-ui.button>
 
-<h4>
-<i class="bi bi-box-arrow-in-down"></i>
-Edit Department
-</h4>
-
-<a href="{{ route('admin.departments.index') }}" class="btn btn-secondary">
-<i class="bi bi-arrow-left"></i> Back
-</a>
-
-</div>
-
-
-
-<div class="row">
-    <div class="col-md-6 offset-3">
-        <div class="card-body shadow-sm p-4">
-            <form method="POST" action="{{ route('admin.departments.update',$department) }}">
-            @csrf
-            @method('PUT')
-                <div class="form-group mb-4">
-                    <label class="form-label">Name</label>
-                    <input type="text" name="name" class="form-control" value="{{$department->name}}" placeholder="Enter Department Name" required>
-                </div>
-        
-                <div class="form-group mb-4">
-                    <button class="btn btn-success">
-                        <i class="bi bi-check-circle"></i>
-                        Save Changes
-                    </button>
-                </div>
-            </form>
-
+                        <a href="{{ route('admin.departments.index') }}">
+                            <x-ui.button type="button" variant="secondary">
+                                <i class="bi bi-arrow-left"></i>
+                                Back
+                            </x-ui.button>
+                        </a>
+                    </div>
+                </form>
+            </x-ui.card>
         </div>
-    </div>
-</div>
-
-
+    </x-ui.page>
 @endsection

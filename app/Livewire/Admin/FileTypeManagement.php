@@ -7,7 +7,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class FileTypeManagement extends Component
 {
     use WithPagination;
@@ -18,7 +18,7 @@ class FileTypeManagement extends Component
     public string $price = '';
     public ?int $editingFileTypeId = null;
 
-    protected string $paginationTheme = 'bootstrap';
+    protected string $paginationTheme = 'tailwind';
 
     public function updatingSearch(): void
     {
@@ -126,3 +126,4 @@ class FileTypeManagement extends Component
         ]);
     }
 }
+

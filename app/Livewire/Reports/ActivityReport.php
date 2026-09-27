@@ -13,12 +13,12 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class ActivityReport extends Component
 {
     use WithPagination;
 
-    protected string $paginationTheme = 'bootstrap';
+    protected string $paginationTheme = 'tailwind';
 
     public Department $department;
     public string $search = '';
@@ -408,3 +408,4 @@ class ActivityReport extends Component
         ]);
     }
 }
+

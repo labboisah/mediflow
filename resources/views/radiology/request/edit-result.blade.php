@@ -1,57 +1,59 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1 class="h3 d-flex align-items-center mb-0">
-            <i class="bi bi-pencil-square me-2 text-primary"></i>
-            Edit Investigation Result
-        </h1>
-    </div>
-@endsection
+@section('title', 'Edit Radiology Result')
 
 @section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="card shadow p-4">
-                <form action="{{ route('radiology.requests.updateResult', $investigationRequest) }}" method="POST" enctype="multipart/form-data">
-                    @csrf
-                    @method('PUT')
+    <x-ui.page title="Edit Radiology Result" subtitle="{{ $investigationRequest->investigation?->name ?? 'Radiology investigation' }}">
+        <form action="{{ route('radiology.requests.updateResult', $investigationRequest) }}" method="POST" enctype="multipart/form-data">
+            @csrf
+            @method('PUT')
 
-                    @foreach($investigationRequest->investigation->parameters as $parameter)
-                    @php
-                        $existing = $investigationRequest->investigationResults->firstWhere('parameter_id', $parameter->id);
-                    @endphp
-                    <div class="mb-3">
-                        <label for="parameter_{{ $parameter->id }}" class="form-label">{{ $parameter->name }}</label>
-                        <textarea name="parameters[{{ $parameter->id }}]" id="parameter_{{ $parameter->id }}" class="form-control" placeholder="Enter result for {{ $parameter->name }} in {{ $parameter->unit }}">{{ old('parameters.' . $parameter->id, $existing->value ?? '') }}</textarea>
+            <div class="grid gap-6 xl:grid-cols-12">
+                <x-ui.card class="xl:col-span-8" title="Result Details" subtitle="Update recorded findings for this request.">
+                    <div class="space-y-4">
+                        @forelse($investigationRequest->investigation->parameters as $parameter)
+                            @php($existing = $investigationRequest->investigationResults->firstWhere('parameter_id', $parameter->id))
+                            <x-ui.textarea
+                                label="{{ $parameter->name }}"
+                                name="parameters[{{ $parameter->id }}]"
+                                id="parameter_{{ $parameter->id }}"
+                                rows="5"
+                                placeholder="Enter result for {{ $parameter->name }}{{ $parameter->unit ? ' in ' . $parameter->unit : '' }}"
+                            >{{ old('parameters.' . $parameter->id, $existing->value ?? '') }}</x-ui.textarea>
+                        @empty
+                            <x-ui.empty-state title="No Parameters" message="Use the attachment section if this result is image-only." />
+                        @endforelse
                     </div>
-                    @endforeach
+                </x-ui.card>
 
-                    <div class="mb-3">
-                        <label for="result_image" class="form-label">Radiology Image</label>
-                        <input type="file" name="result_image" id="result_image" class="form-control" accept="image/*">
-                        <div class="form-text">Upload to replace existing image.</div>
-                    </div>
+                <x-ui.card class="xl:col-span-4" title="Attachment" subtitle="Replace or remove the current image.">
+                    <label class="block">
+                        <span class="mb-1 block text-sm font-medium text-med-ink">Radiology Image</span>
+                        <input type="file" name="result_image" id="result_image" accept="image/*" class="mf-focus block w-full rounded-md border border-med-line px-3 py-2.5 text-sm text-med-ink shadow-sm file:mr-3 file:rounded-md file:border-0 file:bg-med-canvas file:px-3 file:py-2 file:text-sm file:font-semibold file:text-med-ink">
+                        @error('result_image')
+                            <span class="mt-1 block text-sm text-med-danger">{{ $message }}</span>
+                        @enderror
+                    </label>
 
                     @if($investigationRequest->result_image)
-                        <div class="mb-3">
-                            <h6>Current Image</h6>
+                        <div class="mt-5 rounded-md border border-med-line bg-med-canvas/60 p-3">
                             <a href="{{ asset('storage/' . $investigationRequest->result_image) }}" target="_blank">
-                                <img src="{{ asset('storage/' . $investigationRequest->result_image) }}" class="img-fluid border" style="max-width:400px;" alt="Radiology Image">
+                                <img src="{{ asset('storage/' . $investigationRequest->result_image) }}" class="max-h-80 w-full rounded-md border border-med-line object-contain" alt="Radiology Image">
                             </a>
-                            <div class="form-check mt-2">
-                                <input class="form-check-input" type="checkbox" name="remove_image" value="1" id="remove_image">
-                                <label class="form-check-label" for="remove_image">Remove current image</label>
-                            </div>
+
+                            <label class="mt-3 flex items-center gap-2 text-sm font-medium text-med-ink">
+                                <input type="checkbox" name="remove_image" value="1" class="rounded border-med-line text-med-primary focus:ring-med-primary">
+                                Remove current image
+                            </label>
                         </div>
                     @endif
 
-                    <button type="submit" class="btn btn-primary"><i class="bi bi-save me-2"></i> Update Result</button>
-                    <a href="{{ route('radiology.requests.show', $investigationRequest) }}" class="btn btn-secondary ms-2">Cancel</a>
-                </form>
+                    <div class="mt-6 flex flex-wrap justify-end gap-2">
+                        <a href="{{ route('radiology.requests.show', $investigationRequest) }}" class="inline-flex items-center justify-center rounded-md border border-med-line bg-white px-3 py-2 text-sm font-semibold text-med-ink transition hover:bg-med-canvas">Cancel</a>
+                        <x-ui.button type="submit">Update Result</x-ui.button>
+                    </div>
+                </x-ui.card>
             </div>
-        </div>
-    </div>
-</div>
+        </form>
+    </x-ui.page>
 @endsection

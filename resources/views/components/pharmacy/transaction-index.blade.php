@@ -1,148 +1,65 @@
-<div class="container-fluid py-3">
-    <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-3">
-        <div>
-            <h1 class="h4 mb-1"><i class="bi bi-receipt me-2 text-success"></i>Transactions</h1>
-            <p class="text-muted mb-0">Search, filter, and review pharmacy transactions.</p>
-        </div>
-        <div class="d-flex gap-2">
-            <a href="{{ route('pharmacy.transactions.report') }}" class="btn btn-outline-secondary">
-                <i class="bi bi-graph-up me-1"></i> Report
-            </a>
-            <a href="{{ route('pharmacy.transactions.create') }}" class="btn btn-primary">
-                <i class="bi bi-plus-circle me-1"></i> Add Transaction
-            </a>
-        </div>
-    </div>
+<div>
+    <x-ui.page title="Pharmacy Transactions" subtitle="Search, filter, and review pharmacy transactions.">
+        <x-slot:actions>
+            <a href="{{ route('pharmacy.transactions.report') }}" class="mf-focus inline-flex items-center justify-center gap-2 rounded-md border border-med-line bg-white px-3 py-2 text-sm font-semibold text-med-ink transition hover:bg-med-canvas"><i class="bi bi-graph-up"></i>Report</a>
+            <a href="{{ route('pharmacy.transactions.create') }}" class="mf-focus inline-flex items-center justify-center gap-2 rounded-md border border-med-primary bg-med-primary px-3 py-2 text-sm font-semibold text-white transition hover:bg-med-primaryDark"><i class="bi bi-plus-circle"></i>Add Transaction</a>
+        </x-slot:actions>
 
-    <div class="row g-3 mb-3">
-        <div class="col-md-3">
-            <div class="border rounded bg-white p-3 h-100">
-                <div class="text-muted small">Transactions</div>
-                <div class="h4 mb-0">{{ number_format($summary['count']) }}</div>
-            </div>
+        <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <x-ui.card><p class="text-sm font-medium text-med-muted">Transactions</p><p class="mt-2 text-2xl font-bold text-med-ink">{{ number_format($summary['count']) }}</p></x-ui.card>
+            <x-ui.card><p class="text-sm font-medium text-med-muted">Transaction Amount</p><p class="mt-2 text-2xl font-bold text-med-ink">&#8358;{{ number_format($summary['amount'], 2) }}</p></x-ui.card>
+            <x-ui.card><p class="text-sm font-medium text-med-muted">Payment Collected</p><p class="mt-2 text-2xl font-bold text-med-ink">&#8358;{{ number_format($summary['payments'], 2) }}</p></x-ui.card>
+            <x-ui.card><p class="text-sm font-medium text-med-muted">Items Dispensed</p><p class="mt-2 text-2xl font-bold text-med-ink">{{ number_format($summary['items']) }}</p></x-ui.card>
         </div>
-        <div class="col-md-3">
-            <div class="border rounded bg-white p-3 h-100">
-                <div class="text-muted small">Transaction Amount</div>
-                <div class="h4 mb-0">&#8358;{{ number_format($summary['amount'], 2) }}</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="border rounded bg-white p-3 h-100">
-                <div class="text-muted small">Payment Collected</div>
-                <div class="h4 mb-0">&#8358;{{ number_format($summary['payments'], 2) }}</div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="border rounded bg-white p-3 h-100">
-                <div class="text-muted small">Items Dispensed</div>
-                <div class="h4 mb-0">{{ number_format($summary['items']) }}</div>
-            </div>
-        </div>
-    </div>
 
-    <div class="card shadow-sm mb-3">
-        <div class="card-body">
-            <div class="row g-3 align-items-end">
-                <div class="col-lg-4">
-                    <label class="form-label">Search</label>
-                    <input type="search" class="form-control" wire:model.live.debounce.300ms="search" placeholder="Medicine, bill, receipt, reference, staff">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">From</label>
-                    <input type="date" class="form-control" wire:model.live="from">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">To</label>
-                    <input type="date" class="form-control" wire:model.live="to">
-                </div>
-                <div class="col-md-2">
-                    <label class="form-label">Payment Method</label>
-                    <select class="form-select" wire:model.live="paymentMethod">
+        <x-ui.card title="Filters">
+            <div class="grid gap-4 xl:grid-cols-12 xl:items-end">
+                <div class="xl:col-span-4"><x-ui.input label="Search" type="search" wire:model.live.debounce.300ms="search" placeholder="Medicine, bill, receipt, reference, staff" /></div>
+                <div class="xl:col-span-2"><x-ui.input label="From" type="date" wire:model.live="from" /></div>
+                <div class="xl:col-span-2"><x-ui.input label="To" type="date" wire:model.live="to" /></div>
+                <div class="xl:col-span-2">
+                    <x-ui.select label="Payment Method" wire:model.live="paymentMethod">
                         <option value="">All methods</option>
                         @foreach($paymentMethods as $method)
                             <option value="{{ $method->id }}">{{ $method->name }}</option>
                         @endforeach
-                    </select>
+                    </x-ui.select>
                 </div>
-                <div class="col-md-2">
-                    <label class="form-label">Created By</label>
-                    <select class="form-select" wire:model.live="createdBy">
+                <div class="xl:col-span-2">
+                    <x-ui.select label="Created By" wire:model.live="createdBy">
                         <option value="">All staff</option>
                         @foreach($users as $user)
                             <option value="{{ $user->id }}">{{ $user->name }}</option>
                         @endforeach
-                    </select>
+                    </x-ui.select>
                 </div>
-                <div class="col-12">
-                    <button type="button" class="btn btn-sm btn-outline-secondary" wire:click="resetFilters">
-                        <i class="bi bi-arrow-counterclockwise me-1"></i> Reset Filters
-                    </button>
-                </div>
+                <div class="xl:col-span-12"><x-ui.button type="button" variant="secondary" wire:click="resetFilters"><i class="bi bi-arrow-counterclockwise"></i>Reset Filters</x-ui.button></div>
             </div>
-        </div>
-    </div>
+        </x-ui.card>
 
-    <div class="card shadow-sm">
-        <div class="table-responsive">
-            <table class="table table-striped align-middle mb-0">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Medicines</th>
-                        <th>Bill</th>
-                        <th>Payment</th>
-                        <th>Method</th>
-                        <th>Created By</th>
-                        <th class="text-end">Amount</th>
-                        <th class="text-end">Action</th>
-                    </tr>
+        <x-ui.card title="Transactions">
+            <x-ui.table>
+                <thead class="bg-med-canvas/80 text-left text-xs font-semibold uppercase tracking-wide text-med-muted">
+                    <tr><th class="px-4 py-3">Date</th><th class="px-4 py-3">Medicines</th><th class="px-4 py-3">Bill</th><th class="px-4 py-3">Payment</th><th class="px-4 py-3">Method</th><th class="px-4 py-3">Created By</th><th class="px-4 py-3 text-right">Amount</th><th class="px-4 py-3 text-right">Action</th></tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-med-line bg-white">
                     @forelse($transactions as $transaction)
-                        <tr wire:key="transaction-{{ $transaction->id }}">
-                            <td>{{ $transaction->created_at?->format('M d, Y h:i A') }}</td>
-                            <td>
-                                @foreach($transaction->stockTransactionItems as $item)
-                                    <div>
-                                        {{ $item->medicineBatch?->medicine?->name ?? 'N/A' }}
-                                        <span class="text-muted">x {{ $item->quantity }}</span>
-                                    </div>
-                                @endforeach
-                            </td>
-                            <td>
-                                {{ $transaction->bill?->bill_number ?? 'N/A' }}
-                                <div class="small text-muted">{{ ucfirst($transaction->bill?->status ?? 'unknown') }}</div>
-                            </td>
-                            <td>
-                                {{ $transaction->payment?->payment_id ?? 'N/A' }}
-                                @if($transaction->payment?->reference_number)
-                                    <div class="small text-muted">Ref: {{ $transaction->payment->reference_number }}</div>
-                                @endif
-                            </td>
-                            <td>{{ $transaction->payment?->paymentMethod?->name ?? 'N/A' }}</td>
-                            <td>{{ $transaction->createdBy?->name ?? 'System' }}</td>
-                            <td class="text-end">&#8358;{{ number_format($transaction->total_amount, 2) }}</td>
-                            <td class="text-end">
-                                @if($transaction->payment)
-                                    <a href="{{ route('pharmacy.finance.payments.receipt', $transaction->payment) }}" class="btn btn-sm btn-outline-primary">
-                                        Receipt
-                                    </a>
-                                @endif
-                            </td>
+                        <tr class="hover:bg-med-canvas/50" wire:key="transaction-{{ $transaction->id }}">
+                            <td class="px-4 py-3 text-med-muted">{{ $transaction->created_at?->format('M d, Y h:i A') }}</td>
+                            <td class="px-4 py-3 text-med-muted">@foreach($transaction->stockTransactionItems as $item)<div>{{ $item->medicineBatch?->medicine?->name ?? 'N/A' }} <span class="text-med-muted/80">x {{ $item->quantity }}</span></div>@endforeach</td>
+                            <td class="px-4 py-3"><p class="font-semibold text-med-ink">{{ $transaction->bill?->bill_number ?? 'N/A' }}</p><p class="text-xs text-med-muted">{{ ucfirst($transaction->bill?->status ?? 'unknown') }}</p></td>
+                            <td class="px-4 py-3"><p class="font-semibold text-med-ink">{{ $transaction->payment?->payment_id ?? 'N/A' }}</p>@if($transaction->payment?->reference_number)<p class="text-xs text-med-muted">Ref: {{ $transaction->payment->reference_number }}</p>@endif</td>
+                            <td class="px-4 py-3 text-med-muted">{{ $transaction->payment?->paymentMethod?->name ?? 'N/A' }}</td>
+                            <td class="px-4 py-3 text-med-muted">{{ $transaction->createdBy?->name ?? 'System' }}</td>
+                            <td class="px-4 py-3 text-right font-semibold text-med-ink">&#8358;{{ number_format($transaction->total_amount, 2) }}</td>
+                            <td class="px-4 py-3 text-right">@if($transaction->payment)<a href="{{ route('pharmacy.finance.payments.receipt', $transaction->payment) }}" class="mf-focus rounded-md border border-med-line px-3 py-1.5 text-sm font-semibold text-med-primary transition hover:bg-med-canvas">Receipt</a>@endif</td>
                         </tr>
                     @empty
-                        <tr>
-                            <td colspan="8" class="text-center text-muted py-4">No transaction found.</td>
-                        </tr>
+                        <tr><td colspan="8" class="px-4 py-8"><x-ui.empty-state title="No Transactions" message="No transaction matched the current filters." /></td></tr>
                     @endforelse
                 </tbody>
-            </table>
-        </div>
-        @if($transactions->hasPages())
-            <div class="card-footer bg-white">
-                {{ $transactions->links() }}
-            </div>
-        @endif
-    </div>
+            </x-ui.table>
+            @if($transactions->hasPages())<div class="mt-5">{{ $transactions->links() }}</div>@endif
+        </x-ui.card>
+    </x-ui.page>
 </div>

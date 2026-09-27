@@ -2,11 +2,6 @@
 
 return [
     'groups' => [
-        'platform' => [
-            'label' => 'Platform',
-            'icon' => 'bi-patch-check',
-            'sort' => 0,
-        ],
         'dashboard' => [
             'label' => 'Dashboard',
             'icon' => 'bi-speedometer2',

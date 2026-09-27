@@ -16,7 +16,7 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class PrescriptionDispenseWorkspace extends Component
 {
     public Prescription $prescription;
@@ -320,3 +320,4 @@ class PrescriptionDispenseWorkspace extends Component
         $this->dispatch('toast', message: $message, type: $type);
     }
 }
+

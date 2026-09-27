@@ -1,45 +1,33 @@
-@extends('layouts.app')
+@extends('layouts.modern')
+
+@section('title', 'Create Department')
+@section('page-title', 'Create Department')
+@section('page-subtitle', 'Add a department for staff assignment, services, and reporting.')
 
 @section('content')
+    <x-ui.page title="Create Department" subtitle="Add a department for staff assignment, services, and reporting.">
+        <div class="grid gap-6 xl:grid-cols-12">
+            <x-ui.card class="xl:col-span-7" title="Department Details">
+                <form method="POST" action="{{ route('admin.departments.store') }}" class="space-y-5">
+                    @csrf
 
-<div class="container">
+                    <x-ui.input label="Name" name="name" value="{{ old('name') }}" placeholder="Enter department name" required />
 
-<div class="d-flex justify-content-between mb-3">
+                    <div class="flex flex-wrap gap-3 border-t border-med-line pt-5">
+                        <x-ui.button type="submit">
+                            <i class="bi bi-check-circle"></i>
+                            Register
+                        </x-ui.button>
 
-<h4>
-<i class="bi bi-box-arrow-in-down"></i>
-Add Department
-</h4>
-
-<a href="{{ route('admin.departments.index') }}" class="btn btn-secondary">
-<i class="bi bi-arrow-left"></i> Back
-</a>
-
-</div>
-
-
-
-<div class="row">
-    <div class="col-md-6 offset-3">
-        <div class="card-body shadow-sm p-4">
-            <form method="POST" action="{{ route('admin.departments.store') }}">
-            @csrf
-                <div class="form-group mb-4">
-                    <label class="form-label">Name</label>
-                    <input type="text" name="name" class="form-control" placeholder="Enter Department Name" required>
-                </div>
-        
-                <div class="form-group mb-4">
-                    <button class="btn btn-success">
-                        <i class="bi bi-check-circle"></i>
-                        Register
-                    </button>
-                </div>
-            </form>
-
+                        <a href="{{ route('admin.departments.index') }}">
+                            <x-ui.button type="button" variant="secondary">
+                                <i class="bi bi-arrow-left"></i>
+                                Back
+                            </x-ui.button>
+                        </a>
+                    </div>
+                </form>
+            </x-ui.card>
         </div>
-    </div>
-</div>
-
-
+    </x-ui.page>
 @endsection

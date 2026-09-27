@@ -75,7 +75,7 @@ class LabourProgressController extends Controller
 
         
 
-        return redirect()->route('midwife.labour-progress.show', $progress)
+        return redirect()->route('midwife.labour.progress.show', [$labour, $progress])
             ->with('success', 'Labour progress entry created successfully.');
     }
 
@@ -126,7 +126,7 @@ class LabourProgressController extends Controller
         $labourProgress->update($validated);
 
 
-        return redirect()->route('midwife.labour-progress.show', $labourProgress)
+        return redirect()->route('midwife.labour.progress.show', [$labourProgress->labour, $labourProgress])
             ->with('success', 'Labour progress entry updated successfully.');
     }
 
@@ -138,3 +138,6 @@ class LabourProgressController extends Controller
             ->with('success', 'Labour progress entry deleted successfully.');
     }
 }
+
+
+

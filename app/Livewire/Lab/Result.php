@@ -9,7 +9,7 @@ use App\Models\InvestigationRequest;
 use App\Models\InvestigationResult;
 use App\Models\Bill;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class Result extends Component
 {
     public string $bill_number = '';
@@ -209,3 +209,4 @@ class Result extends Component
         return view('components.lab.result');
     }
 }
+

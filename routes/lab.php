@@ -65,7 +65,7 @@ Route::middleware(['auth', 'verified'])
     ->group(function () {
         Route::get('/', [RequestController::class, 'index'])->name('index');
 
-        Route::get('/results/create', [RequestController::class, 'createResult'])->name('createResult');
+        Route::get('/group/{groupType}/{groupId}/results/create', [RequestController::class, 'createResult'])->name('results.create');
         Route::post('/group/{groupType}/{groupId}/results/store', [RequestController::class, 'storeResult'])->name('results.store');
         Route::get('/{bill}/results/show', [RequestController::class, 'showResult'])->name('show');
         Route::get('/results/edit', [RequestController::class, 'editResult'])->name('editResult');

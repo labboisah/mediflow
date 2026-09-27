@@ -15,7 +15,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Throwable;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class PatientRegistration extends Component
 {
     public string $fileType = '';
@@ -50,6 +50,8 @@ class PatientRegistration extends Component
                 : collect(),
             'selectedFileType' => $this->fileType !== '' ? FileType::find($this->fileType) : null,
             'estimatedAge' => $this->estimatedAge(),
+            'pageTitle' => 'Patient Registration',
+            'pageSubtitle' => 'Create a patient record, capture demographics, and open the first visit.',
         ]);
     }
 
@@ -201,3 +203,5 @@ class PatientRegistration extends Component
         return 'Patient registration failed because an unknown system error occurred. Please contact the administrator.';
     }
 }
+
+

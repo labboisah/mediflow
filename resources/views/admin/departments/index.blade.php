@@ -1,80 +1,63 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
-@section('title', 'departments')
-
-@section('header')
-<div class="d-flex justify-content-between align-items-center">
-    <h1 class="h3 d-flex align-items-center mb-0">
-        <i class="bi bi-buildings me-2 text-warning"></i>
-        Manage Departments
-    </h1>
-    <div class="ms-auto d-flex">
-        <a href="{{ route('admin.departments.create') }}" class="btn btn-sm btn-success ms-3">
-            <i class="bi bi-plus-circle me-1"></i>New Department
-        </a>
-    </div>
-</div>
-@endsection
+@section('title', 'Departments')
+@section('page-title', 'Departments')
+@section('page-subtitle', 'Manage hospital departments used by users, services, reports, and workflows.')
 
 @section('content')
+    <x-ui.page title="Departments" subtitle="Manage hospital departments used by users, services, reports, and workflows.">
+        <x-slot:actions>
+            <a href="{{ route('admin.departments.create') }}">
+                <x-ui.button>
+                    <i class="bi bi-plus-circle"></i>
+                    New Department
+                </x-ui.button>
+            </a>
+        </x-slot:actions>
 
-@if ($message = Session::get('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle me-2"></i>
-        {{ $message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
-
-@if ($message = Session::get('error'))
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-circle me-2"></i>
-        {{ $message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
-<div class="row">
-    <div class="col-md-10 offset-1">
-        <div class="card shadow-sm p-4">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0 datatable">
-                    <thead class="table-light">
-                        <tr>
-                            <th>#</th>
-                            <th>Name</th>
-                            <th class="no-export">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($departments as $department)
-                            <tr>
-                                <td>{{$loop->iteration}}</td>
-                                <td>{{ $department->name }}</td>
-                                
-                                <td>
-                                
-                                    <a href="{{ route('admin.departments.edit', $department->id) }}" class="btn btn-sm btn-outline-info">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <form action="{{ route('admin.departments.destroy', $department) }}" method="POST" style="display:inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this department?');">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
-                                        
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" class="text-center text-muted py-4">No departments found.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
+        <x-ui.table>
+            <thead class="bg-med-canvas">
+                <tr>
+                    <th class="w-20 px-4 py-3 text-left text-sm font-semibold text-med-ink">#</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-med-ink">Department</th>
+                    <th class="px-4 py-3 text-right text-sm font-semibold text-med-ink">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-med-line">
+                @forelse ($departments as $department)
+                    <tr class="hover:bg-med-canvas">
+                        <td class="px-4 py-4 text-sm font-medium text-med-muted">{{ $loop->iteration }}</td>
+                        <td class="px-4 py-4">
+                            <div class="flex items-center gap-3">
+                                <span class="mf-icon-box">
+                                    <i class="bi bi-buildings"></i>
+                                </span>
+                                <span class="font-semibold text-med-ink">{{ $department->name }}</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-4">
+                            <div class="flex justify-end gap-2">
+                                <a href="{{ route('admin.departments.edit', $department->id) }}" class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-med-line bg-white text-med-info hover:bg-med-canvas" title="Edit">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form action="{{ route('admin.departments.destroy', $department) }}" method="POST" onsubmit="return confirm('Delete this department?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-med-line bg-white text-med-danger hover:bg-med-canvas" title="Delete">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="3" class="px-4 py-8">
+                            <x-ui.empty-state title="No departments found" />
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </x-ui.table>
+    </x-ui.page>
 @endsection

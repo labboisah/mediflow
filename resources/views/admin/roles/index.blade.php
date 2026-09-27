@@ -1,4 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.modern')
+
+@section('title', 'Index.Blade')
+@section('page-title', 'Index.Blade')
+@section('page-subtitle', 'Mediflow workspace.')
 
 @section('title', 'Roles')
 
@@ -64,7 +68,7 @@
                             <a href="{{ route('admin.roles.edit', $role->id) }}" class="btn btn-sm btn-outline-info">
                                 <i class="bi bi-pencil"></i>
                             </a>
-                            @if (! in_array($role->name, ['superadmin', 'administrator'], true))
+                            @if (! in_array($role->name, ['administrator'], true))
                                 <form action="{{ route('admin.roles.destroy', $role->id) }}" method="POST" style="display:inline;">
                                     @csrf
                                     @method('DELETE')
@@ -89,3 +93,4 @@
     {{ $roles->links() }}
 </div>
 @endsection
+

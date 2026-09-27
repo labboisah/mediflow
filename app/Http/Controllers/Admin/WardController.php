@@ -9,15 +9,34 @@ use App\Models\Ward;
 class WardController extends Controller
 {
     public function index() {
-        return view('admin.wards.index',['wards'=>Ward::all()]);
+        return view('admin.wards.index', [
+            'wards' => Ward::query()
+                ->withCount([
+                    'beds',
+                    'beds as occupied_beds_count' => fn ($query) => $query->where('status', 'occupied'),
+                    'beds as vacant_beds_count' => fn ($query) => $query->where('status', 'vacant'),
+                ])
+                ->orderBy('name')
+                ->get(),
+            'routePrefix' => $this->routePrefix(),
+        ]);
     }
 
     public function create() {
-        return view('admin.wards.create',['wards'=>Ward::all()]);
+        return view('admin.wards.create', [
+            'routePrefix' => $this->routePrefix(),
+        ]);
     }
 
     public function edit($wardId) {
-        return view('admin.wards.edit',['ward'=>Ward::find($wardId)]);
+        return view('admin.wards.edit', [
+            'ward' => Ward::findOrFail($wardId),
+            'routePrefix' => $this->routePrefix(),
+        ]);
+    }
+
+    public function show(Ward $ward) {
+        return redirect()->route($this->routePrefix().'.wards.edit', $ward);
     }
 
     public function store(Request $request) {
@@ -37,7 +56,7 @@ class WardController extends Controller
                 $ward->beds()->create(['bed_no'=>$this->format($capacity)]);
             }
 
-        return redirect()->route('admin.wards.index')->with('success', 'Ward Registered');
+        return redirect()->route($this->routePrefix().'.wards.index')->with('success', 'Ward Registered');
     }
 
     public function update(Request $request, Ward $ward) {
@@ -61,7 +80,7 @@ class WardController extends Controller
                 $ward->beds()->create(['bed_no'=>$this->format($capacity)]);
             }
 
-        return redirect()->route('admin.wards.index')->with('success', 'Ward Updated');
+        return redirect()->route($this->routePrefix().'.wards.index')->with('success', 'Ward Updated');
     }
 
     public function destroy(ward $ward) {
@@ -72,7 +91,7 @@ class WardController extends Controller
 
         $ward->delete();
 
-        return redirect()->route('admin.wards.index')->with('success', 'Ward Deleted');
+        return redirect()->route($this->routePrefix().'.wards.index')->with('success', 'Ward Deleted');
     }
 
     private function format($number) {
@@ -80,5 +99,12 @@ class WardController extends Controller
             $number = '0'.$number;
         }
         return $number;
+    }
+
+    private function routePrefix(): string
+    {
+        $routeName = request()->route()?->getName() ?? '';
+
+        return str_starts_with($routeName, 'medical-director.') ? 'medical-director' : 'admin';
     }
 }

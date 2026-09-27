@@ -10,12 +10,12 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class ConsumableUsageManagement extends Component
 {
     use WithPagination;
 
-    protected string $paginationTheme = 'bootstrap';
+    protected string $paginationTheme = 'tailwind';
 
     public string $consumableId = '';
     public string $assignedTo = '';
@@ -161,3 +161,4 @@ class ConsumableUsageManagement extends Component
         return User::query()->where('department_id', auth()->user()->department_id);
     }
 }
+

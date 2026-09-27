@@ -11,7 +11,7 @@ use App\Models\Route as MedicineRoute;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class PrescriptionWorkspace extends Component
 {
     use ManagesClinicalVisit;
@@ -219,3 +219,4 @@ class PrescriptionWorkspace extends Component
         $this->resetItemForm();
     }
 }
+

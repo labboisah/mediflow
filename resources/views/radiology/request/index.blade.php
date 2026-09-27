@@ -1,23 +1,9 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
-@section('title', 'Investigations')
-
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1 class="h3 d-flex align-items-center mb-0">
-            <i class="bi bi-clipboard2-data me-2 text-primary"></i>
-            Manage Investigations
-        </h1>
-
-        <a href="{{ route('dashboard') }}" class="btn btn-secondary">
-            <i class="bi bi-arrow-left me-1"></i>
-            Back to Dashboard
-        </a>
-    </div>
-@endsection
+@section('title', 'Radiology Requests')
 
 @section('content')
-    <div class="container">
+    <x-ui.page title="Radiology Requests" subtitle="Review paid requests, record results, and print completed reports.">
         @livewire('radiology.investigation-requests-table')
-    </div>
+    </x-ui.page>
 @endsection

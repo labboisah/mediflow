@@ -7,7 +7,7 @@ use App\Models\Patient;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class ContinuationSheet extends Component
 {
     use ManagesClinicalVisit;
@@ -92,8 +92,9 @@ class ContinuationSheet extends Component
         $this->notes = '';
         $this->history = '';
         $this->examination = '';
-        $this->diagnos = '';
+        $this->diagnose = '';
         $this->plan = '';
         $this->resetValidation();
     }
 }
+

@@ -1,117 +1,90 @@
-@extends('layouts.app')
+@extends('layouts.modern')
+
+@section('title', 'Service Details')
+@section('page-title', 'Service Details')
+@section('page-subtitle', 'Review service pricing, department ownership, status, and usage.')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="h3 mb-0">Service Details</h1>
-                <div>
-                    <a href="{{ route('admin.services.edit', $service) }}" class="btn btn-warning btn-sm">
-                        <i class="bi bi-pencil"></i> Edit
-                    </a>
-                    <form method="POST" action="{{ route('admin.services.destroy', $service) }}" style="display:inline;"
-                        onsubmit="return confirm('Delete this service? This action cannot be undone.');">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-danger btn-sm">
-                            <i class="bi bi-trash"></i> Delete
-                        </button>
-                    </form>
-                    <a href="{{ route('admin.services.index') }}" class="btn btn-secondary btn-sm">
-                        <i class="bi bi-arrow-left"></i> Back
-                    </a>
-                </div>
-            </div>
+    <x-ui.page title="Service Details" subtitle="Review service pricing, department ownership, status, and usage.">
+        <x-slot:actions>
+            <a href="{{ route('admin.services.edit', $service) }}">
+                <x-ui.button>
+                    <i class="bi bi-pencil"></i>
+                    Edit
+                </x-ui.button>
+            </a>
+            <form method="POST" action="{{ route('admin.services.destroy', $service) }}" onsubmit="return confirm('Delete this service? This action cannot be undone.');">
+                @csrf
+                @method('DELETE')
+                <x-ui.button type="submit" variant="danger">
+                    <i class="bi bi-trash"></i>
+                    Delete
+                </x-ui.button>
+            </form>
+            <a href="{{ route('admin.services.index') }}">
+                <x-ui.button type="button" variant="secondary">
+                    <i class="bi bi-arrow-left"></i>
+                    Back
+                </x-ui.button>
+            </a>
+        </x-slot:actions>
 
-            <div class="card shadow-sm mb-4">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">{{ $service->code }} - {{ $service->name }}</h5>
-                </div>
-                <div class="card-body">
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <p class="text-muted small mb-1">Service Code</p>
-                            <p class="fw-bold">
-                                <span class="badge bg-secondary">{{ $service->code }}</span>
-                            </p>
-                        </div>
-                        <div class="col-md-6">
-                            <p class="text-muted small mb-1">Status</p>
-                            <p>
-                                @if($service->is_active)
-                                    <span class="badge bg-success">
-                                        <i class="bi bi-check-circle"></i> Active
-                                    </span>
-                                @else
-                                    <span class="badge bg-warning">
-                                        <i class="bi bi-dash-circle"></i> Inactive
-                                    </span>
-                                @endif
-                            </p>
+        <div class="grid gap-6 xl:grid-cols-12">
+            <x-ui.card class="xl:col-span-8" title="{{ $service->code }} - {{ $service->name }}">
+                <div class="grid gap-5 md:grid-cols-2">
+                    <div>
+                        <p class="text-sm font-medium text-med-muted">Service Code</p>
+                        <div class="mt-2"><x-ui.badge>{{ $service->code }}</x-ui.badge></div>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-med-muted">Status</p>
+                        <div class="mt-2">
+                            @if($service->is_active)
+                                <x-ui.badge variant="success"><i class="bi bi-check-circle"></i> Active</x-ui.badge>
+                            @else
+                                <x-ui.badge variant="warning"><i class="bi bi-dash-circle"></i> Inactive</x-ui.badge>
+                            @endif
                         </div>
                     </div>
-
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <p class="text-muted small mb-1">Service Name</p>
-                            <p>{{ $service->name }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p class="text-muted small mb-1">Category</p>
-                            <p>
-                                <span class="badge bg-info">{{ $service->category }}</span>
-                            </p>
-                        </div>
+                    <div>
+                        <p class="text-sm font-medium text-med-muted">Service Name</p>
+                        <p class="mt-1 font-semibold text-med-ink">{{ $service->name }}</p>
                     </div>
-
-                    <div class="row mb-4">
-                        <div class="col-md-6">
-                            <p class="text-muted small mb-1">Price</p>
-                            <p class="h5 text-primary fw-bold">{{ number_format($service->price, 2) }}</p>
-                        </div>
-                        <div class="col-md-6">
-                            <p class="text-muted small mb-1">Created At</p>
-                            <p>{{ $service->created_at->format('M d, Y H:i') }}</p>
-                        </div>
+                    <div>
+                        <p class="text-sm font-medium text-med-muted">Category</p>
+                        <div class="mt-2"><x-ui.badge variant="info">{{ $service->category }}</x-ui.badge></div>
                     </div>
-
+                    <div>
+                        <p class="text-sm font-medium text-med-muted">Department</p>
+                        <p class="mt-1 font-semibold text-med-ink">{{ $service->department->name ?? 'Not assigned' }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-med-muted">Price</p>
+                        <p class="mt-1 text-xl font-bold text-med-primary">{{ number_format($service->price, 2) }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-med-muted">Created At</p>
+                        <p class="mt-1 text-med-ink">{{ $service->created_at?->format('M d, Y H:i') }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-med-muted">Last Updated</p>
+                        <p class="mt-1 text-med-ink">{{ $service->updated_at?->format('M d, Y H:i') }}</p>
+                    </div>
                     @if($service->description)
-                        <div class="mb-4">
-                            <p class="text-muted small mb-1">Description</p>
-                            <p>{{ $service->description }}</p>
+                        <div class="md:col-span-2">
+                            <p class="text-sm font-medium text-med-muted">Description</p>
+                            <p class="mt-1 leading-6 text-med-ink">{{ $service->description }}</p>
                         </div>
                     @endif
+                </div>
+            </x-ui.card>
 
-                    <div class="row">
-                        <div class="col-md-6">
-                            <p class="text-muted small mb-1">Last Updated</p>
-                            <p>{{ $service->updated_at->format('M d, Y H:i') }}</p>
-                        </div>
-                    </div>
+            <x-ui.card class="xl:col-span-4" title="Usage">
+                <div class="rounded-md border border-med-line bg-med-canvas p-4">
+                    <p class="text-sm font-medium text-med-muted">Number of Bills</p>
+                    <p class="mt-2 text-3xl font-bold text-med-ink">{{ $service->bills_count }}</p>
                 </div>
-            </div>
-
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">Usage Information</h5>
-                </div>
-                <div class="card-body">
-                    @php
-                        $billCount = $service->bills()->count();
-                    @endphp
-                    
-                    <div class="row">
-                        <div class="col-md-4">
-                            <div class="alert alert-info mb-0">
-                                <p class="text-muted small mb-1">Number of Bills</p>
-                                <p class="h4 mb-0">{{ $billCount }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            </x-ui.card>
         </div>
-    </div>
-</div>
+    </x-ui.page>
 @endsection

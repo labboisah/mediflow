@@ -9,7 +9,7 @@ use App\Models\PrescriptionItem;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 
 class DrugChartWorkspace extends Component
 {
@@ -109,3 +109,4 @@ class DrugChartWorkspace extends Component
         $this->resetValidation();
     }
 }
+

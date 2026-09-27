@@ -1,4 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.modern')
+
+@section('title', 'Create.Blade')
+@section('page-title', 'Create.Blade')
+@section('page-subtitle', 'Mediflow workspace.')
 @section('header')
 <div class="d-flex align-items-center gap-3">
     <i class="bi bi-person-vcard text-success" style="font-size: 2rem;"></i>
@@ -138,3 +142,4 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endsection
+

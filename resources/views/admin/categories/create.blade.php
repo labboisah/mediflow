@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'Create Category')
 @section('page-title', 'Create Service Category')

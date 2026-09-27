@@ -7,8 +7,6 @@ export default defineConfig({
             input: [
                 'resources/css/app.css', 
                 'resources/css/modern.css',
-                'resources/css/welcome.css', 
-                'resources/css/guest.css',
                 // js 
                 'resources/js/app.js',
                 'resources/js/modern.js',
@@ -52,3 +50,5 @@ export default defineConfig({
         },
     },
 });
+
+

@@ -1,108 +1,48 @@
-@php 
-$requests = auth()->user()->department->requestStats();
-$revenue = auth()->user()->department->revenue();
+@php
+    $requests = auth()->user()->department->requestStats();
+    $revenue = auth()->user()->department->revenue();
 @endphp
-<div class="container-fluid">
-    {{-- investigation Overview Cards --}}
-    <div class="card-body shadow p-4 mb-4">
-        <h5 class="card-title mb-4">Investigation Request Overview</h5>
-        <div class="row mb-4">
-            <div class="col-md-3 mb-2">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <p class="text-muted small mb-1">Total Request Today</p>
-                                <h5 class="mb-0">{{$requests['today']}}</h5>
-                            </div>
-                            <i class="bi bi-file-earmark-text text-primary" style="font-size: 2rem;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-2">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <p class="text-muted small mb-1">Paid Request</p>
-                                <h5 class="mb-0 text-success">{{$requests['paid']}}</h5>
-                            </div>
-                            <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-2">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <p class="text-muted small mb-1">Payment in Progress Request</p>
-                                <h5 class="mb-0 text-warning">{{$requests['payment_in_progress']}}</h5>
-                            </div>
-                            <i class="bi bi-hourglass-split text-warning" style="font-size: 2rem;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-2">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <p class="text-muted small mb-1">Pending Request</p>
-                                <h5 class="mb-0 text-warning">{{$requests['pending']}}</h5>
-                            </div>
-                            <i class="bi bi-hourglass-split text-warning" style="font-size: 2rem;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-3 mb-2">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start">
-                            <div>
-                                <p class="text-muted small mb-1">Completed Request</p>
-                                <h5 class="mb-0 text-primary">{{$requests['completed']}}</h5>
-                            </div>
-                            <i class="bi bi-check-circle text-success" style="font-size: 2rem;"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <div class="card-body shadow p-4">
-        <h5 class="card-title mb-4">Revenue Generated Today</h5>    
-        <div class="row mb-4">
-            <div class="col-md-4">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <p class="text-muted small mb-1">Today's Revenue</p>
-                        <h4 class="text-success mb-0">{{$revenue['today']}}</h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <p class="text-muted small mb-1">This Month's Revenue</p>
-                        <h4 class="text-success mb-0">{{$revenue['this_month']}}</h4>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card shadow-sm">
-                    <div class="card-body">
-                        <p class="text-muted small mb-1">Total Revenue</p>
-                        <h4 class="text-success mb-0">{{$revenue['total']}}</h4>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
+<section class="space-y-6">
+    <x-ui.card title="Investigation Request Overview">
+        <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-5">
+            <div class="rounded-md border border-med-line bg-med-canvas/60 p-4">
+                <p class="text-sm font-medium text-med-muted">Total Request Today</p>
+                <p class="mt-2 text-2xl font-semibold text-med-ink">{{ number_format($requests['today']) }}</p>
+            </div>
+            <div class="rounded-md border border-med-line bg-med-canvas/60 p-4">
+                <p class="text-sm font-medium text-med-muted">Paid Request</p>
+                <p class="mt-2 text-2xl font-semibold text-med-success">{{ number_format($requests['paid']) }}</p>
+            </div>
+            <div class="rounded-md border border-med-line bg-med-canvas/60 p-4">
+                <p class="text-sm font-medium text-med-muted">Payment in Progress</p>
+                <p class="mt-2 text-2xl font-semibold text-med-warning">{{ number_format($requests['payment_in_progress']) }}</p>
+            </div>
+            <div class="rounded-md border border-med-line bg-med-canvas/60 p-4">
+                <p class="text-sm font-medium text-med-muted">Pending Request</p>
+                <p class="mt-2 text-2xl font-semibold text-med-warning">{{ number_format($requests['pending']) }}</p>
+            </div>
+            <div class="rounded-md border border-med-line bg-med-canvas/60 p-4">
+                <p class="text-sm font-medium text-med-muted">Completed Request</p>
+                <p class="mt-2 text-2xl font-semibold text-med-primary">{{ number_format($requests['completed']) }}</p>
+            </div>
+        </div>
+    </x-ui.card>
+
+    <x-ui.card title="Revenue Generated">
+        <div class="grid gap-4 md:grid-cols-3">
+            <div class="rounded-md border border-med-line bg-med-canvas/60 p-4">
+                <p class="text-sm font-medium text-med-muted">Today's Revenue</p>
+                <p class="mt-2 text-2xl font-semibold text-med-success">{{ $revenue['today'] }}</p>
+            </div>
+            <div class="rounded-md border border-med-line bg-med-canvas/60 p-4">
+                <p class="text-sm font-medium text-med-muted">This Month's Revenue</p>
+                <p class="mt-2 text-2xl font-semibold text-med-success">{{ $revenue['this_month'] }}</p>
+            </div>
+            <div class="rounded-md border border-med-line bg-med-canvas/60 p-4">
+                <p class="text-sm font-medium text-med-muted">Total Revenue</p>
+                <p class="mt-2 text-2xl font-semibold text-med-success">{{ $revenue['total'] }}</p>
+            </div>
+        </div>
+    </x-ui.card>
+</section>

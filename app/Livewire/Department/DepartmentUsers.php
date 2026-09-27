@@ -8,12 +8,12 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class DepartmentUsers extends Component
 {
     use WithPagination;
 
-    protected string $paginationTheme = 'bootstrap';
+    protected string $paginationTheme = 'tailwind';
 
     public string $search = '';
     public int $perPage = 15;
@@ -112,3 +112,4 @@ class DepartmentUsers extends Component
             ->where('department_id', auth()->user()->department_id);
     }
 }
+

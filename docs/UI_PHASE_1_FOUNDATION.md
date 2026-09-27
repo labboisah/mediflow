@@ -27,7 +27,7 @@ Establish the modern UI shell and migration contract before converting the rest 
   - `x-ui.badge`
   - `x-ui.table`
   - `x-ui.empty-state`
-- Superadmin/Admin dashboard is the first trial screen using the modern layout.
+- Admin dashboard is the first trial screen using the modern layout.
 
 ## Phase 1 Rules
 
@@ -126,7 +126,7 @@ php -l path/to/file.php
 
 ## Ready For Phase 2 When
 
-- `/admin` renders correctly for `superadmin@mediflow.local`.
+- `/admin` renders correctly for a hospital administrator.
 - Sidebar can expand/collapse on desktop.
 - Sidebar scrolls when menu items overflow.
 - Topbar shows the correct page title/subtitle.

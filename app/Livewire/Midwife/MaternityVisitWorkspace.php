@@ -17,7 +17,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Throwable;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class MaternityVisitWorkspace extends Component
 {
     public string $search = '';
@@ -841,3 +841,4 @@ class MaternityVisitWorkspace extends Component
         $patient = Patient::find(request('patient'));
     }
 }
+

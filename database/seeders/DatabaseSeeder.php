@@ -23,9 +23,6 @@ class DatabaseSeeder extends Seeder
         // Create modules and attach them to roles
         $this->call(ModulePermissionSeeder::class);
 
-        // Create default client license for module filtering
-        $this->call(ClientLicenseSeeder::class);
-
         // Create Medical Director role and scoped oversight access
         $this->call(MedicalDirectorSeeder::class);
 

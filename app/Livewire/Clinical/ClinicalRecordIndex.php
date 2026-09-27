@@ -14,7 +14,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class ClinicalRecordIndex extends Component
 {
     use WithPagination;
@@ -22,6 +22,7 @@ class ClinicalRecordIndex extends Component
     public string $type;
     public string $search = '';
     public int $perPage = 15;
+    protected string $paginationTheme = 'tailwind';
 
     private array $config = [
         'vital-signs' => [
@@ -179,3 +180,4 @@ class ClinicalRecordIndex extends Component
             && ! $user->hasRole('nurse');
     }
 }
+

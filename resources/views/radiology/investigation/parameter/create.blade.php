@@ -1,50 +1,24 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
-@section('title', 'Create Investigation Parameter')
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
-    <h1 class="h3 d-flex align-items-center mb-0">
-        <i class="bi bi-clipboard2-plus me-2 text-primary"></i>
-        Create Investigation Parameter
-    </h1>
-    <a href="{{ route('radiology.investigations.parameters.index',$investigation) }}" class="btn btn-secondary">
-        <i class="bi bi-arrow-left me-1"></i>
-        Back to Parameters
-    </a>    
-</div>
-@endsection
+@section('title', 'Create Radiology Parameter')
+
 @section('content')
-<div class="row">
-    <div class="col-md-8 offset-md-2">
-        <div class="card shadow-sm">
-            <div class="card-body">
-                <form action="{{ route('radiology.investigations.parameters.store',$investigation) }}" method="POST">
-                    @csrf
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Parameter Name</label>
-                        <input type="text" name="name" id="name" class="form-control @error('name') is-invalid @enderror" value="{{ old('name') }}" required>
-                        @error('name')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label for="unit" class="form-label">Parameter Unit</label>
-                        <input type="text" name="unit" id="unit" class="form-control @error('unit') is-invalid @enderror" value="{{ old('unit') }}">
-                        @error('unit')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <div class="mb-3">
-                        <label for="reference_range" class="form-label">Reference Range</label>
-                        <input type="text" name="reference_range" id="reference_range" class="form-control @error('reference_range') is-invalid @enderror" value="{{ old('reference_range') }}">
-                        @error('reference_range')
-                            <div class="invalid-feedback">{{ $message }}</div>
-                        @enderror
-                    </div>
-                    <button type="submit" class="btn btn-primary">Create Parameter</button>
-                </form>
-            </div>
-        </div>  
-    </div>
-</div>
+    <x-ui.page title="Create Investigation Parameter" subtitle="Add a result field for {{ $investigation->name }}.">
+        <form action="{{ route('radiology.investigations.parameters.store', $investigation) }}" method="POST">
+            @csrf
+
+            <x-ui.card title="Parameter Details">
+                <div class="grid gap-4 md:grid-cols-3">
+                    <x-ui.input label="Parameter Name" name="name" value="{{ old('name') }}" required />
+                    <x-ui.input label="Parameter Unit" name="unit" value="{{ old('unit') }}" required />
+                    <x-ui.input label="Reference Range" name="reference_range" value="{{ old('reference_range') }}" required />
+                </div>
+
+                <div class="mt-6 flex flex-wrap justify-end gap-2">
+                    <a href="{{ route('radiology.investigations.parameters.index', $investigation) }}" class="inline-flex items-center justify-center rounded-md border border-med-line bg-white px-3 py-2 text-sm font-semibold text-med-ink transition hover:bg-med-canvas">Cancel</a>
+                    <x-ui.button type="submit">Create Parameter</x-ui.button>
+                </div>
+            </x-ui.card>
+        </form>
+    </x-ui.page>
 @endsection

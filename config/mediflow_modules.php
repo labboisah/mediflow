@@ -3,10 +3,6 @@
 return [
     'default_plan' => env('MEDIFLOW_DEFAULT_PLAN', 'hospital'),
 
-    'platform_modules' => [
-        'platform',
-    ],
-
     'features' => [
         'core' => 'Core System',
         'patient_records' => 'Patient Records',

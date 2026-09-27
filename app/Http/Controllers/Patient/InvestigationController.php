@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Patient;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\InvestigationRequest;
+use App\Models\Investigation;
 use App\Models\Patient;
 use App\Models\Service;
 use App\Models\Bill;
@@ -60,7 +61,7 @@ class InvestigationController extends Controller
                 'due_date' => now()->addDays(2)->toDateString(),
                 'department_id' => $investigationRequest->investigation->investigationType->department->id,
             ]);
-            $invstigation = Investigation::find($row['investigation']);
+            $investigation = Investigation::findOrFail($row['investigation']);
 
             $bill->billInvestigations()->create([
                         'investigation_id' => $investigation->id,
@@ -81,8 +82,16 @@ class InvestigationController extends Controller
 
     public function show($investigationRequestId)
     {
-        $investigationRequest = \App\Models\InvestigationRequest::findOrFail($investigationRequestId);
+        $investigationRequest = \App\Models\InvestigationRequest::with([
+            'patientVisit.patient.demographic',
+            'investigation.investigationType',
+            'investigationResults.parameter',
+            'requestedBy',
+            'performedBy',
+        ])->findOrFail($investigationRequestId);
 
         return view('patient.investigation.show', compact('investigationRequest'));
     }
 }
+
+

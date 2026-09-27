@@ -1,227 +1,176 @@
-<div>
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-        <div>
-            <h1 class="h3 mb-1 d-flex align-items-center">
-                <i class="bi bi-people-fill text-success me-2"></i>
-                Patient Management
-            </h1>
-            <p class="text-muted mb-0">Search, filter, and open patient records quickly.</p>
+<section class="space-y-7">
+    <div class="flex flex-col gap-5 border-b border-med-line pb-6 sm:flex-row sm:items-end sm:justify-between">
+        <div class="min-w-0">
+            <h1 class="text-3xl font-semibold leading-tight text-med-ink">{{ $pageTitle ?? 'Patient Management' }}</h1>
+            <p class="mt-2 max-w-3xl text-base leading-6 text-med-muted">{{ $pageSubtitle ?? 'Search, filter, and open patient records quickly.' }}</p>
         </div>
 
         @if($canManageRecords)
-            <a href="{{ route('record.patients.register.form') }}" class="btn btn-success">
-                <i class="bi bi-person-plus me-2"></i>
-                Register Patient
-            </a>
+            <div class="flex shrink-0 flex-wrap items-center gap-2">
+                <a href="{{ route('record.patients.register.form') }}" class="mf-focus inline-flex items-center justify-center gap-2 rounded-md border border-med-primary bg-med-primary px-3 py-2 text-sm font-semibold text-white transition hover:bg-med-primaryDark">
+                    <i class="bi bi-person-plus"></i>
+                    Register Patient
+                </a>
+            </div>
         @endif
     </div>
 
-    <div class="row g-3 mb-4">
-        <div class="col-6 col-xl-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Total Patients</div>
-                    <div class="h4 mb-0">{{ number_format($totalPatients) }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-xl-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Filtered Result</div>
-                    <div class="h4 mb-0">{{ number_format($filteredCount) }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-xl-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Registered Today</div>
-                    <div class="h4 mb-0">{{ number_format($registeredToday) }}</div>
-                </div>
-            </div>
-        </div>
-        <div class="col-6 col-xl-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Walk-in Patients</div>
-                    <div class="h4 mb-0">{{ number_format($walkInCount) }}</div>
-                </div>
-            </div>
-        </div>
+    <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <x-ui.card>
+            <p class="text-sm font-medium text-med-muted">Total Patients</p>
+            <p class="mt-2 text-2xl font-bold text-med-ink">{{ number_format($totalPatients) }}</p>
+        </x-ui.card>
+        <x-ui.card>
+            <p class="text-sm font-medium text-med-muted">Filtered Result</p>
+            <p class="mt-2 text-2xl font-bold text-med-ink">{{ number_format($filteredCount) }}</p>
+        </x-ui.card>
+        <x-ui.card>
+            <p class="text-sm font-medium text-med-muted">Registered Today</p>
+            <p class="mt-2 text-2xl font-bold text-med-ink">{{ number_format($registeredToday) }}</p>
+        </x-ui.card>
+        <x-ui.card>
+            <p class="text-sm font-medium text-med-muted">Walk-in Patients</p>
+            <p class="mt-2 text-2xl font-bold text-med-ink">{{ number_format($walkInCount) }}</p>
+        </x-ui.card>
     </div>
 
     @if($feedbackMessage)
-        <div class="alert alert-{{ $feedbackMessage['type'] }} d-flex align-items-center" role="alert">
-            <i class="bi bi-info-circle me-2"></i>
-            <div>{{ $feedbackMessage['message'] }}</div>
+        <div class="rounded-md border px-4 py-3 text-sm {{ $feedbackMessage['type'] === 'danger' ? 'border-red-200 bg-red-50 text-red-700' : 'border-orange-200 bg-orange-50 text-orange-800' }}">
+            <i class="bi bi-info-circle"></i>
+            {{ $feedbackMessage['message'] }}
         </div>
     @endif
 
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <div class="row g-3 align-items-end">
-                <div class="col-12 col-xl-4">
-                    <label class="form-label">Search Patient</label>
-                    <div class="input-group">
-                        <span class="input-group-text"><i class="bi bi-search"></i></span>
-                        <input type="search" class="form-control" placeholder="Hospital no, name, phone, email" wire:model.live.debounce.400ms="search">
-                    </div>
-                </div>
+    <x-ui.card>
+        <div class="grid gap-4 xl:grid-cols-12 xl:items-end">
+            <div class="xl:col-span-4">
+                <x-ui.input label="Search Patient" type="search" wire:model.live.debounce.400ms="search" placeholder="Hospital no, name, phone, email" />
+            </div>
+            <div class="xl:col-span-2">
+                <x-ui.select label="Gender" wire:model.live="gender">
+                    <option value="">All</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                </x-ui.select>
+            </div>
+            <div class="xl:col-span-2">
+                <x-ui.select label="Type" wire:model.live="patientType">
+                    <option value="">All</option>
+                    <option value="registered">Registered</option>
+                    <option value="walk_in">Walk-in</option>
+                </x-ui.select>
+            </div>
+            <div class="xl:col-span-1">
+                <x-ui.input label="From" type="date" wire:model.live="dateFrom" />
+            </div>
+            <div class="xl:col-span-1">
+                <x-ui.input label="To" type="date" wire:model.live="dateTo" />
+            </div>
+            <div class="xl:col-span-1">
+                <x-ui.select label="Rows" wire:model.live="perPage">
+                    <option value="10">10</option>
+                    <option value="15">15</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                </x-ui.select>
+            </div>
+            <div class="xl:col-span-1">
+                <x-ui.button type="button" variant="secondary" class="w-full" wire:click="clearFilters" :disabled="! $hasActiveFilters" title="Clear filters">
+                    <i class="bi bi-x-circle"></i>
+                </x-ui.button>
+            </div>
+        </div>
+    </x-ui.card>
 
-                <div class="col-6 col-xl-2">
-                    <label class="form-label">Gender</label>
-                    <select class="form-select" wire:model.live="gender">
-                        <option value="">All</option>
-                        <option value="Male">Male</option>
-                        <option value="Female">Female</option>
-                        <option value="Other">Other</option>
-                    </select>
-                </div>
-
-                <div class="col-6 col-xl-2">
-                    <label class="form-label">Type</label>
-                    <select class="form-select" wire:model.live="patientType">
-                        <option value="">All</option>
-                        <option value="registered">Registered</option>
-                        <option value="walk_in">Walk-in</option>
-                    </select>
-                </div>
-
-                <div class="col-6 col-xl-2">
-                    <label class="form-label">From</label>
-                    <input type="date" class="form-control" wire:model.live="dateFrom">
-                </div>
-
-                <div class="col-6 col-xl-2">
-                    <label class="form-label">To</label>
-                    <input type="date" class="form-control" wire:model.live="dateTo">
-                </div>
-
-                <div class="col-6 col-xl-2">
-                    <label class="form-label">Rows</label>
-                    <select class="form-select" wire:model.live="perPage">
-                        <option value="10">10</option>
-                        <option value="15">15</option>
-                        <option value="25">25</option>
-                        <option value="50">50</option>
-                    </select>
-                </div>
-
-                <div class="col-6 col-xl-2">
-                    <button type="button" class="btn btn-outline-secondary w-100" wire:click="clearFilters" @disabled(! $hasActiveFilters)>
-                        <i class="bi bi-x-circle me-1"></i>
-                        Clear
+    <x-ui.table>
+        <thead class="bg-med-canvas">
+            <tr>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-med-ink">
+                    <button type="button" class="inline-flex items-center gap-1 font-semibold" wire:click="sortBy('hospital_number')">
+                        Hospital No
+                        @if($sortField === 'hospital_number')
+                            <i class="bi bi-sort-{{ $sortDirection === 'asc' ? 'up' : 'down' }}"></i>
+                        @endif
                     </button>
-                </div>
-            </div>
-        </div>
-    </div>
+                </th>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-med-ink">Patient</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-med-ink">Gender</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-med-ink">Age</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-med-ink">Phone</th>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-med-ink">
+                    <button type="button" class="inline-flex items-center gap-1 font-semibold" wire:click="sortBy('registration_date')">
+                        Registered
+                        @if($sortField === 'registration_date')
+                            <i class="bi bi-sort-{{ $sortDirection === 'asc' ? 'up' : 'down' }}"></i>
+                        @endif
+                    </button>
+                </th>
+                <th class="px-4 py-3 text-left text-sm font-semibold text-med-ink">Status</th>
+                <th class="px-4 py-3 text-right text-sm font-semibold text-med-ink">Actions</th>
+            </tr>
+        </thead>
+        <tbody class="divide-y divide-med-line">
+            @forelse($patients as $patient)
+                <tr class="hover:bg-med-canvas" wire:key="patient-{{ $patient->id }}">
+                    <td class="px-4 py-4"><x-ui.badge variant="info">{{ $patient->hospital_number }}</x-ui.badge></td>
+                    <td class="px-4 py-4">
+                        <p class="font-semibold text-med-ink">{{ $patient->demographic->full_name ?? 'N/A' }}</p>
+                        <p class="mt-1 text-sm text-med-muted">{{ $patient->fileType->name ?? 'General file' }}</p>
+                    </td>
+                    <td class="px-4 py-4 text-sm text-med-muted">{{ $patient->demographic->gender ?? 'N/A' }}</td>
+                    <td class="px-4 py-4 text-sm text-med-muted">{{ $patient->demographic->age ?? 'N/A' }}</td>
+                    <td class="px-4 py-4 text-sm text-med-muted">{{ $patient->demographic->phone_number ?? 'N/A' }}</td>
+                    <td class="px-4 py-4 text-sm text-med-muted">{{ optional($patient->registration_date)->format('M d, Y') ?? 'N/A' }}</td>
+                    <td class="px-4 py-4">
+                        @if($patient->is_walkIn)
+                            <x-ui.badge variant="warning">Walk-in</x-ui.badge>
+                        @else
+                            <x-ui.badge variant="success">Registered</x-ui.badge>
+                        @endif
+                    </td>
+                    <td class="px-4 py-4">
+                        <div class="flex justify-end gap-2">
+                            @if($canManageRecords)
+                                <a href="{{ route('record.patients.show', $patient) }}" class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-med-line bg-white text-med-muted hover:bg-med-canvas" title="View patient">
+                                    <i class="bi bi-eye"></i>
+                                </a>
+                                <a href="{{ route('record.patients.edit.form', $patient) }}" class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-med-line bg-white text-med-info hover:bg-med-canvas" title="Edit patient">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                            @else
+                                <a href="{{ route('patient.show', $patient) }}" class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-med-line bg-white px-3 text-sm font-semibold text-med-primary hover:bg-med-canvas">
+                                    <i class="bi bi-eye"></i>
+                                    View
+                                </a>
+                            @endif
+                        </div>
+                    </td>
+                </tr>
+            @empty
+                <tr>
+                    <td colspan="8" class="px-4 py-8">
+                        <x-ui.empty-state title="No patients match the current filters">
+                            @if($hasActiveFilters)
+                                <x-ui.button type="button" variant="secondary" wire:click="clearFilters">Clear filters</x-ui.button>
+                            @elseif($canManageRecords)
+                                <a href="{{ route('record.patients.register.form') }}">
+                                    <x-ui.button type="button">Register First Patient</x-ui.button>
+                                </a>
+                            @endif
+                        </x-ui.empty-state>
+                    </td>
+                </tr>
+            @endforelse
+        </tbody>
+    </x-ui.table>
 
-    <div class="card border-0 shadow-sm">
-        <div class="card-header bg-light d-flex flex-wrap align-items-center justify-content-between gap-2">
-            <h5 class="mb-0">
-                <i class="bi bi-list-ul text-success me-2"></i>
-                Patients
-            </h5>
-            <div class="text-muted small" wire:loading>
-                <span class="spinner-border spinner-border-sm me-1"></span>
-                Updating list
-            </div>
+    @if($patients->hasPages())
+        <div>
+            {{ $patients->links() }}
         </div>
+    @endif
+</section>
 
-        <div class="table-responsive">
-            <table class="table table-hover align-middle mb-0">
-                <thead class="table-light">
-                    <tr>
-                        <th>
-                            <button type="button" class="btn btn-link p-0 text-decoration-none fw-semibold" wire:click="sortBy('hospital_number')">
-                                Hospital No
-                                @if($sortField === 'hospital_number')
-                                    <i class="bi bi-sort-{{ $sortDirection === 'asc' ? 'up' : 'down' }}"></i>
-                                @endif
-                            </button>
-                        </th>
-                        <th>Patient</th>
-                        <th>Gender</th>
-                        <th>Age</th>
-                        <th>Phone</th>
-                        <th>
-                            <button type="button" class="btn btn-link p-0 text-decoration-none fw-semibold" wire:click="sortBy('registration_date')">
-                                Registered
-                                @if($sortField === 'registration_date')
-                                    <i class="bi bi-sort-{{ $sortDirection === 'asc' ? 'up' : 'down' }}"></i>
-                                @endif
-                            </button>
-                        </th>
-                        <th>Status</th>
-                        <th class="text-end">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @forelse($patients as $patient)
-                        <tr wire:key="patient-{{ $patient->id }}">
-                            <td>
-                                <span class="badge bg-primary">{{ $patient->hospital_number }}</span>
-                            </td>
-                            <td>
-                                <div class="fw-semibold">{{ $patient->demographic->full_name ?? 'N/A' }}</div>
-                                <div class="text-muted small">{{ $patient->fileType->name ?? 'General file' }}</div>
-                            </td>
-                            <td>{{ $patient->demographic->gender ?? 'N/A' }}</td>
-                            <td>{{ $patient->demographic->age ?? 'N/A' }}</td>
-                            <td>{{ $patient->demographic->phone_number ?? 'N/A' }}</td>
-                            <td>{{ optional($patient->registration_date)->format('M d, Y') ?? 'N/A' }}</td>
-                            <td>
-                                @if($patient->is_walkIn)
-                                    <span class="badge bg-warning text-dark">Walk-in</span>
-                                @else
-                                    <span class="badge bg-success">Registered</span>
-                                @endif
-                            </td>
-                            <td class="text-end">
-                                <div class="btn-group btn-group-sm">
-                                    @if($canManageRecords)
-                                        <a href="{{ route('record.patients.show', $patient) }}" class="btn btn-outline-primary">
-                                            <i class="bi bi-eye"></i>
-                                        </a>
-                                        <a href="{{ route('record.patients.edit.form', $patient) }}" class="btn btn-outline-success">
-                                            <i class="bi bi-pencil"></i>
-                                        </a>
-                                    @else
-                                        <a href="{{ route('patient.show', $patient) }}" class="btn btn-outline-primary">
-                                            <i class="bi bi-eye me-1"></i>
-                                            View
-                                        </a>
-                                    @endif
-                                </div>
-                            </td>
-                        </tr>
-                    @empty
-                        <tr>
-                            <td colspan="8" class="text-center py-5">
-                                <i class="bi bi-inbox text-muted" style="font-size: 2rem;"></i>
-                                <p class="text-muted mt-2 mb-3">No patients match the current filters.</p>
-                                @if($hasActiveFilters)
-                                    <button type="button" class="btn btn-outline-secondary btn-sm" wire:click="clearFilters">
-                                        Clear filters
-                                    </button>
-                                @elseif($canManageRecords)
-                                    <a href="{{ route('record.patients.register.form') }}" class="btn btn-success btn-sm">
-                                        Register First Patient
-                                    </a>
-                                @endif
-                            </td>
-                        </tr>
-                    @endforelse
-                </tbody>
-            </table>
-        </div>
 
-        @if($patients->hasPages())
-            <div class="card-footer bg-light">
-                {{ $patients->links() }}
-            </div>
-        @endif
-    </div>
-</div>
+

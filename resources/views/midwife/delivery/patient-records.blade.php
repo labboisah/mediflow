@@ -1,45 +1,5 @@
-@extends('layouts.app')
-
+@extends('layouts.modern')
 @section('title', 'Patient Delivery Records')
-
 @section('content')
-<div class="container-fluid">
-    <h1 class="h3 mb-4"><i class="bi bi-folder2-open"></i> Delivery Records for {{ $patient->full_name }}</h1>
-
-    <div class="card">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th>#</th>
-                            <th>Delivery Date/Time</th>
-                            <th>Type</th>
-                            <th>Status</th>
-                            <th>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse($deliveries as $delivery)
-                            <tr>
-                                <td>{{ $loop->iteration }}</td>
-                                <td>{{ $delivery->delivery_date_time?->format('M d, Y H:i') }}</td>
-                                <td>{{ ucfirst($delivery->delivery_type) }}</td>
-                                <td>{{ ucfirst($delivery->status) }}</td>
-                                <td>
-                                    <a href="{{ route('midwife.delivery.show', $delivery) }}" class="btn btn-sm btn-info">View</a>
-                                    <a href="{{ route('midwife.delivery.edit', $delivery) }}" class="btn btn-sm btn-warning">Edit</a>
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="5" class="text-center text-muted py-4">No deliveries recorded for this patient.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
+<x-ui.page title="Delivery Records" subtitle="Delivery records for {{ $patient->full_name ?? $patient->name() }}.">@if($deliveries->isEmpty())<x-ui.empty-state title="No Deliveries Recorded" />@else<x-ui.table><thead class="bg-med-canvas text-left text-xs font-semibold uppercase text-med-muted"><tr><th class="px-4 py-3">#</th><th class="px-4 py-3">Delivery Date/Time</th><th class="px-4 py-3">Type</th><th class="px-4 py-3">Status</th><th class="px-4 py-3 text-right">Actions</th></tr></thead><tbody class="divide-y divide-med-line bg-white">@foreach($deliveries as $delivery)<tr><td class="px-4 py-4 text-med-muted">{{ $loop->iteration }}</td><td class="px-4 py-4 text-med-muted">{{ $delivery->delivery_date_time?->format('M d, Y H:i') }}</td><td class="px-4 py-4 text-med-muted">{{ str($delivery->delivery_type)->headline() }}</td><td class="px-4 py-4"><x-ui.badge :variant="$delivery->delivery_status === 'successful' ? 'success' : ($delivery->delivery_status === 'complicated' ? 'warning' : 'danger')">{{ str($delivery->delivery_status)->headline() }}</x-ui.badge></td><td class="px-4 py-4"><div class="flex justify-end gap-2"><a href="{{ route('midwife.delivery.show', $delivery) }}" class="text-sm font-semibold text-med-primary hover:text-med-primaryDark">View</a><a href="{{ route('midwife.delivery.edit', $delivery) }}" class="text-sm font-semibold text-med-info hover:text-blue-700">Edit</a></div></td></tr>@endforeach</tbody></x-ui.table>@endif</x-ui.page>
 @endsection

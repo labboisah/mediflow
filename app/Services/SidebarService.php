@@ -49,7 +49,7 @@ class SidebarService
     public function canShowActivities(User $user): bool
     {
         return $this->license->userHasModuleAccess($user, 'reports')
-            && ($user->hasRole(['superadmin', 'administrator']) || $user->hasPermission('activity.read'));
+            && ($user->hasRole('administrator') || $user->hasPermission('activity.read'));
     }
 
     public function canShowItem(User $user, Module $module): bool

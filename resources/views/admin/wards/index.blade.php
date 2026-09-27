@@ -1,91 +1,75 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
-@section('title', 'wards')
-
-@section('header')
-<div class="d-flex justify-content-between align-items-center">
-    <h1 class="h3 d-flex align-items-center mb-0">
-        <i class="bi bi-buildings me-2 text-warning"></i>
-        Manage wards
-    </h1>
-    <div class="ms-auto d-flex">
-        <a href="{{ route('admin.wards.create') }}" class="btn btn-sm btn-success ms-3">
-            <i class="bi bi-plus-circle me-1"></i>New Ward
-        </a>
-    </div>
-</div>
-@endsection
+@section('title', 'Wards')
+@section('page-title', 'Wards')
+@section('page-subtitle', 'Manage ward capacity, daily prices, and bed availability.')
 
 @section('content')
+    <x-ui.page title="Wards" subtitle="Manage ward capacity, daily prices, and bed availability.">
+        <x-slot:actions>
+            <a href="{{ route($routePrefix.'.wards.create') }}">
+                <x-ui.button>
+                    <i class="bi bi-plus-circle"></i>
+                    New Ward
+                </x-ui.button>
+            </a>
+        </x-slot:actions>
 
-@if ($message = Session::get('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle me-2"></i>
-        {{ $message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
-
-@if ($message = Session::get('error'))
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-circle me-2"></i>
-        {{ $message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
-<div class="row">
-    <div class="col-md-10 offset-1">
-        <div class="card shadow-sm p-4">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0 datatable">
-                    <thead class="table-light">
-                        <tr>
-                            <th>#</th>
-                            <th>Name</th>
-                            <th>Price</th>
-                            <th>Capacity</th>
-                            <th>Occupied</th>
-                            <th>Vacant</th>
-                            <th class="no-export">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($wards as $ward)
-                            <tr>
-                                <td>{{$loop->iteration}}</td>
-                                <td>{{ $ward->name }}</td>
-                                <td>{{ $ward->price }}</td>
-                                <td>{{ $ward->capacity }}</td>
-                                <td>{{ $ward->beds->where('status', 'occupied')->count() }}</td>
-                                <td>{{ $ward->beds->where('status', 'vacant')->count() }}</td>
-                                
-                                <td>
-                                
-                                    <a href="{{ route('admin.wards.edit', $ward->id) }}" class="btn btn-sm btn-outline-info">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <a href="{{ route('admin.beds.index', $ward) }}" class="btn btn-sm btn-outline-success">
-                                        <i class="bi bi-eye"> </i> Beds
-                                    </a>
-                                    <form action="{{ route('admin.wards.destroy', $ward) }}" method="POST" style="display:inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this ward?');">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
-                                        
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" class="text-center text-muted py-4">No wards found.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
+        <x-ui.table>
+            <thead class="bg-med-canvas">
+                <tr>
+                    <th class="w-20 px-4 py-3 text-left text-sm font-semibold text-med-ink">#</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-med-ink">Ward</th>
+                    <th class="px-4 py-3 text-right text-sm font-semibold text-med-ink">Price</th>
+                    <th class="px-4 py-3 text-center text-sm font-semibold text-med-ink">Capacity</th>
+                    <th class="px-4 py-3 text-center text-sm font-semibold text-med-ink">Occupied</th>
+                    <th class="px-4 py-3 text-center text-sm font-semibold text-med-ink">Vacant</th>
+                    <th class="px-4 py-3 text-right text-sm font-semibold text-med-ink">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-med-line">
+                @forelse ($wards as $ward)
+                    <tr class="hover:bg-med-canvas">
+                        <td class="px-4 py-4 text-sm font-medium text-med-muted">{{ $loop->iteration }}</td>
+                        <td class="px-4 py-4">
+                            <div class="flex items-center gap-3">
+                                <span class="mf-icon-box">
+                                    <i class="bi bi-hospital"></i>
+                                </span>
+                                <span class="font-semibold text-med-ink">{{ $ward->name }}</span>
+                            </div>
+                        </td>
+                        <td class="px-4 py-4 text-right font-semibold text-med-ink">{{ number_format($ward->price, 2) }}</td>
+                        <td class="px-4 py-4 text-center"><x-ui.badge>{{ $ward->capacity }}</x-ui.badge></td>
+                        <td class="px-4 py-4 text-center"><x-ui.badge variant="warning">{{ $ward->occupied_beds_count }}</x-ui.badge></td>
+                        <td class="px-4 py-4 text-center"><x-ui.badge variant="success">{{ $ward->vacant_beds_count }}</x-ui.badge></td>
+                        <td class="px-4 py-4">
+                            <div class="flex justify-end gap-2">
+                                <a href="{{ route($routePrefix.'.wards.edit', $ward->id) }}" class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-med-line bg-white text-med-info hover:bg-med-canvas" title="Edit ward">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <a href="{{ route($routePrefix.'.beds.index', $ward) }}" class="inline-flex h-9 items-center justify-center gap-2 rounded-md border border-med-line bg-white px-3 text-sm font-semibold text-med-primary hover:bg-med-canvas" title="View beds">
+                                    <i class="bi bi-eye"></i>
+                                    Beds
+                                </a>
+                                <form action="{{ route($routePrefix.'.wards.destroy', $ward) }}" method="POST" onsubmit="return confirm('Delete this ward?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-med-line bg-white text-med-danger hover:bg-med-canvas" title="Delete ward">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="7" class="px-4 py-8">
+                            <x-ui.empty-state title="No wards found" />
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </x-ui.table>
+    </x-ui.page>
 @endsection

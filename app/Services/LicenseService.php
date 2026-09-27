@@ -85,8 +85,8 @@ class LicenseService
 
         return $configuredModules
             ->merge(collect($extraModules)->reject(fn (string $module) => $module === '*'))
+            ->reject(fn (string $module) => $module === 'platform')
             ->filter()
-            ->reject(fn (string $module) => $this->isPlatformModule($module))
             ->unique()
             ->values()
             ->all();
@@ -96,14 +96,6 @@ class LicenseService
     {
         if ($module === null || $module === '') {
             return true;
-        }
-
-        if ($this->isPlatformModule($module)) {
-            return $user->isSuperAdmin();
-        }
-
-        if ($user->isSuperAdmin()) {
-            return false;
         }
 
         if (! $this->moduleEnabled($module)) {
@@ -132,12 +124,4 @@ class LicenseService
             ->exists();
     }
 
-    public function isPlatformModule(?string $module): bool
-    {
-        if ($module === null || $module === '') {
-            return false;
-        }
-
-        return in_array($module, config('mediflow_modules.platform_modules', ['platform']), true);
-    }
 }

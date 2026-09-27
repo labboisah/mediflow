@@ -10,7 +10,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class StockReconciliationWorkspace extends Component
 {
     use WithPagination;
@@ -21,7 +21,7 @@ class StockReconciliationWorkspace extends Component
     public array $physicalCounts = [];
     public array $itemNotes = [];
 
-    protected string $paginationTheme = 'bootstrap';
+    protected string $paginationTheme = 'tailwind';
 
     public function render()
     {
@@ -205,3 +205,5 @@ class StockReconciliationWorkspace extends Component
         return $reference;
     }
 }
+
+

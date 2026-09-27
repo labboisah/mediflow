@@ -1,4 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.modern')
+
+@section('title', 'Record Officer.Blade')
+@section('page-title', 'Record Officer.Blade')
+@section('page-subtitle', 'Mediflow workspace.')
 
 @section('title', 'Record Officer Menu')
 
@@ -230,3 +234,4 @@
     </div>
 </div>
 @endsection
+

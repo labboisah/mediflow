@@ -8,7 +8,7 @@ use Livewire\Component;
 use Livewire\Attributes\Layout;
 use Illuminate\Support\Facades\Schema;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class SyncDashboard extends Component
 {
     public $models = [];
@@ -104,6 +104,9 @@ class SyncDashboard extends Component
 
     public function render()
     {
-        return view('components.admin.sync');
+        return view('components.admin.sync', [
+            'pageTitle' => 'Sync Dashboard',
+            'pageSubtitle' => 'Review pending, failed, and queued sync records by model.',
+        ]);
     }
 }

@@ -7,12 +7,12 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class ExpenseCategoryManagement extends Component
 {
     use WithPagination;
 
-    protected string $paginationTheme = 'bootstrap';
+    protected string $paginationTheme = 'tailwind';
 
     public string $search = '';
     public ?int $editingCategoryId = null;
@@ -98,3 +98,4 @@ class ExpenseCategoryManagement extends Component
         return auth()->user()?->hasRole('administrator') ?? false;
     }
 }
+

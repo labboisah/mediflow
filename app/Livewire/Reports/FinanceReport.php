@@ -14,12 +14,12 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class FinanceReport extends Component
 {
     use WithPagination;
 
-    protected string $paginationTheme = 'bootstrap';
+    protected string $paginationTheme = 'tailwind';
 
     public string $search = '';
     public string $status = '';
@@ -360,3 +360,4 @@ class FinanceReport extends Component
             ->get(['id', 'name']);
     }
 }
+

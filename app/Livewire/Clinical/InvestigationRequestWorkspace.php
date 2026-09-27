@@ -14,7 +14,7 @@ use Illuminate\Support\Facades\DB;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class InvestigationRequestWorkspace extends Component
 {
     use ManagesClinicalVisit;
@@ -351,3 +351,4 @@ class InvestigationRequestWorkspace extends Component
         $this->resetValidation();
     }
 }
+

@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('page-title', 'Financial Summary')
 
@@ -272,3 +272,4 @@ function toggleSection(sectionId, iconId) {
 }
 </script>
 @endsection
+

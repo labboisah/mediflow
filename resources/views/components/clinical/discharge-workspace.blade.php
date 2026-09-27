@@ -1,23 +1,24 @@
-<div class="container-fluid py-3">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div>
-            <h1 class="h4 mb-1">Discharge</h1>
-            <p class="text-muted mb-0">{{ $admission->patientVisit->patient->name() }} | {{ $admission->patientVisit->patient->hospital_number }}</p>
-        </div>
-        <a href="{{ route('patient.show', $admission->patientVisit->patient) }}" class="btn btn-outline-secondary">Back</a>
-    </div>
-    @include('components.clinical._feedback')
-    <div class="card border-0 shadow-sm">
-        <div class="card-body">
-            <form wire:submit.prevent="save">
-                <div class="row g-3">
-                    <div class="col-md-4"><label class="form-label">Date</label><input type="date" class="form-control" wire:model="date"></div>
-                    <div class="col-md-4"><label class="form-label">Time</label><input type="time" class="form-control" wire:model="time"></div>
-                    <div class="col-md-4"><label class="form-label">Next Appointment</label><input type="date" class="form-control" wire:model="nextAppointmentDate"></div>
-                    <div class="col-12"><label class="form-label">Reason / Summary</label><textarea rows="6" class="form-control @error('reason') is-invalid @enderror" wire:model="reason"></textarea>@error('reason') <div class="invalid-feedback">{{ $message }}</div> @enderror</div>
+<div>
+    <x-ui.page title="Discharge" subtitle="{{ $admission->patientVisit->patient->name() }} | {{ $admission->patientVisit->patient->hospital_number }}">
+        <x-slot:actions>
+            <a href="{{ route('patient.show', $admission->patientVisit->patient) }}" class="mf-focus inline-flex items-center justify-center rounded-md border border-med-line bg-white px-3 py-2 text-sm font-semibold text-med-ink transition hover:bg-med-canvas">Back</a>
+        </x-slot:actions>
+
+        @include('components.clinical._feedback')
+
+        <x-ui.card :title="$admission->discharge ? 'Update Discharge Summary' : 'Discharge Patient'" subtitle="Close the admission, release the bed, and update the patient visit status.">
+            <form wire:submit.prevent="save" class="space-y-5">
+                <div class="grid gap-4 md:grid-cols-3">
+                    <x-ui.input label="Date" type="date" wire:model="date" />
+                    <x-ui.input label="Time" type="time" wire:model="time" />
+                    <x-ui.input label="Next Appointment" type="date" wire:model="nextAppointmentDate" />
                 </div>
-                <button class="btn btn-success mt-3">{{ $admission->discharge ? 'Update Discharge Summary' : 'Discharge Patient' }}</button>
+                <div>
+                    <x-ui.textarea label="Reason / Summary" rows="7" wire:model="reason" />
+                    @error('reason')<p class="mt-1 text-sm text-med-danger">{{ $message }}</p>@enderror
+                </div>
+                <x-ui.button type="submit" variant="primary">{{ $admission->discharge ? 'Update Discharge Summary' : 'Discharge Patient' }}</x-ui.button>
             </form>
-        </div>
-    </div>
+        </x-ui.card>
+    </x-ui.page>
 </div>

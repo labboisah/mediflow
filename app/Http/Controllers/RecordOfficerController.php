@@ -11,6 +11,12 @@ use App\Models\PatientAdmission;
 use App\Models\PatientReferral;
 use App\Models\Ward;
 use App\Models\Bill;
+use App\Models\Appointment;
+use App\Models\WalkinPatient;
+use App\Models\State;
+use App\Models\Lga;
+use App\Models\Department;
+use App\Models\Bed;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -26,10 +32,14 @@ class RecordOfficerController extends Controller
     public function dashboard()
     {
         $totalPatients = Patient::count();
+        $todaysVisits = PatientVisit::whereDate('visit_date', today())->count();
+        $activeRecords = Patient::where('is_walkIn', false)->count();
+        $walkInPatients = WalkinPatient::count();
         $totalAppointments = Appointment::where('appointment_date', '>=', now()->startOfDay())->count();
         $recentPatients = Patient::with('demographic')
+            ->whereDate('created_at', today())
             ->latest('registration_date')
-            ->limit(10)
+            ->limit(5)
             ->get();
         $upcomingAppointments = Appointment::with('patient.demographic')
             ->where('status', '!=', 'Cancelled')
@@ -40,6 +50,9 @@ class RecordOfficerController extends Controller
 
         return view('record.dashboard', compact(
             'totalPatients',
+            'todaysVisits',
+            'activeRecords',
+            'walkInPatients',
             'totalAppointments',
             'recentPatients',
             'upcomingAppointments'
@@ -140,7 +153,7 @@ class RecordOfficerController extends Controller
                 'activity' => "Visit Registerred"
             ]); 
             
-            return redirect()->route('patient.show', $patient->id)
+            return redirect()->route('record.patients.show', $patient->id)
                 ->with('success', "Patient {$patient->demographic->full_name} registered successfully with Hospital Number: {$patient->hospital_number}");
     }
     
@@ -239,6 +252,7 @@ class RecordOfficerController extends Controller
             'nextOfKin',
             'visits',
             'appointments',
+            'referrals',
         ]);
 
         return view('record.patient.show', compact('patient'));
@@ -249,8 +263,15 @@ class RecordOfficerController extends Controller
      */
     public function editForm(Patient $patient)
     {
-        $patient->load('demographic', 'nextOfKin');
-        return view('record.patient.edit', compact('patient'));
+        $patient->load('demographic.lga.state', 'nextOfKin');
+
+        $states = State::orderBy('name')->get();
+        $selectedStateId = old('state', $patient->demographic?->lga?->state_id);
+        $lgas = $selectedStateId
+            ? Lga::where('state_id', $selectedStateId)->orderBy('name')->get()
+            : collect();
+
+        return view('record.patient.edit', compact('patient', 'states', 'lgas', 'selectedStateId'));
     }
 
     /**
@@ -320,7 +341,7 @@ class RecordOfficerController extends Controller
         $query = $request->input('q');
 
         if (!$query || strlen($query) < 2) {
-            return view('patient.search', ['patients' => []]);
+            return view('record.patient.search', ['patients' => collect(), 'query' => $query]);
         }
 
         $patients = Patient::with('demographic')
@@ -332,7 +353,7 @@ class RecordOfficerController extends Controller
             })
             ->get();
 
-        return view('patient.search', compact('patients', 'query'));
+        return view('record.patient.search', compact('patients', 'query'));
     }
 
     
@@ -342,7 +363,9 @@ class RecordOfficerController extends Controller
     public function visitForm(Patient $patient)
     {
         $patient->load('demographic');
-        return view('record.visit.create', compact('patient'));
+        $services = Service::active()->orderBy('name')->get();
+
+        return view('record.visit.create', compact('patient', 'services'));
     }
 
     /**
@@ -372,7 +395,7 @@ class RecordOfficerController extends Controller
 
             DB::commit();
             // redirect to patient visit bill creation
-            return redirect()->route('patient.show', $patient)
+            return redirect()->route('record.patients.show', $patient)
                 ->with('success', 'Visit record created successfully');
 
         } catch (\Exception $e) {
@@ -384,6 +407,204 @@ class RecordOfficerController extends Controller
     
     
    
+    /**
+     * Show admission form
+     */
+    public function admissionForm(Patient $patient)
+    {
+        $patient->load('demographic');
+        $wards = Ward::with(['beds' => fn ($query) => $query->where('status', 'vacant')->orderBy('bed_no')])
+            ->orderBy('name')
+            ->get();
+
+        return view('record.admission.create', compact('patient', 'wards'));
+    }
+
+    /**
+     * Store admission record
+     */
+    public function storeAdmission(Request $request, Patient $patient)
+    {
+        $validated = $request->validate([
+            'date' => ['required', 'date'],
+            'time' => ['required'],
+            'bed_id' => ['required', 'exists:beds,id'],
+            'days' => ['required', 'integer', 'min:1'],
+            'note' => ['nullable', 'string', 'max:3000'],
+        ]);
+
+        $visit = $patient->currentVisit();
+        if (! $visit) {
+            return redirect()->route('record.patients.show', $patient)
+                ->with('error', 'Record a patient visit before admission.');
+        }
+
+        $bed = Bed::whereKey($validated['bed_id'])->where('status', 'vacant')->firstOrFail();
+        $admission = $visit->admissions()->create([
+            'date' => $validated['date'],
+            'time' => $validated['time'],
+            'bed_id' => $bed->id,
+            'note' => $validated['note'] ?? null,
+            'admitted_by' => auth()->id(),
+            'status' => 'registered',
+        ]);
+
+        $bed->update(['status' => 'occupied']);
+        $visit->generateBedSpaceBill($admission, $bed, $validated['days']);
+        $visit->visitActivities()->create([
+            'activity' => 'Patient admitted to bed ' . $bed->bed_no . ' for ' . $validated['days'] . ' day(s)',
+            'recorded_by' => auth()->id(),
+        ]);
+
+        return redirect()->route('record.patients.show', $patient)
+            ->with('success', 'Admission recorded successfully.');
+    }
+
+    /**
+     * Show discharge form
+     */
+    public function dischargeForm(Patient $patient)
+    {
+        $patient->load('demographic');
+        $visit = $patient->currentVisit();
+        $admission = $visit?->admissions()
+            ->whereNotIn('status', ['discharged', 'absconded', 'sama'])
+            ->latest()
+            ->first();
+
+        if (! $admission) {
+            return redirect()->route('record.patients.show', $patient)
+                ->with('error', 'No active admission found for discharge.');
+        }
+
+        return view('record.discharge.create', compact('patient', 'admission'));
+    }
+
+    /**
+     * Store discharge record
+     */
+    public function storeDischarge(Request $request, Patient $patient)
+    {
+        $validated = $request->validate([
+            'date' => ['required', 'date'],
+            'time' => ['required'],
+            'reason' => ['required', 'string', 'max:3000'],
+            'next_appointment_date' => ['nullable', 'date'],
+        ]);
+
+        $visit = $patient->currentVisit();
+        $admission = $visit?->admissions()
+            ->whereNotIn('status', ['discharged', 'absconded', 'sama'])
+            ->latest()
+            ->first();
+
+        if (! $admission) {
+            return redirect()->route('record.patients.show', $patient)
+                ->with('error', 'No active admission found for discharge.');
+        }
+
+        $admission->discharge()->updateOrCreate([], [
+            'reason' => $validated['reason'],
+            'date' => $validated['date'],
+            'time' => $validated['time'],
+            'next_appointment_date' => $validated['next_appointment_date'] ?? null,
+            'discharge_by' => auth()->id(),
+        ]);
+
+        $admission->update(['status' => 'discharged']);
+        $visit?->update(['status' => 'discharged']);
+        $admission->loadMissing('bed');
+        $admission->releaseBedIfNoActiveAdmission();
+        $visit?->visitActivities()->create([
+            'activity' => 'Patient discharged with reason: ' . $validated['reason'],
+            'recorded_by' => auth()->id(),
+        ]);
+
+        return redirect()->route('record.patients.show', $patient)
+            ->with('success', 'Discharge recorded successfully.');
+    }
+
+    /**
+     * List scheduled appointments
+     */
+    public function appointments()
+    {
+        $appointments = Appointment::with(['patient.demographic', 'scheduledBy'])
+            ->latest('appointment_date')
+            ->paginate(25);
+
+        return view('record.appointment.list', compact('appointments'));
+    }
+
+    /**
+     * Show appointment scheduling form
+     */
+    public function appointmentForm(Patient $patient)
+    {
+        $patient->load('demographic');
+
+        return view('record.appointment.create', compact('patient'));
+    }
+
+    /**
+     * Store a scheduled appointment
+     */
+    public function storeAppointment(Request $request, Patient $patient)
+    {
+        $validated = $request->validate([
+            'appointment_date' => ['required', 'date', 'after_or_equal:today'],
+            'appointment_time' => ['required', 'date_format:H:i'],
+            'notes' => ['nullable', 'string', 'max:2000'],
+        ]);
+
+        $patient->appointments()->create([
+            'appointment_date' => $validated['appointment_date'],
+            'appointment_time' => $validated['appointment_time'],
+            'notes' => $validated['notes'] ?? null,
+            'status' => 'Scheduled',
+            'scheduled_by' => auth()->id(),
+        ]);
+
+        return redirect()->route('record.patients.show', $patient)
+            ->with('success', 'Appointment scheduled successfully.');
+    }
+
+    /**
+     * Show referral form
+     */
+    public function referralForm(Patient $patient)
+    {
+        $patient->load('demographic');
+        $departments = Department::orderBy('name')->get();
+
+        return view('record.referral.create', compact('patient', 'departments'));
+    }
+
+    /**
+     * Store patient referral
+     */
+    public function storeReferral(Request $request, Patient $patient)
+    {
+        $validated = $request->validate([
+            'referral_date' => ['required', 'date'],
+            'referred_to_department' => ['required', 'string', 'max:255'],
+            'reason_for_referral' => ['required', 'string', 'max:3000'],
+            'notes' => ['nullable', 'string', 'max:3000'],
+        ]);
+
+        $patient->referrals()->create([
+            'referral_date' => $validated['referral_date'],
+            'referred_to_department' => $validated['referred_to_department'],
+            'reason_for_referral' => $validated['reason_for_referral'],
+            'notes' => $validated['notes'] ?? null,
+            'status' => 'Pending',
+            'referred_by' => auth()->id(),
+        ]);
+
+        return redirect()->route('record.patients.show', $patient)
+            ->with('success', 'Referral recorded successfully.');
+    }
+
     /**
      * Wrapper: Create bill (for dual-role users)
      * Redirects to accountant bill creation with patient pre-selected
@@ -415,6 +636,25 @@ class RecordOfficerController extends Controller
         return redirect()->route('accountant.payments.create', $patient)
             ->with('info', 'Recording payment for ' . $patient->demographic->full_name);
     }
+    /**
+     * Export patient record
+     */
+    public function exportRecord(Patient $patient)
+    {
+        $patient->load('demographic');
+
+        return $this->generatePDF($patient);
+    }
+
+    /**
+     * Vital signs request placeholder until the clinical request model is restored
+     */
+    public function requestForVitalSigns(Patient $patient)
+    {
+        return redirect()->route('record.patients.show', $patient)
+            ->with('info', 'Vital signs request workflow is not configured yet. Use the clinical vital signs workspace when Phase 4 is migrated.');
+    }
+
 
     /**
      * Generate PDF export
@@ -499,3 +739,7 @@ class RecordOfficerController extends Controller
         ];
     }
 }
+
+
+
+

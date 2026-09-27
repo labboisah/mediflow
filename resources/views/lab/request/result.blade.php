@@ -1,193 +1,38 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1 class="h3 d-flex align-items-center mb-0">
-            <i class="bi bi-clipboard2-data me-2 text-primary"></i>
-            Combined Investigation Results
-        </h1>
-    </div>
-@endsection
+@section('title', 'Laboratory Results')
 
 @section('content')
     @php
-        $completedRequests = $bill->investigationRequests
-            ->filter(function ($request) {
-                return $request->investigationResults
-                    ->filter(fn ($result) => filled($result->value))
-                    ->isNotEmpty();
-            })
-            ->values();
+        $completedRequests = $bill->investigationRequests->filter(function ($request) {
+            return $request->investigationResults->filter(fn ($result) => filled($result->value))->isNotEmpty();
+        })->values();
     @endphp
-    <style>
-        #print {
-            position: relative;
-            overflow: visible;
-            background: white;
-            width: min(100%, 190mm);
-            margin: 0 auto;
-            box-sizing: border-box;
-        }
 
-        .watermark-logo {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            opacity: 0.06;
-            z-index: 0;
-            width: 300px;
-            height: 300px;
-            background-image: url('{{ asset("images/logo.png") }}');
-            background-repeat: no-repeat;
-            background-position: center;
-            background-size: contain;
-            pointer-events: none;
-        }
-
-        .print-content {
-            position: relative;
-            z-index: 2;
-        }
-
-        /* Compact print layout to better fit a single A4 page */
-        @page { size: A4; margin: 8mm; }
-
-        @media print {
-            html, body { width: 210mm; min-height: 297mm; margin: 0; background: white !important; }
-
-            .hospital-navbar,
-            .admin-sidebar,
-            .breadcrumb,
-            header,
-            .toast-container,
-            .no-print {
-                display: none !important;
-            }
-
-            .min-vh-100,
-            .admin-layout,
-            .admin-content,
-            main,
-            main .container-fluid {
-                display: block !important;
-                width: 100% !important;
-                min-height: auto !important;
-                margin: 0 !important;
-                padding: 0 !important;
-            }
-
-            /* Reduce overall font sizes and spacing */
-            body, .print-content { font-size: 12px; }
-            h2 { font-size: 16px; margin: 0 0 4px 0; }
-            h4 { font-size: 13px; margin: 0 0 6px 0; }
-
-            /* Tighten table spacing */
-            table { border-collapse: collapse; width: 100%; }
-            th, td { padding: 4px 6px !important; font-size: 11px; }
-
-            /* Smaller margins inside cards */
-            .p-3, .p-4 { padding: 6px !important; }
-
-            /* Limit image size so it doesn't push to next page */
-            img { max-width: 180mm !important; height: auto !important; }
-            .img-fluid { max-width: 100% !important; }
-
-            /* Prevent breaking inside key blocks */
-            .card, .row, .col, .section, .print-section, .result-section, table, thead, tbody, tfoot { page-break-inside: avoid !important; break-inside: avoid !important; }
-
-            thead { display: table-header-group; }
-            tfoot { display: table-footer-group; }
-
-            h1,h2,h3,h4,h5,h6 { page-break-after: avoid !important; break-after: avoid !important; }
-
-            p, li { orphans: 2; widows: 2; }
-
-            #print {
-                position: static !important;
-                width: 194mm;
-                min-height: auto;
-                margin: 0 auto;
-                background: white;
-                box-shadow: none !important;
-            }
-
-            .watermark-logo { opacity: 0.06 !important; }
-        }
-    </style>
-
-    <div id="print">
-        <div class="watermark-logo"></div>
-
-        <div class="print-content p-4">
-            <div class="text-center mb-4">
-                <!-- hospital logo -->
-                 
-                <h2 class="text-success fw-bold" style="transform: scaleY(1.3);">
-                    FATIMA YAHAYA HOSPITAL, SIFAWA
-                </h2>
-                <h4>DEPARTMENT OF {{ strtoupper(auth()->user()->department->name) }}</h4>
-                <h6 class="text-danger">
-                    <em>No 5, Birnin Kebbi Road Sifawa, Bodinga LG, Sokoto State</em>
-                </h6>
-            </div>
-
-            <hr>
-
-            <div class="p-3 mb-4">
-                <p class="mb-1 text-muted">Patient Name: <strong>{{ $bill->patientName() }}</strong></p>
-                <p class="mb-1 text-muted">
-                    Hospital Number:
-                    @if($bill->patientVisit)
-                        <strong>{{ $bill->patientVisit->patient->hospital_number }}</strong>
-                    @else
-                        <strong>Walk-in Patient</strong>
-                    @endif
-                </p>
-                
-                
-            </div>
-
-            <hr>
-            @forelse($completedRequests as $investigationRequest)
-                @php
-                    $uploadedResults = $investigationRequest->investigationResults
-                        ->filter(fn ($result) => filled($result->value))
-                        ->values();
-                @endphp
-                <div class="result-section">
-                    <!-- request informations -->
-                    <h5 class="fw-bold">{{ $investigationRequest->investigation?->name ?? 'Investigation' }}</h5>
-                    <p class="text-muted mb-3">Lab No: {{ $investigationRequest->lab_no }}</p>
-                    <table class="table table-bordered table-sm">
-                        <thead>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Value</th>
-                                <th>Reference Range</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($uploadedResults as $result)
-                                <tr>
-                                    <td>{{ $result->parameter?->name ?? 'Parameter' }}</td>
-                                    <td>{{ $result->value }}</td>
-                                    <td>{{ $result->parameter?->reference_range ?? 'N/A' }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+    <x-ui.page title="Combined Investigation Results" subtitle="{{ $bill->patientName() }}">
+        <x-slot:actions><button type="button" onclick="window.print()" class="mf-focus inline-flex items-center justify-center gap-2 rounded-md border border-med-primary bg-med-primary px-3 py-2 text-sm font-semibold text-white transition hover:bg-med-primaryDark"><i class="bi bi-printer"></i>Print Results</button><a href="{{ route('lab.requests.index') }}" class="mf-focus inline-flex items-center justify-center gap-2 rounded-md border border-med-line bg-white px-3 py-2 text-sm font-semibold text-med-ink transition hover:bg-med-canvas"><i class="bi bi-arrow-left"></i>Requests</a></x-slot:actions>
+        <div id="print" class="relative mx-auto w-full max-w-[190mm] bg-white">
+            <div class="watermark-logo"></div>
+            <div class="print-content rounded-md border border-med-line bg-white p-6 shadow-sm">
+                <div class="text-center"><h2 class="text-xl font-bold text-med-primary">{{ strtoupper(config('app.title', config('app.name'))) }}</h2><h4 class="mt-1 text-sm font-semibold text-med-ink">DEPARTMENT OF {{ strtoupper(auth()->user()->department->name) }}</h4><p class="mt-1 text-sm text-med-danger"><em>{{ config('app.address') }}</em></p></div>
+                <hr class="my-5 border-med-line">
+                <div class="grid gap-4 md:grid-cols-2"><div><p class="text-sm text-med-muted">Patient Name</p><p class="font-semibold text-med-ink">{{ $bill->patientName() }}</p></div><div><p class="text-sm text-med-muted">Hospital Number</p><p class="font-semibold text-med-ink">{{ $bill->patientVisit ? $bill->patientVisit->patient->hospital_number : 'Walk-in Patient' }}</p></div></div>
+                <div class="mt-6 space-y-6">
+                    @forelse($completedRequests as $investigationRequest)
+                        @php($uploadedResults = $investigationRequest->investigationResults->filter(fn ($result) => filled($result->value))->values())
+                        <section class="result-section"><h5 class="font-bold text-med-ink">{{ $investigationRequest->investigation?->name ?? 'Investigation' }}</h5><p class="mt-1 text-sm text-med-muted">Lab No: {{ $investigationRequest->lab_no }}</p><div class="mt-3 overflow-x-auto"><table class="min-w-full border-collapse text-sm"><thead><tr><th class="border border-med-line px-3 py-2 text-left">Parameter</th><th class="border border-med-line px-3 py-2 text-left">Value</th><th class="border border-med-line px-3 py-2 text-left">Reference Range</th></tr></thead><tbody>@foreach($uploadedResults as $result)<tr><td class="border border-med-line px-3 py-2">{{ $result->parameter?->name ?? 'Parameter' }}</td><td class="border border-med-line px-3 py-2">{{ $result->value }}</td><td class="border border-med-line px-3 py-2">{{ $result->parameter?->reference_range ?? 'N/A' }}</td></tr>@endforeach</tbody></table></div></section>
+                    @empty
+                        <x-ui.empty-state title="No Uploaded Results" message="No uploaded lab results are available for this bill." />
+                    @endforelse
                 </div>
-            @empty
-                <div class="alert alert-warning">No uploaded lab results are available for this bill.</div>
-            @endforelse
+            </div>
         </div>
-    </div>
+    </x-ui.page>
 
-    <div class="mt-3 no-print">
-        <button onclick="window.print()" class="btn btn-primary">
-            <i class="bi bi-printer me-1"></i> Print Results
-        </button>
-        <a href="{{ route('lab.requests.index') }}" class="btn btn-secondary ms-2">Back to Requests</a>
-    </div>
+    <style>
+        .watermark-logo { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); opacity:.06; z-index:0; width:300px; height:300px; background:url('{{ asset("images/logo.png") }}') center/contain no-repeat; pointer-events:none; }
+        .print-content { position:relative; z-index:2; }
+        @page { size:A4; margin:8mm; }
+        @media print { .admin-sidebar,.hospital-navbar,.modern-topbar,.no-print,button,a[href] { display:none !important; } body, .print-content { font-size:12px; } #print { width:194mm; box-shadow:none !important; } .print-content { border:0 !important; box-shadow:none !important; padding:0 !important; } table { width:100%; border-collapse:collapse; } th,td { padding:4px 6px !important; font-size:11px; } .result-section, table, thead, tbody { page-break-inside:avoid !important; break-inside:avoid !important; } }
+    </style>
 @endsection

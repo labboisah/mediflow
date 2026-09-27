@@ -48,3 +48,4 @@ class PatientController extends Controller
         return redirect()->back()->with('success', 'Patient visit marked as closed.');
     }
 }
+

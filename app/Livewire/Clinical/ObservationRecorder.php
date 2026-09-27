@@ -7,7 +7,7 @@ use App\Models\Patient;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class ObservationRecorder extends Component
 {
     use ManagesClinicalVisit;
@@ -100,3 +100,4 @@ class ObservationRecorder extends Component
         $this->resetValidation();
     }
 }
+

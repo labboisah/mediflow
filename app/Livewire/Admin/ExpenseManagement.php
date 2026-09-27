@@ -10,12 +10,12 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class ExpenseManagement extends Component
 {
     use WithPagination;
 
-    protected string $paginationTheme = 'bootstrap';
+    protected string $paginationTheme = 'tailwind';
 
     public string $search = '';
     public string $category = '';
@@ -265,3 +265,4 @@ class ExpenseManagement extends Component
         return $this->sortDirection === 'asc' ? 'bi-sort-up' : 'bi-sort-down';
     }
 }
+

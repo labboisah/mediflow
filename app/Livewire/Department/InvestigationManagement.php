@@ -8,7 +8,7 @@ use App\Models\Parameter;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class InvestigationManagement extends Component
 {
     public string $search = '';
@@ -308,3 +308,4 @@ class InvestigationManagement extends Component
             ->whereHas('investigation.investigationType', fn ($query) => $query->where('department_id', auth()->user()->department_id));
     }
 }
+

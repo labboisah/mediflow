@@ -1,82 +1,66 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
-@section('title', 'beds')
-
-@section('header')
-<div class="d-flex justify-content-between align-items-center">
-    <h1 class="h3 d-flex align-items-center mb-0">
-        <i class="bi bi-sick-bay me-2 text-warning"></i>
-        Manage {{$ward->name}} Beds
-    </h1>
-    <div class="ms-auto d-flex">
-        <a href="{{ route('admin.beds.create',$ward) }}" class="btn btn-sm btn-success ms-3">
-            <i class="bi bi-plus-circle me-1"></i>New Bed
-        </a>
-    </div>
-</div>
-@endsection
+@section('title', 'Beds')
+@section('page-title', $ward->name.' Beds')
+@section('page-subtitle', 'Manage bed numbers and occupancy status for this ward.')
 
 @section('content')
+    <x-ui.page :title="$ward->name.' Beds'" subtitle="Manage bed numbers and occupancy status for this ward.">
+        <x-slot:actions>
+            <a href="{{ route($routePrefix.'.beds.create', $ward) }}">
+                <x-ui.button>
+                    <i class="bi bi-plus-circle"></i>
+                    New Bed
+                </x-ui.button>
+            </a>
+            <a href="{{ route($routePrefix.'.wards.index') }}">
+                <x-ui.button type="button" variant="secondary">
+                    <i class="bi bi-arrow-left"></i>
+                    Wards
+                </x-ui.button>
+            </a>
+        </x-slot:actions>
 
-@if ($message = Session::get('success'))
-    <div class="alert alert-success alert-dismissible fade show" role="alert">
-        <i class="bi bi-check-circle me-2"></i>
-        {{ $message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
-
-@if ($message = Session::get('error'))
-    <div class="alert alert-danger alert-dismissible fade show" role="alert">
-        <i class="bi bi-exclamation-circle me-2"></i>
-        {{ $message }}
-        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-    </div>
-@endif
-<div class="row">
-    <div class="col-md-10 offset-1">
-        <div class="card shadow-sm p-4">
-            <div class="table-responsive">
-                <table class="table table-hover mb-0 datatable">
-                    <thead class="table-light">
-                        <tr>
-                            <th>#</th>
-                            <th>Name</th>
-                            <th>Status</th>
-                            <th class="no-export">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @forelse ($ward->beds as $bed)
-                            <tr>
-                                <td>{{$loop->iteration}}</td>
-                                <td>{{ $bed->bed_no }}</td>
-                                <td>{{ $bed->status }}</td>
-                                
-                                <td>
-                                
-                                    <a href="{{ route('admin.beds.edit', $bed->id) }}" class="btn btn-sm btn-outline-info">
-                                        <i class="bi bi-pencil"></i>
-                                    </a>
-                                    <form action="{{ route('admin.beds.destroy', $bed) }}" method="POST" style="display:inline;">
-                                        @csrf
-                                        @method('DELETE')
-                                        <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Delete this bed?');">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
-                                        
-                                </td>
-                            </tr>
-                        @empty
-                            <tr>
-                                <td colspan="4" class="text-center text-muted py-4">No beds found.</td>
-                            </tr>
-                        @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-</div>
+        <x-ui.table>
+            <thead class="bg-med-canvas">
+                <tr>
+                    <th class="w-20 px-4 py-3 text-left text-sm font-semibold text-med-ink">#</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-med-ink">Bed No</th>
+                    <th class="px-4 py-3 text-left text-sm font-semibold text-med-ink">Status</th>
+                    <th class="px-4 py-3 text-right text-sm font-semibold text-med-ink">Actions</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-med-line">
+                @forelse ($ward->beds as $bed)
+                    <tr class="hover:bg-med-canvas">
+                        <td class="px-4 py-4 text-sm font-medium text-med-muted">{{ $loop->iteration }}</td>
+                        <td class="px-4 py-4 font-semibold text-med-ink">{{ $bed->bed_no }}</td>
+                        <td class="px-4 py-4">
+                            <x-ui.badge :variant="$bed->status === 'occupied' ? 'warning' : 'success'">{{ ucfirst($bed->status) }}</x-ui.badge>
+                        </td>
+                        <td class="px-4 py-4">
+                            <div class="flex justify-end gap-2">
+                                <a href="{{ route($routePrefix.'.beds.edit', $bed->id) }}" class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-med-line bg-white text-med-info hover:bg-med-canvas" title="Edit bed">
+                                    <i class="bi bi-pencil"></i>
+                                </a>
+                                <form action="{{ route($routePrefix.'.beds.destroy', $bed) }}" method="POST" onsubmit="return confirm('Delete this bed?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-med-line bg-white text-med-danger hover:bg-med-canvas" title="Delete bed">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                @empty
+                    <tr>
+                        <td colspan="4" class="px-4 py-8">
+                            <x-ui.empty-state title="No beds found" />
+                        </td>
+                    </tr>
+                @endforelse
+            </tbody>
+        </x-ui.table>
+    </x-ui.page>
 @endsection

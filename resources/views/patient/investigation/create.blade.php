@@ -1,4 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.modern')
+
+@section('title', 'Create.Blade')
+@section('page-title', 'Create.Blade')
+@section('page-subtitle', 'Mediflow workspace.')
 
 @section('title', 'Send Investigation Request - ' . ($patient->demographic->full_name ?? 'Patient'))
 
@@ -266,3 +270,4 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endsection
+

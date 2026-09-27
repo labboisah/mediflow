@@ -1,54 +1,16 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'Labour Progress Record')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="h3 mb-0"><i class="bi bi-eye"></i> Labour Progress Detail</h1>
-            <small class="text-muted">Recorded at {{ $progress->recorded_at->format('M d, Y H:i') }}</small>
-        </div>
-        <div class="col-md-4 text-end">
-            <a href="{{ route('midwife.labour-progress.index', $progress->labour) }}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Progress
-            </a>
-            <a href="{{ route('midwife.labour-progress.edit', $progress) }}" class="btn btn-outline-warning">
-                <i class="bi bi-pencil"></i> Edit
-            </a>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-body">
-            <div class="row">
-                <div class="col-md-6"><strong>Recorded By:</strong> {{ $progress->recordedBy->name ?? 'N/A' }}</div>
-                <div class="col-md-6"><strong>Labour ID:</strong> {{ $progress->labour_id }}</div>
-            </div>
-            <hr>
-            <dl class="row">
-                <dt class="col-sm-3">Contraction Frequency</dt>
-                <dd class="col-sm-9">{{ $progress->contraction_frequency ?? 'N/A' }} /10m</dd>
-                <dt class="col-sm-3">Contraction Duration</dt>
-                <dd class="col-sm-9">{{ $progress->contraction_duration ?? 'N/A' }} secs</dd>
-                <dt class="col-sm-3">Contraction Intensity</dt>
-                <dd class="col-sm-9">{{ ucfirst($progress->contraction_intensity) ?? 'N/A' }}</dd>
-                <dt class="col-sm-3">Cervical Dilation</dt>
-                <dd class="col-sm-9">{{ $progress->cervical_dilation ?? 'N/A' }} cm</dd>
-                <dt class="col-sm-3">Cervical Effacement</dt>
-                <dd class="col-sm-9">{{ $progress->cervical_effacement ?? 'N/A' }}%</dd>
-                <dt class="col-sm-3">Fetal HR</dt>
-                <dd class="col-sm-9">{{ $progress->fetal_heart_rate ?? 'N/A' }} bpm</dd>
-                <dt class="col-sm-3">BP</dt>
-                <dd class="col-sm-9">{{ $progress->blood_pressure ?? 'N/A' }}</dd>
-                <dt class="col-sm-3">Temp</dt>
-                <dd class="col-sm-9">{{ $progress->temperature ?? 'N/A' }} °C</dd>
-                <dt class="col-sm-3">Pulse</dt>
-                <dd class="col-sm-9">{{ $progress->pulse_rate ?? 'N/A' }} bpm</dd>
-                <dt class="col-sm-3">Observations</dt>
-                <dd class="col-sm-9">{{ $progress->observations_and_notes ?? 'N/A' }}</dd>
-            </dl>
-        </div>
-    </div>
-</div>
+    @php
+        $labour = $progress->labour;
+        $details = ['Contraction Frequency' => ($progress->contraction_frequency ?? 'N/A') . ' /10m', 'Contraction Duration' => ($progress->contraction_duration ?? 'N/A') . ' secs', 'Contraction Intensity' => str($progress->contraction_intensity ?? 'N/A')->headline(), 'Cervical Dilation' => ($progress->cervical_dilation ?? 'N/A') . ' cm', 'Cervical Effacement' => ($progress->cervical_effacement ?? 'N/A') . '%', 'Cervical Consistency' => str($progress->cervical_consistency ?? 'N/A')->headline(), 'Cervical Position' => str($progress->cervical_position ?? 'N/A')->headline(), 'Fetal Station' => $progress->fetal_station ?? 'N/A', 'Fetal Position' => str($progress->fetal_position ?? 'N/A')->headline(), 'Fetal HR' => ($progress->fetal_heart_rate ?? 'N/A') . ' bpm', 'Fetal Variability' => str($progress->fetal_heart_variability ?? 'N/A')->headline(), 'Meconium Stained Liquor' => $progress->meconium_stained_liquor ? 'Yes' : 'No', 'Blood Pressure' => $progress->blood_pressure ?? 'N/A', 'Temperature' => ($progress->temperature ?? 'N/A') . ' C', 'Pulse' => ($progress->pulse_rate ?? 'N/A') . ' bpm', 'Uterine Tone' => $progress->uterine_tone ?? 'N/A', 'Uterine Tenderness' => $progress->uterine_tenderness ?? 'N/A'];
+        $notes = ['Vaginal Examination Findings' => $progress->vaginal_examination_findings, 'Fetal Movements' => $progress->fetal_movements, 'Pain Relief' => $progress->maternal_pain_relief, 'Coping Mechanisms' => $progress->coping_mechanisms, 'Interventions' => $progress->interventions, 'Medications Given' => $progress->medications_given, 'Observations' => $progress->observations_and_notes];
+    @endphp
+    <x-ui.page title="Labour Progress Detail" subtitle="Recorded at {{ $progress->recorded_at->format('M d, Y H:i') }}">
+        <x-slot name="actions"><a href="{{ route('midwife.labour.progress.index', $labour) }}" class="inline-flex items-center justify-center rounded-md border border-med-line bg-white px-3 py-2 text-sm font-semibold text-med-ink transition hover:bg-med-canvas">Back to Progress</a><a href="{{ route('midwife.labour.progress.edit', [$labour, $progress]) }}" class="inline-flex items-center justify-center rounded-md border border-med-primary bg-med-primary px-3 py-2 text-sm font-semibold text-white transition hover:bg-med-primaryDark">Edit</a></x-slot>
+        <div class="grid gap-6 xl:grid-cols-12"><x-ui.card class="xl:col-span-8" title="Clinical Measurements"><dl class="grid gap-4 md:grid-cols-3">@foreach($details as $label => $value)<div><dt class="text-sm font-medium text-med-muted">{{ $label }}</dt><dd class="mt-1 text-sm font-semibold text-med-ink">{{ $value }}</dd></div>@endforeach</dl></x-ui.card><aside class="space-y-6 xl:col-span-4"><x-ui.card title="Record Context"><dl class="space-y-3 text-sm"><div><dt class="text-med-muted">Recorded By</dt><dd class="font-semibold text-med-ink">{{ $progress->recordedBy->name ?? 'N/A' }}</dd></div><div><dt class="text-med-muted">Labour ID</dt><dd class="font-semibold text-med-ink">#{{ $progress->labour_id }}</dd></div><div><dt class="text-med-muted">Patient</dt><dd class="font-semibold text-med-ink">{{ $labour->patient?->name() ?? 'N/A' }}</dd></div></dl></x-ui.card></aside></div>
+        <x-ui.card title="Notes"><dl class="grid gap-4 md:grid-cols-2">@foreach($notes as $label => $value)<div><dt class="text-sm font-medium text-med-muted">{{ $label }}</dt><dd class="mt-1 whitespace-pre-line text-sm font-semibold text-med-ink">{{ $value ?? 'N/A' }}</dd></div>@endforeach</dl></x-ui.card>
+    </x-ui.page>
 @endsection

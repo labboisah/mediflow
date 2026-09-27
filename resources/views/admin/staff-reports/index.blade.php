@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('page-title', 'Staff Reports')
 
@@ -146,3 +146,4 @@
     </div>
 </div>
 @endsection
+

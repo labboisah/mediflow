@@ -1,4 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.modern')
+
+@section('title', 'Register Report.Blade')
+@section('page-title', 'Register Report.Blade')
+@section('page-subtitle', 'Mediflow workspace.')
 
 @section('title', 'Admin Patient Register')
 
@@ -156,3 +160,4 @@
     @endif
 </div>
 @endsection
+

@@ -7,7 +7,7 @@ use App\Models\Patient;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class FluidBalanceWorkspace extends Component
 {
     use ManagesClinicalVisit;
@@ -97,3 +97,4 @@ class FluidBalanceWorkspace extends Component
         $this->resetValidation();
     }
 }
+

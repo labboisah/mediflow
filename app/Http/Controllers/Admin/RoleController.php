@@ -9,7 +9,7 @@ use App\Http\Controllers\Controller;
 
 class RoleController extends Controller
 {
-    private const PROTECTED_ROLES = ['superadmin', 'administrator'];
+    private const PROTECTED_ROLES = ['administrator'];
 
     public function index()
     {

@@ -102,7 +102,7 @@ Use these tokens instead of one-off colors.
 The modern sidebar uses the existing module-aware sidebar service:
 
 - license module must be enabled
-- user must have module access unless admin/superadmin
+- user must have module access unless the user is a hospital administrator
 - user must have role or permission for the module
 - route must exist
 - route must not require parameters

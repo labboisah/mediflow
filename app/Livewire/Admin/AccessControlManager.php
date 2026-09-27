@@ -19,7 +19,7 @@ use Livewire\Component;
 #[Layout('layouts.modern')]
 class AccessControlManager extends Component
 {
-    private const PROTECTED_ROLES = ['superadmin', 'administrator'];
+    private const PROTECTED_ROLES = ['administrator'];
 
     public string $roleSearch = '';
     public ?int $selectedRoleId = null;
@@ -202,11 +202,6 @@ class AccessControlManager extends Component
     {
         $user = User::with('roles')->findOrFail($userId);
 
-        if ($user->isSuperAdmin()) {
-            $this->dispatch('toast', message: 'Super admin platform access is managed by the system role.', type: 'warning');
-            return;
-        }
-
         if (! $this->licenseModules()->contains($licenseModule)) {
             $this->dispatch('toast', message: 'This module is not enabled by the current license.', type: 'warning');
             return;
@@ -300,7 +295,7 @@ class AccessControlManager extends Component
 
         return Module::query()
             ->whereNotNull('license_module')
-            ->whereNotIn('license_module', config('mediflow_modules.platform_modules', ['platform']))
+            ->where('license_module', '!=', 'platform')
             ->when(
                 ! in_array('*', $enabledModules, true),
                 fn ($query) => $query->whereIn('license_module', $enabledModules)

@@ -1,78 +1,20 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'Labour Records')
 
 @section('content')
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-0"><i class="bi bi-activity"></i> Labour Records</h1>
-            <small class="text-muted">Search and manage all labour records</small>
-        </div>
-        <a href="{{ route('midwife.labour-management') }}" class="btn btn-primary">
-            <i class="bi bi-diagram-3"></i> Direct Labour Entry
-        </a>
-    </div>
-
-    <form method="GET" action="{{ route('midwife.labour.index') }}" class="card card-body mb-3">
-        <div class="row g-2 align-items-end">
-            <div class="col-md-10">
-                <label class="form-label">Search</label>
-                <input type="search" name="q" value="{{ $search }}" class="form-control" placeholder="Search by hospital number, patient name, phone, stage, or status">
-            </div>
-            <div class="col-md-2 d-grid">
-                <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Search</button>
-            </div>
-        </div>
-    </form>
-
-    @if($labours->isEmpty())
-        <div class="alert alert-info">No labour records found.</div>
-    @else
-        <div class="card">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Onset</th>
-                                <th>Hospital #</th>
-                                <th>Patient</th>
-                                <th>Phone</th>
-                                <th>Stage</th>
-                                <th>Status</th>
-                                <th>Recorded By</th>
-                                <th class="text-end">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($labours as $record)
-                                @php($patient = $record->patient)
-                                <tr>
-                                    <td>{{ $record->labour_onset_time?->format('M d, Y h:i A') ?? $record->created_at?->format('M d, Y h:i A') }}</td>
-                                    <td>{{ $patient?->hospital_number ?? 'N/A' }}</td>
-                                    <td>{{ $patient?->name() ?? 'N/A' }}</td>
-                                    <td>{{ $patient?->demographic?->phone_number ?? 'N/A' }}</td>
-                                    <td>{{ str($record->stage)->headline() }}</td>
-                                    <td><span class="badge bg-secondary">{{ str($record->status)->headline() }}</span></td>
-                                    <td>{{ $record->recordedBy?->name ?? 'N/A' }}</td>
-                                    <td class="text-end">
-                                        <div class="btn-group btn-group-sm">
-                                            <a href="{{ route('midwife.labour.show', $record) }}" class="btn btn-outline-primary">View</a>
-                                            <a href="{{ route('midwife.labour.edit', $record) }}" class="btn btn-outline-secondary">Edit</a>
-                                            @if($patient)
-                                                <a href="{{ route('midwife.patient.show', $patient) }}" class="btn btn-outline-info">Profile</a>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="card-footer text-muted">Total: <strong>{{ $labours->count() }}</strong> records</div>
-        </div>
-    @endif
-</div>
+    <x-ui.page title="Labour Records" subtitle="Search and manage labour records across maternity care.">
+        <x-slot name="actions"><a href="{{ route('midwife.labour-management') }}" class="inline-flex items-center justify-center rounded-md border border-med-primary bg-med-primary px-3 py-2 text-sm font-semibold text-white transition hover:bg-med-primaryDark">Direct Labour Entry</a></x-slot>
+        <x-ui.card><form method="GET" action="{{ route('midwife.labour.index') }}" class="flex flex-col gap-3 md:flex-row md:items-end"><div class="flex-1"><x-ui.input label="Search" type="search" name="q" value="{{ $search }}" placeholder="Hospital number, patient name, phone, stage, or status" /></div><x-ui.button type="submit" variant="secondary">Search</x-ui.button></form></x-ui.card>
+        @if($labours->isEmpty())
+            <x-ui.empty-state title="No Labour Records" message="No records match the current search." />
+        @else
+            <x-ui.table><thead class="bg-med-canvas text-left text-xs font-semibold uppercase text-med-muted"><tr><th class="px-4 py-3">Onset</th><th class="px-4 py-3">Hospital No.</th><th class="px-4 py-3">Patient</th><th class="px-4 py-3">Phone</th><th class="px-4 py-3">Stage</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Recorded By</th><th class="px-4 py-3 text-right">Actions</th></tr></thead><tbody class="divide-y divide-med-line bg-white">
+                @foreach($labours as $record)
+                    @php($patient = $record->patient)
+                    <tr><td class="px-4 py-4 text-med-muted">{{ $record->labour_onset_time?->format('M d, Y h:i A') ?? $record->created_at?->format('M d, Y h:i A') }}</td><td class="px-4 py-4"><x-ui.badge variant="info">{{ $patient?->hospital_number ?? 'N/A' }}</x-ui.badge></td><td class="px-4 py-4 font-semibold text-med-ink">{{ $patient?->name() ?? 'N/A' }}</td><td class="px-4 py-4 text-med-muted">{{ $patient?->demographic?->phone_number ?? 'N/A' }}</td><td class="px-4 py-4 text-med-muted">{{ str($record->stage)->headline() }}</td><td class="px-4 py-4"><x-ui.badge :variant="$record->status === 'completed' ? 'success' : ($record->status === 'complicated' ? 'danger' : 'warning')">{{ str($record->status)->headline() }}</x-ui.badge></td><td class="px-4 py-4 text-med-muted">{{ $record->recordedBy?->name ?? 'N/A' }}</td><td class="px-4 py-4"><div class="flex flex-wrap justify-end gap-2"><a href="{{ route('midwife.labour.show', $record) }}" class="text-sm font-semibold text-med-primary hover:text-med-primaryDark">View</a><a href="{{ route('midwife.labour.edit', $record) }}" class="text-sm font-semibold text-med-info hover:text-blue-700">Edit</a>@if($patient)<a href="{{ route('midwife.patient.show', $patient) }}" class="text-sm font-semibold text-med-success hover:text-green-700">Profile</a>@endif</div></td></tr>
+                @endforeach
+            </tbody></x-ui.table>
+        @endif
+    </x-ui.page>
 @endsection

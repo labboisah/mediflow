@@ -8,7 +8,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class PatientManagement extends Component
 {
     use WithPagination;
@@ -22,6 +22,7 @@ class PatientManagement extends Component
     public string $sortField = 'registration_date';
     public string $sortDirection = 'desc';
     public int $perPage = 15;
+    protected string $paginationTheme = 'tailwind';
 
     protected array $queryString = [
         'search' => ['except' => ''],
@@ -52,6 +53,8 @@ class PatientManagement extends Component
             'canManageRecords' => $this->canManageRecords(),
             'hasActiveFilters' => $this->hasActiveFilters(),
             'feedbackMessage' => $this->feedbackMessage(),
+            'pageTitle' => $this->pageTitle(),
+            'pageSubtitle' => $this->pageSubtitle(),
         ]);
     }
 
@@ -137,6 +140,17 @@ class PatientManagement extends Component
             ->orderBy($this->sortField, $this->sortDirection);
     }
 
+    private function pageTitle(): string
+    {
+        return $this->mode === 'record' ? 'Patient List' : 'Patient Management';
+    }
+
+    private function pageSubtitle(): string
+    {
+        return $this->mode === 'record'
+            ? 'Search, filter, and open patient records quickly.'
+            : 'Search, filter, and open patient clinical profiles quickly.';
+    }
     private function canManageRecords(): bool
     {
         $user = auth()->user();
@@ -174,3 +188,6 @@ class PatientManagement extends Component
         return null;
     }
 }
+
+
+

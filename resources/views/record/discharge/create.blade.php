@@ -1,73 +1,42 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
-@section('title', 'Record Discharge - ' . $patient->demographic->full_name)
-
-@section('header')
-<div class="d-flex align-items-center gap-3">
-    <i class="bi bi-door-closed text-success" style="font-size: 2rem;"></i>
-    <div>
-        <h1 class="h3 mb-1">Record Patient Discharge</h1>
-        <p class="mb-0 text-muted">For: <strong class="text-success">{{ $patient->demographic->full_name ?? 'Unknown' }}</strong></p>
-    </div>
-</div>
-@endsection
+@section('title', 'Record Discharge - ' . ($patient->demographic?->full_name ?? 'Patient'))
 
 @section('content')
-<div class="row">
-    <div class="col-lg-6 mx-auto">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0"><i class="bi bi-check-all me-2"></i>Discharge Details</h5>
+<x-ui.page title="Record Patient Discharge" subtitle="Close the active admission for {{ $patient->demographic?->full_name ?? 'this patient' }}.">
+    <x-slot:actions>
+        <a href="{{ route('record.patients.show', $patient) }}" class="mf-focus inline-flex items-center justify-center gap-2 rounded-md border border-med-line bg-white px-3 py-2 text-sm font-semibold text-med-ink transition hover:bg-med-canvas">Back To Profile</a>
+    </x-slot:actions>
+
+    <form action="{{ route('record.discharges.store', $patient) }}" method="POST" class="grid gap-6 xl:grid-cols-[0.75fr_1.25fr]">
+        @csrf
+
+        <x-ui.card title="Admission Context">
+            <div class="space-y-4">
+                <div><p class="text-xs font-semibold uppercase text-med-muted">Patient</p><p class="mt-1 text-lg font-semibold text-med-ink">{{ $patient->demographic?->full_name ?? 'N/A' }}</p></div>
+                <div><p class="text-xs font-semibold uppercase text-med-muted">Hospital Number</p><p class="mt-1 text-base font-semibold text-med-primary">{{ $patient->hospital_number }}</p></div>
+                <div><p class="text-xs font-semibold uppercase text-med-muted">Admission Status</p><x-ui.badge variant="warning">{{ $admission->status ?? 'Active' }}</x-ui.badge></div>
+                <div><p class="text-xs font-semibold uppercase text-med-muted">Bed</p><p class="mt-1 text-base text-med-ink">{{ $admission->bed?->ward?->name ?? 'N/A' }} / {{ $admission->bed?->bed_no ?? 'N/A' }}</p></div>
             </div>
-            <div class="card-body">
-                <form action="{{ route('record_officer.discharges.store', $patient->id) }}" method="POST">
-                    @csrf
+        </x-ui.card>
 
-                    <div class="mb-4">
-                        <label for="discharge_date" class="form-label">Discharge Date <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control @error('discharge_date') is-invalid @enderror" 
-                               id="discharge_date" name="discharge_date" value="{{ old('discharge_date', date('Y-m-d')) }}" required>
-                        @error('discharge_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        <div class="space-y-6">
+            <x-ui.card title="Discharge Details" subtitle="Record the discharge reason and optional follow-up date.">
+                <div class="grid gap-4 md:grid-cols-2">
+                    <x-ui.input label="Discharge Date" name="date" type="date" value="{{ old('date', now()->format('Y-m-d')) }}" required />
+                    <x-ui.input label="Discharge Time" name="time" type="time" value="{{ old('time', now()->format('H:i')) }}" required />
+                    <x-ui.input label="Next Appointment Date" name="next_appointment_date" type="date" value="{{ old('next_appointment_date') }}" />
+                    <div class="md:col-span-2">
+                        <x-ui.textarea label="Discharge Reason" name="reason" rows="5" required placeholder="Summary of treatment, status, and recommendations">{{ old('reason') }}</x-ui.textarea>
                     </div>
+                </div>
+            </x-ui.card>
 
-                    <div class="mb-4">
-                        <label for="discharge_status" class="form-label">Discharge Status <span class="text-danger">*</span></label>
-                        <select class="form-select @error('discharge_status') is-invalid @enderror" id="discharge_status" name="discharge_status" required>
-                            <option value="">Select Status</option>
-                            <option value="Recovered" {{ old('discharge_status') == 'Recovered' ? 'selected' : '' }}>Recovered</option>
-                            <option value="Improved" {{ old('discharge_status') == 'Improved' ? 'selected' : '' }}>Improved</option>
-                            <option value="Referred" {{ old('discharge_status') == 'Referred' ? 'selected' : '' }}>Referred</option>
-                            <option value="Against Medical Advice" {{ old('discharge_status') == 'Against Medical Advice' ? 'selected' : '' }}>Against Medical Advice</option>
-                        </select>
-                        @error('discharge_status')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="discharge_notes" class="form-label">Discharge Notes <span class="text-danger">*</span></label>
-                        <textarea class="form-control @error('discharge_notes') is-invalid @enderror" 
-                                  id="discharge_notes" name="discharge_notes" rows="4" 
-                                  placeholder="Summary of treatment and recommendations">{{ old('discharge_notes') }}</textarea>
-                        @error('discharge_notes')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="follow_up_date" class="form-label">Follow-up Date</label>
-                        <input type="date" class="form-control @error('follow_up_date') is-invalid @enderror" 
-                               id="follow_up_date" name="follow_up_date" value="{{ old('follow_up_date') }}">
-                        @error('follow_up_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div class="d-flex gap-2 pt-3 border-top">
-                        <button type="submit" class="btn btn-success flex-grow-1">
-                            <i class="bi bi-check-circle me-2"></i>Record Discharge
-                        </button>
-                        <a href="{{ route('record_officer.patients.show', $patient->id) }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-circle me-2"></i>Cancel
-                        </a>
-                    </div>
-                </form>
+            <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                <a href="{{ route('record.patients.show', $patient) }}" class="mf-focus inline-flex items-center justify-center rounded-md border border-med-line bg-white px-4 py-2 text-sm font-semibold text-med-ink transition hover:bg-med-canvas">Cancel</a>
+                <button type="submit" class="mf-focus inline-flex items-center justify-center rounded-md border border-med-primary bg-med-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-med-primaryDark">Record Discharge</button>
             </div>
         </div>
-    </div>
-</div>
+    </form>
+</x-ui.page>
 @endsection

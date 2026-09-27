@@ -147,7 +147,7 @@ class User extends Authenticatable
             return $this->getAllPermissions()->whereIn('name', $permission)->count() === count($permission);
         }
 
-        return $this->getAllPermissions()->where('name', $permission)->exists();
+        return $this->getAllPermissions()->contains('name', $permission);
     }
 
     /**
@@ -178,11 +178,6 @@ class User extends Authenticatable
         }
 
         return $permissions->unique('id');
-    }
-
-    public function isSuperAdmin(): bool
-    {
-        return $this->roles()->where('name', 'superadmin')->exists();
     }
 
     /**
@@ -329,3 +324,5 @@ class User extends Authenticatable
         ];
     }
 }
+
+

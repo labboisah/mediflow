@@ -76,7 +76,7 @@ class RolePermissionHelper
      */
     public static function isAdmin(): bool
     {
-        return self::hasRole(['superadmin', 'administrator']);
+        return self::hasRole('administrator');
     }
 
     /**

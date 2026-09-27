@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('page-title','Financial Reports')
 
@@ -134,3 +134,4 @@ new Chart(document.getElementById('reportChart'), {
 });
 </script>
 @endsection
+

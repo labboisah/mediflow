@@ -1,60 +1,26 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1 class="h3 d-flex align-items-center mb-0">
-            <i class="bi bi-eyedropper me-2 text-primary"></i>
-            Send Combined Investigation Results
-        </h1>
-    </div>
-@endsection
+@section('title', 'Send Laboratory Results')
 
 @section('content')
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-10">
-            <div class="card shadow p-4">
-                <div class="mb-4">
-                    <h5>Patient: <strong>{{ $patientName }}</strong></h5>
-                    @if($hospitalNumber)
-                        <p class="mb-0">Hospital Number: <strong>{{ $hospitalNumber }}</strong></p>
-                    @else
-                        <p class="mb-0">Walk-in Patient</p>
-                    @endif
-                </div>
-
-                <form action="{{ route('lab.requests.results.store', ['groupType' => $groupType, 'groupId' => $groupId]) }}" method="POST">
-                    @csrf
-
-                    @foreach($investigationRequests as $investigationRequest)
-                        <div class="mb-4 border rounded p-3">
-                            <h6 class="fw-bold">{{ $investigationRequest->investigation->name }}</h6>
-                            <p class="text-muted mb-3">Requested on: {{ $investigationRequest->created_at->format('d M Y, h:i A') }}</p>
-
-                            @foreach($investigationRequest->investigation->parameters as $parameter)
-                                <div class="mb-3">
-                                    <label for="parameter_{{ $investigationRequest->id }}_{{ $parameter->id }}" class="form-label">
-                                        {{ $parameter->name }}
-                                    </label>
-                                    <input type="text"
-                                        class="form-control"
-                                        id="parameter_{{ $investigationRequest->id }}_{{ $parameter->id }}"
-                                        name="parameters[{{ $investigationRequest->id }}][{{ $parameter->id }}]"
-                                        value="{{ old('parameters.' . $investigationRequest->id . '.' . $parameter->id) }}"
-                                        placeholder="Enter result for {{ $parameter->name }} - {{ $parameter->unit }}">
-                                    <small class="text-muted">Reference Range: {{ $parameter->reference_range }}</small>
-                                </div>
-                            @endforeach
-                        </div>
-                    @endforeach
-
-                    <button type="submit" class="btn btn-primary">
-                        <i class="bi bi-check-circle me-2"></i> Submit Combined Results
-                    </button>
-                    <a href="{{ route('lab.requests.index') }}" class="btn btn-secondary ms-2">Cancel</a>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+    <x-ui.page title="Send Combined Investigation Results" subtitle="Patient: {{ $patientName }}{{ $hospitalNumber ? ' | '.$hospitalNumber : ' | Walk-in Patient' }}">
+        <x-slot:actions><a href="{{ route('lab.requests.index') }}" class="mf-focus inline-flex items-center justify-center gap-2 rounded-md border border-med-line bg-white px-3 py-2 text-sm font-semibold text-med-ink transition hover:bg-med-canvas"><i class="bi bi-arrow-left"></i>Requests</a></x-slot:actions>
+        <form action="{{ route('lab.requests.results.store', ['groupType' => $groupType, 'groupId' => $groupId]) }}" method="POST" class="space-y-6">
+            @csrf
+            @foreach($investigationRequests as $investigationRequest)
+                <x-ui.card title="{{ $investigationRequest->investigation->name }}" subtitle="Requested on: {{ $investigationRequest->created_at->format('d M Y, h:i A') }}">
+                    <div class="grid gap-4 md:grid-cols-2">
+                        @foreach($investigationRequest->investigation->parameters as $parameter)
+                            <label class="block">
+                                <span class="mb-1 block text-sm font-medium text-med-ink">{{ $parameter->name }}</span>
+                                <input type="text" name="parameters[{{ $investigationRequest->id }}][{{ $parameter->id }}]" value="{{ old('parameters.' . $investigationRequest->id . '.' . $parameter->id) }}" placeholder="Enter result for {{ $parameter->name }} - {{ $parameter->unit }}" class="mf-focus block w-full rounded-md border border-med-line px-3 py-2.5 text-sm text-med-ink shadow-sm placeholder:text-med-muted/70">
+                                <span class="mt-1 block text-xs text-med-muted">Reference Range: {{ $parameter->reference_range }}</span>
+                            </label>
+                        @endforeach
+                    </div>
+                </x-ui.card>
+            @endforeach
+            <div class="flex flex-wrap justify-end gap-2"><a href="{{ route('lab.requests.index') }}" class="mf-focus inline-flex items-center justify-center rounded-md border border-med-line bg-white px-4 py-2 text-sm font-semibold text-med-ink transition hover:bg-med-canvas">Cancel</a><x-ui.button type="submit"><i class="bi bi-check-circle"></i>Submit Combined Results</x-ui.button></div>
+        </form>
+    </x-ui.page>
 @endsection

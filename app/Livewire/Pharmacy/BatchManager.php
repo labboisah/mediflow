@@ -8,7 +8,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class BatchManager extends Component
 {
     use WithPagination;
@@ -30,7 +30,7 @@ class BatchManager extends Component
         'expiry_date' => '',
     ];
 
-    protected string $paginationTheme = 'bootstrap';
+    protected string $paginationTheme = 'tailwind';
 
     public function mount(): void
     {
@@ -173,3 +173,5 @@ class BatchManager extends Component
         return $batchNumber;
     }
 }
+
+

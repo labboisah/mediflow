@@ -1,9 +1,9 @@
 <div>
     @php
-        $selectedRoleIsProtected = $selectedRole && in_array($selectedRole->name, ['superadmin', 'administrator'], true);
+        $selectedRoleIsProtected = $selectedRole && in_array($selectedRole->name, ['administrator'], true);
     @endphp
 
-    <x-ui.page :title="$pageTitle" :subtitle="$pageSubtitle">
+    <x-ui.page :title="$pageTitle ?? 'Workspace'" :subtitle="$pageSubtitle ?? config('app.name')">
         <x-slot:actions>
             <x-ui.button wire:click="createRole">
                 <i class="bi bi-plus-circle"></i>
@@ -50,19 +50,17 @@
                     </thead>
                     <tbody class="divide-y divide-med-line">
                         @foreach($users as $user)
-                            @php($isSuperAdminUser = $user->roles->contains('name', 'superadmin'))
                             <tr class="hover:bg-med-canvas">
                                 <td class="px-4 py-4">
                                     <p class="font-semibold text-med-ink">{{ $user->name }}</p>
                                     <p class="mt-1 text-sm text-med-muted">{{ $user->email }}</p>
                                 </td>
                                 @foreach($licenseModules as $licenseModule)
-                                    @php($hasAccess = $isSuperAdminUser || ($moduleAccessMap[$user->id . ':' . $licenseModule] ?? false))
+                                    @php($hasAccess = $moduleAccessMap[$user->id . ':' . $licenseModule] ?? false)
                                     <td class="px-4 py-4 text-center">
                                         <button type="button"
                                                 class="inline-flex h-9 w-9 items-center justify-center rounded-md border text-sm transition {{ $hasAccess ? 'border-med-primary bg-green-50 text-med-primary' : 'border-med-line bg-white text-med-muted hover:bg-med-canvas' }}"
                                                 wire:click="toggleUserModuleAccess({{ $user->id }}, '{{ $licenseModule }}')"
-                                                @disabled($isSuperAdminUser)
                                                 title="{{ $hasAccess ? 'Module enabled for user' : 'Module disabled for user' }}">
                                             <i class="bi {{ $hasAccess ? 'bi-check2' : 'bi-dash' }}"></i>
                                         </button>
@@ -249,3 +247,4 @@
         </div>
     </x-ui.page>
 </div>
+

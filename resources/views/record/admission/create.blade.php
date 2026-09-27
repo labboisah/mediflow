@@ -1,82 +1,57 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
-@section('title', 'Record Admission - ' . $patient->demographic->full_name)
-
-@section('header')
-<div class="d-flex align-items-center gap-3">
-    <i class="bi bi-door-open text-success" style="font-size: 2rem;"></i>
-    <div>
-        <h1 class="h3 mb-1">Record Patient Admission</h1>
-        <p class="mb-0 text-muted">For: <strong class="text-success">{{ $patient->demographic->full_name ?? 'Unknown' }}</strong></p>
-    </div>
-</div>
-@endsection
+@section('title', 'Record Admission - ' . ($patient->demographic?->full_name ?? 'Patient'))
 
 @section('content')
-<div class="row">
-    <div class="col-lg-6 mx-auto">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0"><i class="bi bi-building me-2"></i>Admission Details</h5>
+<x-ui.page title="Record Patient Admission" subtitle="Assign an available bed and open an admission for {{ $patient->demographic?->full_name ?? 'this patient' }}.">
+    <x-slot:actions>
+        <a href="{{ route('record.patients.show', $patient) }}" class="mf-focus inline-flex items-center justify-center gap-2 rounded-md border border-med-line bg-white px-3 py-2 text-sm font-semibold text-med-ink transition hover:bg-med-canvas">Back To Profile</a>
+    </x-slot:actions>
+
+    <form action="{{ route('record.admissions.store', $patient) }}" method="POST" class="grid gap-6 xl:grid-cols-[0.75fr_1.25fr]">
+        @csrf
+
+        <x-ui.card title="Patient Context">
+            <div class="space-y-4">
+                <div><p class="text-xs font-semibold uppercase text-med-muted">Patient</p><p class="mt-1 text-lg font-semibold text-med-ink">{{ $patient->demographic?->full_name ?? 'N/A' }}</p></div>
+                <div><p class="text-xs font-semibold uppercase text-med-muted">Hospital Number</p><p class="mt-1 text-base font-semibold text-med-primary">{{ $patient->hospital_number }}</p></div>
+                <div><p class="text-xs font-semibold uppercase text-med-muted">Current Visit</p><x-ui.badge variant="{{ $patient->currentVisit() ? 'success' : 'neutral' }}">{{ $patient->currentVisit()?->status ?? 'No active visit' }}</x-ui.badge></div>
             </div>
-            <div class="card-body">
-                <form action="{{ route('record_officer.admissions.store', $patient->id) }}" method="POST">
-                    @csrf
+        </x-ui.card>
 
-                    <div class="mb-4">
-                        <label for="admission_date" class="form-label">Admission Date <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control @error('admission_date') is-invalid @enderror" 
-                               id="admission_date" name="admission_date" value="{{ old('admission_date', date('Y-m-d')) }}" required>
-                        @error('admission_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        <div class="space-y-6">
+            <x-ui.card title="Admission Details" subtitle="Only vacant beds are listed for admission.">
+                <div class="grid gap-4 md:grid-cols-2">
+                    <x-ui.input label="Admission Date" name="date" type="date" value="{{ old('date', now()->format('Y-m-d')) }}" required />
+                    <x-ui.input label="Admission Time" name="time" type="time" value="{{ old('time', now()->format('H:i')) }}" required />
+                    <x-ui.input label="Admission Days" name="days" type="number" min="1" value="{{ old('days', 1) }}" required />
+                    <x-ui.select label="Bed Assignment" name="bed_id" required>
+                        <option value="">Select vacant bed</option>
+                        @foreach($wards as $ward)
+                            @if($ward->beds->isNotEmpty())
+                                <optgroup label="{{ $ward->name }}">
+                                    @foreach($ward->beds as $bed)
+                                        <option value="{{ $bed->id }}" @selected((string) old('bed_id') === (string) $bed->id)>{{ $bed->bed_no }}{{ $ward->price ? ' - NGN ' . number_format((float) $ward->price, 2) . '/day' : '' }}</option>
+                                    @endforeach
+                                </optgroup>
+                            @endif
+                        @endforeach
+                    </x-ui.select>
+                    <div class="md:col-span-2">
+                        <x-ui.textarea label="Admission Note" name="note" rows="4" placeholder="Reason for admission or additional notes">{{ old('note') }}</x-ui.textarea>
                     </div>
+                </div>
 
-                    <div class="mb-4">
-                        <label for="ward" class="form-label">Ward Assignment <span class="text-danger">*</span></label>
-                        <select class="form-select @error('ward') is-invalid @enderror" id="ward" name="ward" required>
-                            <option value="">Select Ward</option>
-                            <option value="General Ward" {{ old('ward') == 'General Ward' ? 'selected' : '' }}>General Ward</option>
-                            <option value="ICU" {{ old('ward') == 'ICU' ? 'selected' : '' }}>ICU</option>
-                            <option value="Pediatrics" {{ old('ward') == 'Pediatrics' ? 'selected' : '' }}>Pediatrics</option>
-                            <option value="Maternity" {{ old('ward') == 'Maternity' ? 'selected' : '' }}>Maternity</option>
-                            <option value="Surgery" {{ old('ward') == 'Surgery' ? 'selected' : '' }}>Surgery</option>
-                        </select>
-                        @error('ward')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
+                @if($wards->flatMap->beds->isEmpty())
+                    <div class="mt-4 rounded-md border border-orange-200 bg-orange-50 px-4 py-3 text-sm text-orange-800">No vacant beds are available at the moment.</div>
+                @endif
+            </x-ui.card>
 
-                    <div class="mb-4">
-                        <label for="reason_for_admission" class="form-label">Reason for Admission <span class="text-danger">*</span></label>
-                        <textarea class="form-control @error('reason_for_admission') is-invalid @enderror" 
-                                  id="reason_for_admission" name="reason_for_admission" rows="3" 
-                                  placeholder="Medical reason for admission">{{ old('reason_for_admission') }}</textarea>
-                        @error('reason_for_admission')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="bed_number" class="form-label">Bed Number</label>
-                        <input type="text" class="form-control @error('bed_number') is-invalid @enderror" 
-                               id="bed_number" name="bed_number" value="{{ old('bed_number') }}" placeholder="e.g., A-101">
-                        @error('bed_number')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="notes" class="form-label">Additional Notes</label>
-                        <textarea class="form-control @error('notes') is-invalid @enderror" 
-                                  id="notes" name="notes" rows="3" 
-                                  placeholder="Any additional information">{{ old('notes') }}</textarea>
-                        @error('notes')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div class="d-flex gap-2 pt-3 border-top">
-                        <button type="submit" class="btn btn-success flex-grow-1">
-                            <i class="bi bi-check-circle me-2"></i>Record Admission
-                        </button>
-                        <a href="{{ route('record_officer.patients.show', $patient->id) }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-circle me-2"></i>Cancel
-                        </a>
-                    </div>
-                </form>
+            <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                <a href="{{ route('record.patients.show', $patient) }}" class="mf-focus inline-flex items-center justify-center rounded-md border border-med-line bg-white px-4 py-2 text-sm font-semibold text-med-ink transition hover:bg-med-canvas">Cancel</a>
+                <button type="submit" class="mf-focus inline-flex items-center justify-center rounded-md border border-med-primary bg-med-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-med-primaryDark" @disabled($wards->flatMap->beds->isEmpty())>Record Admission</button>
             </div>
         </div>
-    </div>
-</div>
+    </form>
+</x-ui.page>
 @endsection

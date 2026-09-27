@@ -11,7 +11,7 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class PatientManagement extends Component
 {
     use WithPagination;
@@ -22,7 +22,7 @@ class PatientManagement extends Component
     public string $serviceId = '';
     public int $perPage = 10;
 
-    protected string $paginationTheme = 'bootstrap';
+    protected string $paginationTheme = 'tailwind';
 
     protected array $queryString = [
         'search' => ['except' => ''],
@@ -40,6 +40,10 @@ class PatientManagement extends Component
             'requests' => (clone $baseQuery)->paginate($this->perPage),
             'allPatients' => $this->allPatientsSearch(),
             'services' => $this->departmentServices(),
+            'pageTitle' => 'Nursing Patient Management',
+            'pageSubtitle' => 'Review nursing service requests and open patient profiles quickly.',
+            'profileRoute' => 'nurse.patient.show',
+            'emptyMessage' => 'No nursing patient requests match your current filters.',
             'summary' => [
                 'total' => (clone $baseQuery)->count(),
                 'pending' => (clone $baseQuery)->where('status', 'pending')->count(),
@@ -256,3 +260,4 @@ class PatientManagement extends Component
             ->first();
     }
 }
+

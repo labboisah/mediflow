@@ -1,4 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.modern')
+
+@section('title', 'Index.Blade')
+@section('page-title', 'Index.Blade')
+@section('page-subtitle', 'Mediflow workspace.')
 
 @section('title', 'Statistics Report')
 
@@ -115,3 +119,4 @@
     </div>
 </div>
 @endsection
+

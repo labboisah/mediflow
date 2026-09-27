@@ -878,9 +878,9 @@ AND
 Module license_module is enabled
 ```
 
-### Step 9: Create License Management Screen
+### Step 9: Receive Central Activation Data
 
-Create an administrator-only screen to manage:
+License activation is managed by the centralized MediFlow platform, not inside the local hospital app. The local app should receive or sync:
 
 - Client name
 - Current plan
@@ -890,14 +890,6 @@ Create an administrator-only screen to manage:
 - Active/inactive status
 - Enabled add-on modules
 - Users attached to each enabled module
-
-This screen should be protected by a special permission:
-
-```text
-license.manage
-```
-
-Normal hospital administrators should not necessarily be able to change license details unless the business wants them to.
 
 Also create a module access screen for client admins:
 
@@ -966,7 +958,7 @@ Recommended order:
 9. Hide disabled modules from menus.
 10. Add `license_module` to the existing `modules` table.
 11. Update module seeders with license module mapping.
-12. Create license management screen.
+12. Connect local activation data to the centralized platform.
 13. Create module user access screen.
 14. Add dependency validation.
 15. Test each plan by changing the active license.

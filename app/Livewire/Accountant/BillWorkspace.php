@@ -18,7 +18,7 @@ use Livewire\Component;
 use Livewire\WithPagination;
 use Throwable;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class BillWorkspace extends Component
 {
     use WithPagination;
@@ -661,3 +661,4 @@ class BillWorkspace extends Component
         $this->resetErrorBag();
     }
 }
+

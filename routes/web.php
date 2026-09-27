@@ -23,13 +23,10 @@ use App\Http\Controllers\Admin\ExpenseController;
 use App\Http\Controllers\Admin\PatientRegisterController as AdminPatientRegisterController;
 use App\Livewire\Admin\Dashboard as AdminDashboard;
 use App\Livewire\Admin\AccessControlManager;
-use App\Livewire\Admin\AgentManagement;
 use App\Livewire\Admin\BillManagement;
-use App\Livewire\Admin\ClientManagement;
 use App\Livewire\Admin\ExpenseCategoryManagement;
 use App\Livewire\Admin\ExpenseManagement;
 use App\Livewire\Admin\FileTypeManagement;
-use App\Livewire\Admin\LicenseManagement;
 use App\Livewire\Admin\PaymentManagement;
 use App\Livewire\Admin\RevenueCategoryManagement;
 use App\Livewire\Admin\RevenueManagement;
@@ -88,18 +85,6 @@ Route::middleware(['auth', 'verified'])->prefix('admin')->name('admin.')->group(
     Route::get('access-control', AccessControlManager::class)
         ->middleware('access:role:administrator,permission:role.read,permission:permission.read')
         ->name('access-control');
-
-    Route::get('license-management', LicenseManagement::class)
-        ->middleware(['module:platform', 'access:role:superadmin,permission:license.manage'])
-        ->name('license-management');
-
-    Route::get('clients', ClientManagement::class)
-        ->middleware(['module:platform', 'access:role:superadmin,permission:client.manage'])
-        ->name('clients.index');
-
-    Route::get('agents', AgentManagement::class)
-        ->middleware(['module:platform', 'access:role:superadmin,permission:agent.manage'])
-        ->name('agents.index');
 
     Route::middleware('role:administrator,medical_director')->group(function () {
         Route::get('patient-register', [AdminPatientRegisterController::class, 'index'])->name('patient-register.index');
@@ -216,6 +201,8 @@ Route::middleware(['auth', 'verified', 'role:record'])->prefix('record')->name('
     Route::get('patient-register/pdf', [RecordOfficerController::class, 'patientRegisterPdf'])->name('patient-register.pdf');
     
     // Patient Management
+    Route::get('appointments', [RecordOfficerController::class, 'appointments'])->name('appointments.index');
+
     Route::get('patients', [RecordOfficerController::class, 'listPatients'])->name('patients.index');
     Route::get('patients/search', [RecordOfficerController::class, 'search'])->name('patients.search');
     Route::get('patients/register', PatientRegistration::class)->name('patients.register.form');
@@ -227,6 +214,20 @@ Route::middleware(['auth', 'verified', 'role:record'])->prefix('record')->name('
     // Patient Visits - Submit to Nurse for Vital Signs
     Route::get('patients/{patient}/visits/create', [RecordOfficerController::class, 'visitForm'])->name('visits.create.form');
     Route::post('patients/{patient}/visits', [RecordOfficerController::class, 'storeVisit'])->name('visits.store');
+    
+    // Appointments
+    Route::get('patients/{patient}/appointments/create', [RecordOfficerController::class, 'appointmentForm'])->name('appointments.create');
+    Route::post('patients/{patient}/appointments', [RecordOfficerController::class, 'storeAppointment'])->name('appointments.store');
+
+    // Referrals
+    Route::get('patients/{patient}/referrals/create', [RecordOfficerController::class, 'referralForm'])->name('referrals.create');
+    Route::post('patients/{patient}/referrals', [RecordOfficerController::class, 'storeReferral'])->name('referrals.store');
+
+    // Admissions and discharges
+    Route::get('patients/{patient}/admissions/create', [RecordOfficerController::class, 'admissionForm'])->name('admissions.create');
+    Route::post('patients/{patient}/admissions', [RecordOfficerController::class, 'storeAdmission'])->name('admissions.store');
+    Route::get('patients/{patient}/discharges/create', [RecordOfficerController::class, 'dischargeForm'])->name('discharges.create');
+    Route::post('patients/{patient}/discharges', [RecordOfficerController::class, 'storeDischarge'])->name('discharges.store');
     
     // Workflow - Create st (for dual-role users)
     Route::get('patients/bills/create', [RecordOfficerController::class, 'createBill'])->name('bills.create.form');

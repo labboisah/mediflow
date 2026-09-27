@@ -1,4 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.modern')
+
+@section('title', 'Edit.Blade')
+@section('page-title', 'Edit.Blade')
+@section('page-subtitle', 'Mediflow workspace.')
 
 @section('content')
 

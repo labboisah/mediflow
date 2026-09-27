@@ -1,81 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('content')
-
-<div class="container-fluid">
-
-    <div class="d-flex justify-content-between mb-3">
-        <h4><i class="bi bi-box-seam"></i> Medicine Stocks</h4>
-
-        <a href="{{ route('pharmacy.stocks.create') }}" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Add Stock
-        </a>
-    </div>
-
-    <div class="card shadow-sm">
-
-        <div class="table-responsive">
-
-            <table class="table table-striped datatable">
-
-                <thead>
-                    <tr>
-                        <th>Medicine</th>
-                        <th>Batch No</th>
-                        <th>Quantity Recieved</th>
-                        <th>Purchase Price</th>
-                        <th>Selling Price</th>
-                        <th>Manufacturing Date</th>
-                        <th>Expiry Date</th>
-                        <th>Quantity Remaining</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-
-                <tbody>
-
-                    @foreach($batches as $batch)
-
-                    <tr>
-
-                        <td>{{ $batch->medicine?->name ?? 'N/A' }}</td>
-                        <td>{{ $batch->batch_number }}</td>
-                        <td>{{ $batch->quantity_received }}</td>
-                        <td>{{ $batch->purchase_price }}</td>
-                        <td>{{ $batch->selling_price }}</td>
-                        <td>{{ $batch->manufacture_date }}</td>
-                        <td>{{ $batch->expiry_date }}</td>
-
-                        <td>
-                        <span class="badge bg-success">
-                        {{ $batch->quantity_remaining }}
-                        </span>
-                        </td>
-
-                        <td>
-
-                        <a href="#" class="btn btn-sm btn-info">
-                        <i class="bi bi-eye"></i>
-                        </a>
-
-                        <a href="#" class="btn btn-sm btn-warning">
-                        <i class="bi bi-pencil"></i>
-                        </a>
-
-                        </td>
-
-                    </tr>
-
-                    @endforeach
-
-                </tbody>
-
-            </table>
-
-        </div>
-
-    </div>
-
-</div>
-
+    <x-ui.page title="Medicine Stocks" subtitle="Legacy stock list view for batch inventory records.">
+        <x-slot:actions><a href="{{ route('pharmacy.stocks.create') }}" class="mf-focus inline-flex items-center justify-center gap-2 rounded-md border border-med-primary bg-med-primary px-3 py-2 text-sm font-semibold text-white shadow-sm transition hover:bg-med-primaryDark"><i class="bi bi-plus-circle"></i>Add Stock</a></x-slot:actions>
+        <x-ui.card title="Stock Batches"><x-ui.table class="shadow-none"><thead class="bg-med-canvas text-left text-xs font-semibold uppercase text-med-muted"><tr><th class="px-4 py-3">Medicine</th><th class="px-4 py-3">Batch No</th><th class="px-4 py-3">Received</th><th class="px-4 py-3">Purchase</th><th class="px-4 py-3">Selling</th><th class="px-4 py-3">Manufacture Date</th><th class="px-4 py-3">Expiry Date</th><th class="px-4 py-3">Remaining</th></tr></thead><tbody class="divide-y divide-med-line bg-white">@forelse($batches as $batch)<tr><td class="px-4 py-4 font-semibold text-med-ink">{{ $batch->medicine?->name ?? 'N/A' }}</td><td class="px-4 py-4 text-med-muted">{{ $batch->batch_number }}</td><td class="px-4 py-4 text-med-muted">{{ number_format($batch->quantity_received) }}</td><td class="px-4 py-4 text-med-muted">&#8358;{{ number_format($batch->purchase_price, 2) }}</td><td class="px-4 py-4 text-med-muted">&#8358;{{ number_format($batch->selling_price, 2) }}</td><td class="px-4 py-4 text-med-muted">{{ $batch->manufacture_date ?? 'N/A' }}</td><td class="px-4 py-4 text-med-muted">{{ $batch->expiry_date ?? 'N/A' }}</td><td class="px-4 py-4"><x-ui.badge variant="success">{{ number_format($batch->quantity_remaining) }}</x-ui.badge></td></tr>@empty<tr><td colspan="8" class="px-4 py-8"><x-ui.empty-state title="No Stock Batches" /></td></tr>@endforelse</tbody></x-ui.table></x-ui.card>
+    </x-ui.page>
 @endsection

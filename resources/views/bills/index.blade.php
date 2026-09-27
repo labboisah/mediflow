@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('page-title', 'Bills')
 
@@ -123,3 +123,4 @@
 </div>
 
 @endsection
+

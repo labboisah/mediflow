@@ -24,17 +24,17 @@ AND
 User has required role or permission
 ```
 
-Platform ownership is separate from hospital ownership:
+Platform ownership is now centralized:
 
 ```text
-Superadmin
-    -> Manages MediFlow platform licensing, client activations, invoices, payments, modules, and partners
+Central MediFlow platform
+    -> Manages licensing, client activations, invoices, payments, modules, and partners
 
 Administrator
     -> Manages one hospital/client installation inside the modules activated by that client's license
 ```
 
-The superadmin role must not automatically inherit hospital administrator access.
+The local hospital application should not seed or depend on a local platform-owner role.
 
 ## Current RBAC Status
 
@@ -99,13 +99,7 @@ Access should be checked in this order:
 4. Optional department check
 ```
 
-Platform routes are the exception to the client-license chain. They use a reserved platform module key, currently:
-
-```text
-platform
-```
-
-Only superadmin users should pass platform module checks. Hospital administrators should not see platform licensing screens unless a future business rule explicitly grants them a platform role.
+Activation, subscription, plan, agent, and client management routes live in the centralized platform, not in the local hospital app.
 
 ### 1. License Check
 
@@ -455,10 +449,6 @@ User module access logic:
 ```php
 public function userHasModuleAccess(User $user, string $module): bool
 {
-    if ($this->isPlatformModule($module)) {
-        return $user->isSuperAdmin();
-    }
-
     if (! $this->moduleEnabled($module)) {
         return false;
     }
@@ -490,7 +480,7 @@ if ($user->hasRole('administrator')) {
 }
 ```
 
-Do not add the same bypass for superadmin. Superadmin is platform-scoped, not hospital-scoped.
+Do not add a local platform-owner bypass. Local access should remain hospital scoped.
 
 ### SidebarService
 
@@ -654,38 +644,7 @@ The group appears, but only the one permitted item appears.
 
 ## Admin Screens Required
 
-### 1. License Management
-
-Used by the platform superadmin.
-
-Can manage:
-
-- Client name
-- Plan
-- License key
-- Start date
-- Expiry date
-- Active status
-- Add-on modules
-- Enterprise branch limit
-
-Recommended permission:
-
-```text
-license.manage
-```
-
-Recommended route/module metadata:
-
-```text
-route: admin.license-management
-license_module: platform
-sidebar_group: platform
-role: superadmin
-permission: license.manage
-```
-
-### 2. Module Access Management
+### 1. Module Access Management
 
 Used by client admin to attach users to enabled modules.
 
@@ -717,7 +676,7 @@ Assigned users:
 - Musa Pharmacist
 ```
 
-### 3. Role & Permission Management
+### 2. Role & Permission Management
 
 This already exists, but it should remain separate from module access.
 
@@ -742,21 +701,7 @@ permissions
 roles
 ```
 
-Do not automatically attach `superadmin` to every module or permission. Seed superadmin only to platform modules and platform permissions.
-
-Current platform item:
-
-```php
-[
-    'name' => 'license_management',
-    'label' => 'License Management',
-    'route' => 'admin.license-management',
-    'license_module' => 'platform',
-    'sidebar_group' => 'platform',
-    'roles' => ['superadmin'],
-    'permissions' => ['license.manage'],
-]
-```
+Do not seed local platform-management modules such as agents, clients, plans, or license activation. Those belong to the centralized platform.
 
 Example:
 
@@ -795,7 +740,6 @@ Recommended mapping:
 | Departments/consumables | `department_management` | `departments_inventory` |
 | Reports | `reports` | `reports` |
 | Users/roles/permissions | `access_control` | `administration` |
-| License management | `platform` | `platform` |
 | Sync/update/backup | `synchronization` or `maintenance` | `system` |
 
 ## Permission Naming
@@ -821,7 +765,6 @@ medicine_stock.read
 laboratory_request.read
 radiology_request.read
 module_access.manage
-license.manage
 ```
 
 Avoid mixing names like:
@@ -986,8 +929,8 @@ Roles and Permissions
 Sidebar Groups
     -> Present allowed actions in professional workflow groups
 
-Platform Role
-    -> Controls MediFlow licensing and activation screens without entering hospital operations
+Central Platform
+    -> Controls MediFlow licensing and activation outside the local hospital app
 ```
 
 This keeps MediFlow flexible for licensing while making the UI cleaner and the security rules stronger.

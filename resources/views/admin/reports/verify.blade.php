@@ -1,4 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.modern')
+
+@section('title', 'Verify.Blade')
+@section('page-title', 'Verify.Blade')
+@section('page-subtitle', 'Mediflow workspace.')
 
 @section('content')
 <div class="bg-white p-8 rounded-2xl shadow max-w-3xl mx-auto">

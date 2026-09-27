@@ -155,6 +155,14 @@ class Patient extends Model
     }
 
     /**
+     * Get referrals for this patient
+     */
+    public function referrals()
+    {
+        return $this->hasMany(PatientReferral::class);
+    }
+
+    /**
      * Get next of kin information
      */
     public function nextOfKin()

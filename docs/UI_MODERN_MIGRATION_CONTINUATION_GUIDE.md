@@ -6,16 +6,44 @@ Use this document as the prompt guide for continuing the Mediflow modern UI migr
 
 ## Current Stop Point
 
-Migration paused after starting Phase 2.
+Phase 8 billing, finance, and reports are complete. Continue with the final cleanup phase for remaining legacy/fallback screens.
 
 Completed modern UI areas:
 
 1. Modern UI foundation
-2. Superadmin/Admin dashboard
+2. Admin dashboard
 3. Access Control
 4. Admin Users
+5. Admin Departments
+6. Admin Services
+7. Admin Investigations
+8. Admin Wards
+9. Admin Beds
+10. Admin Temporary Permissions
+11. System Sync Dashboard
+12. System Update
+13. Backup
+14. Record Officer Dashboard
+15. Patient List
+16. Patient Registration
+17. Patient Search - completed
+18. Patient Show/Profile - completed
+19. Patient Edit - completed
+20. Patient History - completed
+21. Visits - completed
+22. Appointments - completed
+23. Referrals - completed
+24. Patient Register Report - completed
+25. Admissions - completed
+26. Discharges - completed
+27. Patient Export Route - completed
+28. Clinical workflows - completed
+29. Pharmacy workflows - completed
+30. Diagnostics workflows - completed
+31. Maternity workflows - completed
+32. Billing, finance, and reports - completed
 
-Do not restart these from scratch unless a bug is found. Continue from **Departments**.
+Do not restart these from scratch unless a bug is found. Continue from the final cleanup phase for remaining legacy/fallback screens.
 
 ## Foundation Already Created
 
@@ -51,13 +79,19 @@ Reference docs:
 - `docs/UI_ARCHITECTURE.md`
 - `docs/UI_PHASE_1_FOUNDATION.md`
 - `docs/UI_PHASE_2_ADMIN_CORE.md`
+- `docs/UI_PHASE_3_PATIENT_FRONT_DESK.md`
+- `docs/UI_PHASE_4_CLINICAL_WORKFLOWS.md`
+- `docs/UI_PHASE_5_PHARMACY.md`
+- `docs/UI_PHASE_6_DIAGNOSTICS.md`
+- `docs/UI_PHASE_7_MATERNITY.md`
+- `docs/UI_PHASE_8_BILLING_FINANCE_REPORTS.md`
 - `docs/SIDEBAR_GROUPING_IMPLEMENTATION.md`
 - `docs/RBAC_MODULE_ACCESS_IMPLEMENTATION.md`
 - `docs/MODULE_LICENSING_APPROACH.md`
 
 ## Screens Already Migrated
 
-### Superadmin/Admin Dashboard
+### Admin Dashboard
 
 Files:
 
@@ -85,7 +119,7 @@ Status:
 - Preserves permission creation.
 - Preserves role-user assignment.
 - Preserves user-module access toggles.
-- Preserves protected `superadmin` and `administrator` role behavior.
+- Preserves protected `administrator` role behavior.
 
 ### Admin Users
 
@@ -104,8 +138,171 @@ Status:
 - Department lookup moved from Blade to controller.
 - User index eager-loads roles and departments.
 
+### Admin Departments
+
+Files:
+
+- `app/Http/Controllers/Admin/DepartmentController.php`
+- `resources/views/admin/departments/index.blade.php`
+- `resources/views/admin/departments/create.blade.php`
+- `resources/views/admin/departments/edit.blade.php`
+
+Status:
+
+- Uses `layouts.modern`.
+- Department index/create/edit pages migrated.
+- Preserves create, edit, delete, validation, redirects, and route names.
+- Department list is ordered by name.
+- Edit now fails with a normal 404 when the department does not exist.
+
+### Admin Services
+
+Files:
+
+- `app/Http/Controllers/Admin/ServiceController.php`
+- `resources/views/admin/services/index.blade.php`
+- `resources/views/admin/services/create.blade.php`
+- `resources/views/admin/services/edit.blade.php`
+- `resources/views/admin/services/show.blade.php`
+
+Status:
+
+- Uses `layouts.modern`.
+- Service index/create/edit/show pages migrated.
+- Preserves search, category filter, status filter, deleted-service filter, pagination, create, edit, delete, restore, and show routes.
+- Department lookup moved from Blade to the controller.
+- Service show bill count moved from Blade to `withCount`.
+- `is_active` checkbox state is normalized in the controller so active/inactive saves reliably.
+
+### Admin Investigations
+
+Files:
+
+- `app/Http/Controllers/Admin/InvestigationController.php`
+- `resources/views/admin/investigations/index.blade.php`
+- `resources/views/admin/investigations/create.blade.php`
+- `resources/views/admin/investigations/edit.blade.php`
+
+Status:
+
+- Uses `layouts.modern`.
+- Investigation index/create/edit pages migrated.
+- Preserves department/type grouping, create, edit, delete guard, validation, redirects, and route names.
+- Investigation type lookup moved from Blade to the controller.
+- Parameter counts are eager-loaded with the investigation list.
+- Generated show route redirects to edit to avoid missing-method crashes.
+
+### Admin Wards And Beds
+
+Files:
+
+- `app/Http/Controllers/Admin/WardController.php`
+- `app/Http/Controllers/Admin/BedController.php`
+- `resources/views/admin/wards/index.blade.php`
+- `resources/views/admin/wards/create.blade.php`
+- `resources/views/admin/wards/edit.blade.php`
+- `resources/views/admin/wards/beds/index.blade.php`
+- `resources/views/admin/wards/beds/create.blade.php`
+- `resources/views/admin/wards/beds/edit.blade.php`
+
+Status:
+
+- Uses `layouts.modern`.
+- Ward index/create/edit pages migrated.
+- Bed index/create/edit pages migrated.
+- Preserves ward CRUD, bed CRUD, capacity-generated beds, delete guards, validation, redirects, and route names.
+- Ward list uses eager counts for total, occupied, and vacant beds.
+- Views support both `admin.*` and `medical-director.*` route prefixes.
+- Generated ward show route redirects to edit to avoid missing-detail-page crashes.
+
+### Admin Temporary Permissions
+
+Files:
+
+- `app/Http/Controllers/Admin/TemporaryPermissionController.php`
+- `resources/views/admin/temporary-permissions/index.blade.php`
+- `resources/views/admin/temporary-permissions/create.blade.php`
+
+Status:
+
+- Uses `layouts.modern`.
+- Temporary permission index/create pages migrated.
+- Preserves temporary grant creation, revocation, deletion, expiry display, validation, pagination, and audit logging.
+- User and permission lists are ordered in the controller.
+
 ## Important Technical Notes
 
+### Phase 3 Started: Record Officer Dashboard And Patient List
+
+Files:
+
+- `app/Http/Controllers/RecordOfficerController.php`
+- `app/Livewire/Patient/PatientManagement.php`
+- `resources/views/record/dashboard.blade.php`
+- `resources/views/record/patient/list.blade.php`
+- `resources/views/components/patient/patient-management.blade.php`
+
+Status:
+
+- Record Officer dashboard uses `layouts.modern`.
+- Patient List wrapper uses `layouts.modern`.
+- Patient Management Livewire component uses `layouts.modern` when opened directly.
+- Dashboard counts moved from Blade into `RecordOfficerController`.
+- Patient list filters, sorting, pagination, and record actions are preserved.
+
+### Patient Registration
+
+Files:
+
+- `app/Livewire/Patient/PatientRegistration.php`
+- `resources/views/components/patient/patient-registration.blade.php`
+
+Status:
+
+- Uses `layouts.modern`.
+- Registration form migrated to `x-ui.*` components.
+- Preserves file type, ANC flag, walk-in flag, discount, patient demographics, next of kin, billing preview, validation, and save behavior.
+
+
+### Patient Search, Profile, And Edit
+
+Files:
+
+- `app/Http/Controllers/RecordOfficerController.php`
+- `resources/views/record/patient/search.blade.php`
+- `resources/views/record/patient/show.blade.php`
+- `resources/views/record/patient/edit.blade.php`
+
+Status:
+
+- Uses `layouts.modern`.
+- Record search returns the record-specific modern search page.
+- Stale `record_officer.*` route references were removed from the record search screen.
+- Record patient profile no longer nests the old shared clinical `patient.show` layout.
+- Edit form uses controller-provided states/LGAs and the existing Ajax LGA endpoint.
+- Registration and visit redirects now return to `record.patients.show` for record users.
+
+### Phase 3 Completion: Visits, Appointments, And Referrals
+
+Files:
+
+- `routes/web.php`
+- `app/Models/Patient.php`
+- `app/Http/Controllers/RecordOfficerController.php`
+- `resources/views/record/dashboard.blade.php`
+- `resources/views/record/patient/show.blade.php`
+- `resources/views/record/visit/create.blade.php`
+- `resources/views/record/appointment/list.blade.php`
+- `resources/views/record/appointment/create.blade.php`
+- `resources/views/record/referral/create.blade.php`
+
+Status:
+
+- Record visit creation uses `layouts.modern` and controller-provided active services.
+- Record appointment routes were added and old appointment views now use the modern UI.
+- Record referral routes were added and old referral views now use the modern UI.
+- Patient profile includes visit history, appointment summary, referral summary, and actions for visit/appointment/referral workflows.
+- Record dashboard search now uses `record.patients.search`, and appointments are reachable from the dashboard.
 ### Asset Build
 
 Node/NPM was not available in the current shell, so `npm run build` could not be verified.
@@ -182,63 +379,17 @@ and wrap the content with:
 
 ## Continue From Here
 
-Start with **Departments**.
+Start with the final cleanup phase for remaining legacy/fallback screens.
 
 Recommended next prompt:
 
 ```text
-Continue the modern UI migration from docs/UI_MODERN_MIGRATION_CONTINUATION_GUIDE.md. Start with Admin Departments. Inspect the controller, routes, and views first. Migrate only the Department admin screens to layouts.modern using x-ui components. Preserve all current behavior and run verification.
+Start Phase 8 modern UI migration from docs/UI_MODERN_MIGRATION_CONTINUATION_GUIDE.md. Migrate Billing, Finance, and Reports screens to layouts.modern. Preserve calculations, filters, exports, PDFs, receipts, role restrictions, and audit behavior. Keep tables readable and money/status values easy to scan.
 ```
 
-## Remaining Phase 2: Admin/Core
+## Phase 2: Admin/Core
 
-Continue in this exact order:
-
-1. Departments
-2. Services
-3. Investigations
-4. Wards
-5. Beds
-6. Temporary Permissions
-7. System Sync Dashboard
-8. System Update
-9. Backup
-
-### Prompt For Departments
-
-```text
-Continue Phase 2 modern UI migration. Migrate Admin Departments to layouts.modern. Inspect app/Http/Controllers/Admin/DepartmentController.php and resources/views/admin/departments/*.blade.php. Preserve create, edit, delete, validation, redirects, and permissions. Use x-ui.page, x-ui.card, x-ui.table, x-ui.input, x-ui.button, and x-ui.empty-state. Move direct model queries out of Blade if found. Run php lint, php artisan view:cache, route:list for admin.departments, and view:clear.
-```
-
-### Prompt For Services
-
-```text
-Continue Phase 2 modern UI migration. Migrate Admin Services to layouts.modern. Inspect the service controller, routes, and resources/views/admin/services/*.blade.php. Preserve service creation, editing, restore/delete, pricing, category or department relationships, and validation. Use the existing modern UI components. Avoid business logic refactors unless required. Verify with php lint, view:cache, route:list for admin.services, and view:clear.
-```
-
-### Prompt For Investigations
-
-```text
-Continue Phase 2 modern UI migration. Migrate Admin Investigations to layouts.modern. Inspect Admin/InvestigationController and resources/views/admin/investigations/*.blade.php. Preserve investigation CRUD, type/department relationships, parameters if present, validation, and permissions. Use x-ui components and keep tables readable. Verify with php lint, view:cache, route:list for admin.investigations, and view:clear.
-```
-
-### Prompt For Wards And Beds
-
-```text
-Continue Phase 2 modern UI migration. Migrate Admin Wards and Beds to layouts.modern. Inspect WardController, BedController, and resources/views/admin/wards/**/*.blade.php. Preserve ward CRUD, bed CRUD, ward-scoped bed routes, and route parameters. Be careful not to create sidebar links for parameterized bed routes. Verify route generation, php lint, view:cache, route:list for admin.wards/admin.beds, and view:clear.
-```
-
-### Prompt For Temporary Permissions
-
-```text
-Continue Phase 2 modern UI migration. Migrate Admin Temporary Permissions to layouts.modern. Inspect TemporaryPermissionController and resources/views/admin/temporary-permissions/*.blade.php. Preserve temporary grant creation, revocation, expiry display, user/permission relationships, and audit behavior. Use modern form and table components. Verify with php lint, view:cache, route:list for admin.temporary-permissions, and view:clear.
-```
-
-### Prompt For System Tools
-
-```text
-Continue Phase 2 modern UI migration. Migrate system admin screens to layouts.modern: Sync Dashboard, System Update, and Backup. Inspect related controllers/Livewire components and views first. Preserve all operational behavior. Keep dangerous actions clearly separated and confirmable. Use x-ui components and readable status panels. Verify each route with php lint where applicable, view:cache, route:list for admin.sync/admin.system/admin.backup, and view:clear.
-```
+Phase 2 is complete. See docs/UI_PHASE_2_ADMIN_CORE.md for the completed admin/core migration record.
 
 ## Phase 3: Patient And Front Desk
 
@@ -249,34 +400,39 @@ Order:
 1. Record Officer Dashboard
 2. Patient List
 3. Patient Registration
-4. Patient Search
-5. Patient Show/Profile
-6. Patient Edit
-7. Patient History
-8. Visits
-9. Appointments
-10. Referrals
+4. Patient Search - completed
+5. Patient Show/Profile - completed
+6. Patient Edit - completed
+7. Patient History - completed
+8. Visits - completed
+9. Appointments - completed
+10. Referrals - completed
+11. Patient Register Report - completed
+12. Admissions - completed
+13. Discharges - completed
 
 Prompt:
 
 ```text
-Start Phase 3 modern UI migration from docs/UI_MODERN_MIGRATION_CONTINUATION_GUIDE.md. Begin with Record Officer and Patient list screens. Preserve patient registration/search/visit behavior. Use layouts.modern and x-ui components. Keep forms highly readable and avoid backend refactors unless needed.
+Start Phase 8 modern UI migration from docs/UI_MODERN_MIGRATION_CONTINUATION_GUIDE.md. Migrate Billing, Finance, and Reports screens to layouts.modern. Preserve calculations, filters, exports, PDFs, receipts, role restrictions, and audit behavior. Keep tables readable and money/status values easy to scan.
 ```
 
 ## Phase 4: Clinical Workflows
 
 Order:
 
-1. Nurse patient workspace
-2. Doctor patient workspace
-3. Vital signs
-4. Observations
-5. Prescriptions
-6. Drug charts
-7. Fluid balance
-8. Admissions
-9. Discharge
-10. Continuation sheets
+1. Nurse patient workspace - completed
+2. Doctor patient workspace - completed
+3. Vital signs - completed
+4. Observations - completed
+5. Prescriptions - completed
+6. Drug charts - completed
+7. Fluid balance - completed
+8. Admissions - completed
+9. Discharge - completed
+10. Continuation sheets - completed
+11. Investigation requests - completed
+12. Clinical record indexes - completed
 
 Prompt:
 
@@ -284,6 +440,20 @@ Prompt:
 Start Phase 4 modern UI migration. Migrate clinical workflows module by module using layouts.modern. Preserve all patient context, route parameters, Livewire state, validation, and clinical record relationships. Do not change medical workflow logic unless required for UI compatibility.
 ```
 
+
+## Phase 4 Completion: Clinical Workflows
+
+See `docs/UI_PHASE_4_CLINICAL_WORKFLOWS.md` for the full migration record.
+
+Status:
+
+- Nurse and doctor patient workspaces use `layouts.modern`.
+- Shared patient clinical profile uses `layouts.modern`.
+- Shared clinical Livewire workspaces use `layouts.modern` and `x-ui.*` components.
+- Clinical record indexes for doctor and nurse use modern tables and Tailwind pagination.
+- Patient search/history and investigation result pages reachable from clinical routes use the modern layout.
+- Nurse dashboard and nurse admissions list use the modern layout.
+- Legacy duplicate patient clinical Blade files remain for final route cleanup; active clinical GET routes now use modern workspaces.
 ## Phase 5: Pharmacy
 
 Order:
@@ -323,20 +493,34 @@ Prompt:
 Start Phase 6 modern UI migration. Migrate Laboratory and Radiology screens to layouts.modern. Preserve request queues, result entry, investigation setup, parameters, file/image result handling, and permissions. Keep lab/radiology layouts consistent.
 ```
 
+
+## Phase 6 Completion: Diagnostics
+
+See `docs/UI_PHASE_6_DIAGNOSTICS.md` for the full migration record.
+
+Status:
+
+- Laboratory requests, result entry, investigations, and parameters use the modern UI.
+- Radiology requests, result entry/editing, printable reports, investigations, parameters, and dashboard partial use the modern UI.
+- Lab grouped result creation route now accepts the required group parameters.
+- Radiology investigation forms now use `radiology.*` route names instead of the incorrect `lab.*` route names.
+- Tailwind pagination is used for diagnostic Livewire request tables.
+
 ## Phase 7: Maternity
 
 Order:
 
-1. Midwife dashboard
-2. ANC patients
-3. Antenatal care
-4. Labour
-5. Labour progress
-6. Delivery
-7. Newborn
-8. Newborn examination
-9. Postnatal examination
-10. Child follow-up
+1. Midwife dashboard - completed
+2. ANC patients - completed
+3. Antenatal care - completed
+4. Maternity workspace internals - in progress
+5. Labour - completed
+6. Labour progress
+7. Delivery
+8. Newborn
+9. Newborn examination
+10. Postnatal examination
+11. Child follow-up
 
 Prompt:
 
@@ -399,3 +583,19 @@ If a migrated screen uses Livewire, test:
 - Avoid broad backend refactors during UI migration.
 - Update this document after each completed module.
 - Update `docs/UI_PHASE_2_ADMIN_CORE.md` while Phase 2 is active.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -1,86 +1,25 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('content')
+    <x-ui.page title="Receive Stock" subtitle="Create a new medicine batch and add it to inventory.">
+        <x-slot:actions>
+            <a href="{{ route('pharmacy.stocks.index') }}" class="mf-focus inline-flex items-center justify-center gap-2 rounded-md border border-med-line bg-white px-3 py-2 text-sm font-semibold text-med-ink shadow-sm transition hover:bg-med-canvas"><i class="bi bi-arrow-left"></i>Inventory</a>
+        </x-slot:actions>
 
-<div class="container">
-
-<h4>
-<i class="bi bi-box-seam"></i> Receive Stock
-</h4>
-
-<form method="POST" action="{{ route('pharmacy.stocks.store') }}">
-
-@csrf
-
-<div class="row">
-
-<div class="col-md-6">
-
-<label>Medicine</label>
-<select name="medicine_id" class="form-control">
-
-@foreach($medicines as $medicine)
-<option value="{{ $medicine->id }}">
-{{ $medicine->name }}
-</option>
-@endforeach
-
-</select>
-
-</div>
-
-<div class="col-md-6">
-
-<label>Batch Number <small class="text-muted">(optional)</small></label>
-<input type="text" name="batch_number" class="form-control">
-
-</div>
-
-<div class="col-md-4">
-
-<label>Quantity</label>
-<input type="number" name="quantity_received" class="form-control">
-
-</div>
-
-<div class="col-md-4">
-
-<label>Purchase Price</label>
-<input type="number" step="0.01" name="purchase_price" class="form-control">
-
-</div>
-
-<div class="col-md-4">
-
-<label>Selling Price</label>
-<input type="number" step="0.01" name="selling_price" class="form-control">
-
-</div>
-
-<div class="col-md-6">
-
-<label>Manufacture Date <small class="text-muted">(optional)</small></label>
-<input type="date" name="manufacture_date" class="form-control">
-
-</div>
-
-<div class="col-md-6">
-
-<label>Expiry Date <small class="text-muted">(optional)</small></label>
-<input type="date" name="expiry_date" class="form-control">
-
-</div>
-
-</div>
-
-<br>
-
-<button class="btn btn-success">
-<i class="bi bi-check-circle"></i> Save Batch
-</button>
-
-</form>
-
-</div>
-
+        <form method="POST" action="{{ route('pharmacy.stocks.store') }}">
+            @csrf
+            <x-ui.card title="Batch Details">
+                <div class="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+                    <x-ui.select label="Medicine" name="medicine_id" required><option value="">Select medicine</option>@foreach($medicines as $medicine)<option value="{{ $medicine->id }}" @selected(old('medicine_id') == $medicine->id)>{{ $medicine->name }}</option>@endforeach</x-ui.select>
+                    <x-ui.input label="Batch Number" name="batch_number" value="{{ old('batch_number') }}" placeholder="Leave blank to auto-generate" />
+                    <x-ui.input label="Quantity" name="quantity_received" type="number" min="1" value="{{ old('quantity_received') }}" required />
+                    <x-ui.input label="Purchase Price" name="purchase_price" type="number" step="0.01" min="0" value="{{ old('purchase_price') }}" required />
+                    <x-ui.input label="Selling Price" name="selling_price" type="number" step="0.01" min="0" value="{{ old('selling_price') }}" required />
+                    <x-ui.input label="Manufacture Date" name="manufacture_date" type="date" value="{{ old('manufacture_date') }}" />
+                    <x-ui.input label="Expiry Date" name="expiry_date" type="date" value="{{ old('expiry_date') }}" />
+                </div>
+                <div class="mt-6 flex justify-end"><x-ui.button type="submit"><i class="bi bi-check-circle"></i>Save Batch</x-ui.button></div>
+            </x-ui.card>
+        </form>
+    </x-ui.page>
 @endsection

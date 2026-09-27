@@ -1,68 +1,41 @@
 <x-guest-layout>
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-3" :status="session('status')" />
+    <x-slot name="title">Login</x-slot>
 
-    <form method="POST" action="{{ route('login') }}" novalidate class="needs-validation">
+    <div class="mb-5 text-center">
+        <a href="{{ url('/') }}" class="mx-auto mb-4 inline-flex items-center justify-center">
+            <img src="{{ asset('images/logo.png') }}" alt="Mediflow" class="h-12 w-12 rounded-md object-contain" width="48" height="48" style="width:48px;height:48px;max-width:48px;object-fit:contain;">
+        </a>
+        <h1 class="text-xl font-semibold text-med-ink">Login to Mediflow</h1>
+        <p class="mt-1 text-sm text-med-muted">Access your healthcare workspace.</p>
+    </div>
+
+    <x-auth-session-status class="mb-4 rounded-md border border-med-line bg-med-canvas px-4 py-3 text-sm text-med-muted" :status="session('status')" />
+
+    <form method="POST" action="{{ route('login') }}" class="space-y-4">
         @csrf
 
-        <h5 style="margin-bottom: 1.5rem; color: #27AE60; font-weight: 700;" class="d-flex align-items-center justify-content-center">
-            Login <i class="bi bi-box-arrow-in-right"></i>
-        </h5>
+        <label class="block">
+            <span class="mb-1 block text-sm font-medium text-med-ink">Email Address</span>
+            <input id="email" class="mf-focus block w-full rounded-md border border-med-line px-3 py-2.5 text-sm text-med-ink shadow-sm" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username" placeholder="your@email.com">
+            @error('email')<p class="mt-1 text-sm text-med-danger">{{ $message }}</p>@enderror
+        </label>
 
-        <!-- Email Address -->
-        <div class="mb-3">
-            <label for="email" class="form-label">Email Address</label>
-            <div class="input-group">
-                <span class="input-group-text" style="background: #f8f9fa; border: 2px solid #e0e0e0;">
-                    <i class="bi bi-envelope" style="color: #FF8C42;"></i>
-                </span>
-                <input 
-                    id="email" 
-                    class="form-control @error('email') is-invalid @enderror" 
-                    type="email" 
-                    name="email" 
-                    value="{{ old('email') }}" 
-                    required 
-                    autofocus 
-                    autocomplete="username"
-                    placeholder="your@email.com"
-                />
-                @error('email')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
-        </div>
+        <label class="block">
+            <span class="mb-1 block text-sm font-medium text-med-ink">Password</span>
+            <input id="password" class="mf-focus block w-full rounded-md border border-med-line px-3 py-2.5 text-sm text-med-ink shadow-sm" type="password" name="password" required autocomplete="current-password" placeholder="Enter your password">
+            @error('password')<p class="mt-1 text-sm text-med-danger">{{ $message }}</p>@enderror
+        </label>
 
-        <!-- Password -->
-        <div class="mb-3">
-            <label for="password" class="form-label">Password</label>
-            <div class="input-group">
-                <span class="input-group-text" style="background: #f8f9fa; border: 2px solid #e0e0e0;">
-                    <i class="bi bi-lock" style="color: #FF8C42;"></i>
-                </span>
-                <input 
-                    id="password" 
-                    class="form-control @error('password') is-invalid @enderror"
-                    type="password"
-                    name="password"
-                    required 
-                    autocomplete="current-password"
-                    placeholder="Enter your password"
-                />
-                @error('password')
-                    <div class="invalid-feedback">{{ $message }}</div>
-                @enderror
-            </div>
-        </div>
+        <button type="submit" class="mf-focus inline-flex w-full items-center justify-center rounded-md border border-med-primary bg-med-primary px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-med-primaryDark">
+            Login
+        </button>
 
-        
-        <div class="auth-links">
-            <p style="margin: 0; color: #666; font-size: 0.9rem;">
-                <a href="/">Go Back toHome</a>
-                <button type="submit" class="btn btn-success" style="min-width: 100px;">
-                    <i class="bi bi-box-arrow-in-right"></i> Login
-                </button>
-            </p>
+        <div class="flex items-center justify-between gap-3 text-sm">
+            <a href="{{ url('/') }}" class="font-semibold text-med-primary hover:text-med-primaryDark">Back to home</a>
+            @if (Route::has('password.request'))
+                <a href="{{ route('password.request') }}" class="text-med-muted hover:text-med-primary">Forgot password?</a>
+            @endif
         </div>
     </form>
 </x-guest-layout>
+

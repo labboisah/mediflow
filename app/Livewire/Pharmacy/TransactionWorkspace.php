@@ -14,7 +14,7 @@ use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class TransactionWorkspace extends Component
 {
     public string $search = '';
@@ -244,3 +244,4 @@ class TransactionWorkspace extends Component
         $this->dispatch('toast', message: $message, type: $type);
     }
 }
+

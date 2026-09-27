@@ -8,7 +8,6 @@ use App\Models\TemporaryPermission;
 use App\Models\AuditLog;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Carbon\Carbon;
 
 class TemporaryPermissionController extends Controller
 {
@@ -23,8 +22,8 @@ class TemporaryPermissionController extends Controller
 
     public function create()
     {
-        $users = User::where('id', '!=', auth()->id())->get();
-        $permissions = Permission::all();
+        $users = User::where('id', '!=', auth()->id())->orderBy('name')->get();
+        $permissions = Permission::orderBy('module')->orderBy('name')->get();
         
         return view('admin.temporary-permissions.create', compact('users', 'permissions'));
     }

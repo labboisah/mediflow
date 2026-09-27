@@ -65,6 +65,7 @@ class VitalSignsController extends Controller
             ->latest('recorded_date')
             ->paginate(15);
 
-        return view('vital_signs.history', compact('patient', 'vitalSigns'));
+        return redirect()->route('patient.history', $patient);
     }
 }
+

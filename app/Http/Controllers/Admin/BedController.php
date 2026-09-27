@@ -10,15 +10,24 @@ use App\Models\Ward;
 class BedController extends Controller
 {
     public function index($wardId) {
-        return view('admin.wards.beds.index',['ward'=>Ward::find($wardId)]);
+        return view('admin.wards.beds.index', [
+            'ward' => Ward::with(['beds' => fn ($query) => $query->orderBy('bed_no')])->findOrFail($wardId),
+            'routePrefix' => $this->routePrefix(),
+        ]);
     }
 
     public function create(Ward $ward) {
-        return view('admin.wards.beds.create',compact('ward'));
+        return view('admin.wards.beds.create', [
+            'ward' => $ward,
+            'routePrefix' => $this->routePrefix(),
+        ]);
     }
 
     public function edit($bedId) {
-        return view('admin.wards.beds.edit',['bed'=>Bed::find($bedId)]);
+        return view('admin.wards.beds.edit', [
+            'bed' => Bed::with('ward')->findOrFail($bedId),
+            'routePrefix' => $this->routePrefix(),
+        ]);
     }
 
     public function store(Request $request, Ward $ward) {
@@ -34,7 +43,7 @@ class BedController extends Controller
 
         
 
-        return redirect()->route('admin.beds.index', $ward)->with('success', $message);
+        return redirect()->route($this->routePrefix().'.beds.index', $ward)->with('success', $message);
     }
 
     public function update(Request $request, Bed $bed) {
@@ -48,7 +57,7 @@ class BedController extends Controller
             $message = 'Bed No Updated';
         }
 
-        return redirect()->route('admin.beds.index', $bed->ward)->with('success', $message);
+        return redirect()->route($this->routePrefix().'.beds.index', $bed->ward)->with('success', $message);
     }
 
     public function destroy(bed $bed) {
@@ -61,6 +70,13 @@ class BedController extends Controller
         }
         
 
-        return redirect()->route('admin.beds.index', $bed->ward)->with('success', $message);
+        return redirect()->route($this->routePrefix().'.beds.index', $bed->ward)->with('success', $message);
+    }
+
+    private function routePrefix(): string
+    {
+        $routeName = request()->route()?->getName() ?? '';
+
+        return str_starts_with($routeName, 'medical-director.') ? 'medical-director' : 'admin';
     }
 }

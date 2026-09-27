@@ -69,3 +69,4 @@ class VitalSignController extends Controller
         return view('vital_signs.history', compact('patient', 'vitalSigns'));
     }
 }
+

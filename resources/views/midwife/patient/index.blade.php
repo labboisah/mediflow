@@ -1,69 +1,61 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'ANC Patient Management')
+
 @section('content')
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="mb-0">Patient Management</h1>
-            <p class="text-muted">Manage patients under midwife care</p>
-        </div>
-    </div>  
-    @if(count($requests) == 0)
-        <div class="alert alert-info">No ANC records found.</div>
-    @else
-        <div class="card">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0 datatable">
-                        <thead class="table-light">
+    <x-ui.page title="Patient Management" subtitle="Manage active patients under midwife care and complete pending maternity service requests.">
+        @if(count($requests) == 0)
+            <x-ui.empty-state title="No ANC Records" message="There are no pending midwife service requests right now." />
+        @else
+            <x-ui.table>
+                <thead class="bg-med-canvas text-left text-xs font-semibold uppercase text-med-muted">
+                    <tr>
+                        <th class="px-4 py-3">#</th>
+                        <th class="px-4 py-3">Hospital No.</th>
+                        <th class="px-4 py-3">Patient</th>
+                        <th class="px-4 py-3">Phone</th>
+                        <th class="px-4 py-3">Age</th>
+                        <th class="px-4 py-3">Gender</th>
+                        <th class="px-4 py-3">Marital Status</th>
+                        <th class="px-4 py-3">Next of Kin</th>
+                        <th class="px-4 py-3 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-med-line bg-white">
+                    @forelse($requests as $request)
+                        @if($request->patientVisit && $request->patientVisit->status == 'Active')
+                            @php($patient = $request->patientVisit->patient)
                             <tr>
-                                <th>#</th>
-                                <th>Huspital Number</th>
-                                <th>Patient Name</th>
-                                <th>Phone Number</th>
-                                <th>Age</th>
-                                <th>Gender</th>
-                                <th>Marital Status</th>
-                                <th>Next of Kin Name</th>
-                                <th>Next of Kin Contact</th>
-                                <th>Next of Kin Address</th>
-                                <th>Next of Kin Relationship</th>
-                                <th>Actions</th>
+                                <td class="px-4 py-4 text-med-muted">{{ $loop->iteration }}</td>
+                                <td class="px-4 py-4"><x-ui.badge variant="info">{{ $patient->hospital_number ?? 'N/A' }}</x-ui.badge></td>
+                                <td class="px-4 py-4 font-semibold text-med-ink">{{ $patient->name() }}</td>
+                                <td class="px-4 py-4 text-med-muted">{{ $patient->demographic->phone_number ?? 'N/A' }}</td>
+                                <td class="px-4 py-4 text-med-muted">{{ $patient->age() ?? 'N/A' }}</td>
+                                <td class="px-4 py-4 text-med-muted">{{ $patient->demographic->gender ?? 'N/A' }}</td>
+                                <td class="px-4 py-4 text-med-muted">{{ $patient->demographic->marital_status ?? 'N/A' }}</td>
+                                <td class="px-4 py-4 text-med-muted">
+                                    <span class="block font-medium text-med-ink">{{ $patient->nextOfKin->name ?? 'N/A' }}</span>
+                                    <span class="block text-xs">{{ $patient->nextOfKin->telephone ?? 'N/A' }}</span>
+                                    <span class="block text-xs">{{ $patient->nextOfKin->relationship ?? 'N/A' }}</span>
+                                </td>
+                                <td class="px-4 py-4">
+                                    <div class="flex flex-wrap justify-end gap-2">
+                                        <a href="{{ route('midwife.patient.show', $patient) }}" class="text-sm font-semibold text-med-primary hover:text-med-primaryDark">Profile</a>
+                                        <a href="{{ route('midwife.patient.complete', $request) }}" onclick="return confirm('Are you sure you want to mark this request as completed?');" class="text-sm font-semibold text-med-success hover:text-green-700">Complete</a>
+                                        <a href="{{ route('midwife.patient.close-visit', $request->patientVisit) }}" onclick="return confirm('Are you sure you want to close this visit?');" class="text-sm font-semibold text-med-warning hover:text-orange-700">Close Visit</a>
+                                    </div>
+                                </td>
                             </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($requests as $request)
-                                <!-- request information -->
-
-                                @if($request->patientVisit && $request->patientVisit->status == 'Active')
-                                <tr>
-                                    <td>{{ $loop->iteration }}</td>
-                                    <td>{{ $request->patientVisit->patient->hospital_number ?? 'N/A' }}</td>
-                                    <td>{{ $request->patientVisit->patient->name() }}</td>
-                                    <td>{{ $request->patientVisit->patient->demographic->phone_number ?? 'N/A' }}</td>
-                                    <td>{{ $request->patientVisit->patient->age() ?? 'N/A' }}</td>
-                                    <td>{{ $request->patientVisit->patient->demographic->gender ?? 'N/A' }}</td>
-                                    <td>{{ $request->patientVisit->patient->demographic->marital_status ?? 'N/A' }}</td>
-                                    <td>{{ $request->patientVisit->patient->nextOfKin->name ?? 'N/A' }}</td>
-                                    <td>{{ $request->patientVisit->patient->nextOfKin->telephone ?? 'N/A' }}</td>
-                                    <td>{{ $request->patientVisit->patient->nextOfKin->contact_address ?? 'N/A' }}</td>
-                                    <td>{{ $request->patientVisit->patient->nextOfKin->relationship ?? 'N/A' }}</td>
-                                    <td>
-                                        <a href="{{ route('midwife.patient.show', $request->patientVisit->patient) }}" class="btn btn-sm btn-info"><i class="bi bi-eye"></i> View Patient Profile</a>
-                                        <a href="{{ route('midwife.patient.complete', $request) }}" onclick="return confirm('Are you sure you want to mark this request as completed?');" class="btn btn-sm btn-success"><i class="bi bi-check-circle"></i> Mark as Completed</a>
-                                        <!-- close visit -->
-                                        <a href="{{ route('midwife.patient.close-visit', $request->patientVisit) }}" onclick="return confirm('Are you sure you want to close this visit?');" class="btn btn-sm btn-warning"><i class="bi bi-x-circle"></i> Close Visit</a>
-                                    </td>
-                                </tr>
-                                @endif
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    @endif 
-    
-
+                        @endif
+                    @empty
+                        <tr>
+                            <td colspan="9" class="px-4 py-8">
+                                <x-ui.empty-state title="No Patients Found" />
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </x-ui.table>
+        @endif
+    </x-ui.page>
 @endsection

@@ -1,46 +1,34 @@
-@extends('layouts.app')
+@extends('layouts.modern')
+
+@section('title', 'Edit Bed')
+@section('page-title', 'Edit Bed '.$bed->bed_no)
+@section('page-subtitle', 'Update the bed number for '.$bed->ward->name.'.')
 
 @section('content')
+    <x-ui.page :title="'Edit Bed '.$bed->bed_no" :subtitle="'Update the bed number for '.$bed->ward->name.'.'">
+        <div class="grid gap-6 xl:grid-cols-12">
+            <x-ui.card class="xl:col-span-7" title="Bed Details">
+                <form method="POST" action="{{ route($routePrefix.'.beds.update', $bed) }}" class="space-y-5">
+                    @csrf
+                    @method('PUT')
 
-<div class="container">
+                    <x-ui.input label="Bed No" name="bed_no" value="{{ old('bed_no', $bed->bed_no) }}" placeholder="Enter bed number" required />
 
-<div class="d-flex justify-content-between mb-3">
+                    <div class="flex flex-wrap gap-3 border-t border-med-line pt-5">
+                        <x-ui.button type="submit">
+                            <i class="bi bi-check-circle"></i>
+                            Save Changes
+                        </x-ui.button>
 
-<h4>
-<i class="bi bi-box-arrow-in-down"></i>
-Edit Bed {{$bed->bed_no}}
-</h4>
-
-<a href="{{ route('admin.beds.index',$bed->ward) }}" class="btn btn-secondary">
-<i class="bi bi-arrow-left"></i> Back
-</a>
-
-</div>
-
-
-
-<div class="row">
-    <div class="col-md-6 offset-3">
-        <div class="card-body shadow-sm p-4">
-            <form method="POST" action="{{ route('admin.beds.update',$bed) }}">
-            @csrf
-            @method('PUT')
-                <div class="form-group mb-4">
-                    <label class="form-label">Bed No</label>
-                    <input type="text" name="bed_no" class="form-control" value="{{$bed->bed_no}}" placeholder="Enter Department Name" required>
-                </div>
-        
-                <div class="form-group mb-4">
-                    <button class="btn btn-success">
-                        <i class="bi bi-check-circle"></i>
-                        Save Changes
-                    </button>
-                </div>
-            </form>
-
+                        <a href="{{ route($routePrefix.'.beds.index', $bed->ward) }}">
+                            <x-ui.button type="button" variant="secondary">
+                                <i class="bi bi-arrow-left"></i>
+                                Back
+                            </x-ui.button>
+                        </a>
+                    </div>
+                </form>
+            </x-ui.card>
         </div>
-    </div>
-</div>
-
-
+    </x-ui.page>
 @endsection

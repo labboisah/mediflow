@@ -1,13 +1,6 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
-@section('header')
-    <div class="d-flex justify-content-between align-items-center">
-        <h1 class="h3 d-flex align-items-center mb-0">
-            <i class="bi bi-clipboard2-data me-2 text-primary"></i>
-            Radiology Investigation Result
-        </h1>
-    </div>
-@endsection
+@section('title', 'Radiology Result')
 
 @section('content')
     <style>
@@ -38,117 +31,98 @@
             z-index: 2;
         }
 
-        /* Compact print layout to better fit a single A4 page */
         @page { size: A4; margin: 8mm; }
 
         @media print {
             html, body { width: 210mm; height: 297mm; margin: 0; }
-
-            /* Reduce overall font sizes and spacing */
             body, .print-content { font-size: 12px; }
             h2 { font-size: 16px; margin: 0 0 4px 0; }
             h4 { font-size: 13px; margin: 0 0 6px 0; }
-
-            /* Tighten table spacing */
             table { border-collapse: collapse; width: 100%; }
             th, td { padding: 4px 6px !important; font-size: 11px; }
-
-            /* Smaller margins inside cards */
-            .p-3, .p-4 { padding: 6px !important; }
-
-            /* Limit image size so it doesn't push to next page */
+            .p-3, .p-4, .p-6 { padding: 6px !important; }
             img { max-width: 180mm !important; height: auto !important; }
-            .img-fluid { max-width: 100% !important; }
-
-            /* Prevent breaking inside key blocks */
-            .card, .row, .col, .section, .print-section, .result-section, table, thead, tbody, tfoot { page-break-inside: avoid !important; break-inside: avoid !important; }
-
+            .print-section, .result-section, table, thead, tbody, tfoot { page-break-inside: avoid !important; break-inside: avoid !important; }
             thead { display: table-header-group; }
             tfoot { display: table-footer-group; }
-
             h1,h2,h3,h4,h5,h6 { page-break-after: avoid !important; break-after: avoid !important; }
-
             p, li { orphans: 2; widows: 2; }
-
-            /* Show only the print area */
             body * { visibility: hidden; }
             #print, #print * { visibility: visible; }
-
             #print { position: absolute; left: 0; top: 0; width: auto; background: white; }
-
             .watermark-logo { opacity: 0.06 !important; }
+            .no-print { display: none !important; }
         }
     </style>
 
-    <div id="print">
-        <div class="watermark-logo"></div>
+    <x-ui.page title="Radiology Investigation Result" subtitle="{{ $patientName }}{{ $hospitalNumber ? ' | ' . $hospitalNumber : ' | Walk-in Patient' }}">
+        <x-slot name="actions">
+            <button onclick="window.print()" type="button" class="inline-flex items-center justify-center rounded-md border border-med-primary bg-med-primary px-3 py-2 text-sm font-semibold text-white transition hover:bg-med-primaryDark">
+                Print Result
+            </button>
+            <a href="{{ route('radiology.requests.index') }}" class="inline-flex items-center justify-center rounded-md border border-med-line bg-white px-3 py-2 text-sm font-semibold text-med-ink transition hover:bg-med-canvas">
+                Back to Requests
+            </a>
+        </x-slot>
 
-        <div class="print-content p-4">
-            <div class="text-center mb-4">
-                <h2 class="text-success fw-bold" style="transform: scaleY(1.3);">FATIMA YAHAYA HOSPITAL, SIFAWA</h2>
-                <h4>DEPARTMENT OF {{ strtoupper(auth()->user()->department->name) }}</h4>
-            </div>
+        <section id="print" class="rounded-md border border-med-line bg-white shadow-sm">
+            <div class="watermark-logo"></div>
 
-            <hr>
+            <div class="print-content p-6">
+                <div class="mb-6 text-center">
+                    <h2 class="text-xl font-bold text-med-success">FATIMA YAHAYA HOSPITAL, SIFAWA</h2>
+                    <h4 class="mt-2 text-sm font-semibold uppercase tracking-wide text-med-muted">Department of {{ strtoupper(auth()->user()->department->name) }}</h4>
+                </div>
 
-            <div class="p-3 mb-4">
-                <p class="mb-1 text-muted">Patient Name: <strong>{{ $patientName }}</strong></p>
-                <p class="mb-1 text-muted">
-                    Hospital Number:
-                    @if($hospitalNumber)
-                        <strong>{{ $hospitalNumber }}</strong>
-                    @else
-                        <strong>Walk-in Patient</strong>
-                    @endif
-                </p>
-                <p class="mb-1 text-muted">Requested At: <strong>{{ $investigationRequest->created_at->format('d M, Y @ h:i A') }}</strong></p>
-                <p class="mb-1 text-muted">Requested By: <strong>{{ $investigationRequest->requestedBy->name ?? 'N/A' }}</strong></p>
-                <p class="mb-1 text-muted">Performed By: <strong>{{ $investigationRequest->performedBy->name ?? 'N/A' }}</strong></p>
-            </div>
-
-            <hr>
-
-            <div class="mb-4">
-                <h5 class="fw-bold mb-3">{{ $investigationRequest->investigation->name }}</h5>
-
-                @if($investigationRequest->investigationResults->isEmpty())
-                    <div class="alert alert-warning">No results recorded yet.</div>
-                @else
-                    <table class="table table-bordered table-sm">
-                        <thead>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Value</th>
-                                <th>Reference Range</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($investigationRequest->investigationResults as $result)
-                                <tr>
-                                    <td>{{ $result->parameter->name ?? 'Parameter' }}</td>
-                                    <td>{{ $result->value }}</td>
-                                    <td>{{ $result->parameter->reference_range }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                @endif
-
-                @if($investigationRequest->result_image)
-                    <div class="mt-4">
-                        <h6 class="mb-2">Attached Image</h6>
-                        <a href="{{ asset('storage/' . $investigationRequest->result_image) }}" target="_blank">
-                            <img src="{{ asset('storage/' . $investigationRequest->result_image) }}" class="img-fluid border" style="max-width:700px;" alt="Radiology Image">
-                        </a>
-                        <p class="text-muted small mt-1">Click image to open full size in a new tab.</p>
+                <div class="border-y border-med-line py-4">
+                    <div class="grid gap-3 text-sm md:grid-cols-2">
+                        <p class="text-med-muted">Patient Name: <strong class="text-med-ink">{{ $patientName }}</strong></p>
+                        <p class="text-med-muted">Hospital Number: <strong class="text-med-ink">{{ $hospitalNumber ?: 'Walk-in Patient' }}</strong></p>
+                        <p class="text-med-muted">Requested At: <strong class="text-med-ink">{{ $investigationRequest->created_at->format('d M, Y @ h:i A') }}</strong></p>
+                        <p class="text-med-muted">Requested By: <strong class="text-med-ink">{{ $investigationRequest->requestedBy->name ?? 'N/A' }}</strong></p>
+                        <p class="text-med-muted">Performed By: <strong class="text-med-ink">{{ $investigationRequest->performedBy->name ?? 'N/A' }}</strong></p>
                     </div>
-                @endif
-            </div>
-        </div>
-    </div>
+                </div>
 
-    <div class="mt-3">
-        <button onclick="window.print()" class="btn btn-primary"><i class="bi bi-printer me-1"></i> Print Result</button>
-        <a href="{{ route('radiology.requests.index') }}" class="btn btn-secondary ms-2">Back to Requests</a>
-    </div>
+                <div class="result-section mt-6">
+                    <h5 class="mb-3 text-lg font-semibold text-med-ink">{{ $investigationRequest->investigation->name }}</h5>
+
+                    @if($investigationRequest->investigationResults->isEmpty())
+                        <div class="rounded-md border border-med-warning/30 bg-med-warning/10 px-4 py-3 text-sm font-medium text-med-warning">No results recorded yet.</div>
+                    @else
+                        <div class="overflow-hidden rounded-md border border-med-line">
+                            <table class="min-w-full divide-y divide-med-line text-sm">
+                                <thead class="bg-med-canvas text-left text-xs font-semibold uppercase text-med-muted">
+                                    <tr>
+                                        <th class="px-4 py-3">Parameter</th>
+                                        <th class="px-4 py-3">Value</th>
+                                        <th class="px-4 py-3">Reference Range</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-med-line bg-white">
+                                    @foreach($investigationRequest->investigationResults as $result)
+                                        <tr>
+                                            <td class="px-4 py-3 font-semibold text-med-ink">{{ $result->parameter->name ?? 'Parameter' }}</td>
+                                            <td class="px-4 py-3 text-med-muted">{{ $result->value }}</td>
+                                            <td class="px-4 py-3 text-med-muted">{{ $result->parameter->reference_range }}</td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+
+                    @if($investigationRequest->result_image)
+                        <div class="mt-6">
+                            <h6 class="mb-2 text-sm font-semibold text-med-ink">Attached Image</h6>
+                            <a href="{{ asset('storage/' . $investigationRequest->result_image) }}" target="_blank">
+                                <img src="{{ asset('storage/' . $investigationRequest->result_image) }}" class="max-h-[720px] w-full rounded-md border border-med-line object-contain" alt="Radiology Image">
+                            </a>
+                            <p class="no-print mt-2 text-sm text-med-muted">Click image to open full size in a new tab.</p>
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </section>
+    </x-ui.page>
 @endsection

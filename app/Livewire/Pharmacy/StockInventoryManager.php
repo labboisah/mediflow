@@ -15,7 +15,7 @@ use Livewire\WithFileUploads;
 use Livewire\WithPagination;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class StockInventoryManager extends Component
 {
     use WithFileUploads;
@@ -28,7 +28,7 @@ class StockInventoryManager extends Component
     public ?TemporaryUploadedFile $importFile = null;
     public array $importSummary = [];
 
-    protected string $paginationTheme = 'bootstrap';
+    protected string $paginationTheme = 'tailwind';
 
     public function render()
     {
@@ -373,3 +373,5 @@ class StockInventoryManager extends Component
         return $batchNumber;
     }
 }
+
+

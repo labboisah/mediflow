@@ -1,131 +1,72 @@
-<div class="container-fluid py-3">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <div><h1 class="h4 mb-1">Continuation Sheet</h1><p class="text-muted mb-0">{{ $patient->name() }} | {{ $patient->hospital_number }}</p></div>
-        <a href="{{ route('patient.show', $patient) }}" class="btn btn-outline-secondary">Back</a>
-    </div>
-    @include('components.clinical._feedback')
-    <div class="row g-3">
-        <div class="col-lg-7"><div class="card border-0 shadow-sm"><div class="card-body">
-            <form wire:submit.prevent="save">
-                <label class="form-label">Clinical Note</label>
-                <textarea rows="3" class="form-control @error('notes') is-invalid @enderror" wire:model="notes"></textarea>
-                @error('notes') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                <!-- clinical history -->
-                <label class="form-label">Cliniacal History</label>
-                <textarea rows="3" class="form-control @error('history') is-invalid @enderror" wire:model="history"></textarea>
-                @error('history') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                
-                <!-- clinical examination -->
-                <label class="form-label">Clinical Examinataion</label>
-                <textarea rows="3" class="form-control @error('examination') is-invalid @enderror" wire:model="examination"></textarea>
-                @error('examination') <div class="invalid-feedback">{{ $message }}</div> @enderror
+<div>
+    <x-ui.page title="Continuation Sheet" subtitle="{{ $patient->name() }} | {{ $patient->hospital_number }}">
+        <x-slot:actions>
+            <a href="{{ route('patient.show', $patient) }}" class="mf-focus inline-flex items-center justify-center rounded-md border border-med-line bg-white px-3 py-2 text-sm font-semibold text-med-ink transition hover:bg-med-canvas">Back</a>
+        </x-slot:actions>
 
-                <!-- clinical diagnoses -->
+        @include('components.clinical._feedback')
 
-                <label class="form-label">Clinical Diagnoses</label>
-                <textarea rows="3" class="form-control @error('diagnose') is-invalid @enderror" wire:model="diagnose"></textarea>
-                @error('diagnose') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                <!-- clinical plan -->
+        <div class="grid gap-5 xl:grid-cols-[minmax(0,1.1fr)_minmax(360px,0.9fr)]">
+            <x-ui.card :title="$editingId ? 'Update Continuation Note' : 'Write Continuation Note'" subtitle="Document the active visit history, examination, diagnosis, and plan.">
+                <form wire:submit.prevent="save" class="space-y-4">
+                    <div>
+                        <x-ui.textarea label="Clinical Note" rows="4" wire:model="notes" />
+                        @error('notes')<p class="mt-1 text-sm text-med-danger">{{ $message }}</p>@enderror
+                    </div>
+                    <div class="grid gap-4 lg:grid-cols-2">
+                        <x-ui.textarea label="Clinical History" rows="4" wire:model="history" />
+                        <x-ui.textarea label="Clinical Examination" rows="4" wire:model="examination" />
+                        <x-ui.textarea label="Clinical Diagnosis" rows="4" wire:model="diagnose" />
+                        <x-ui.textarea label="Clinical Plan" rows="4" wire:model="plan" />
+                    </div>
+                    <div class="flex flex-wrap items-center gap-2">
+                        <x-ui.button type="submit" variant="primary">{{ $editingId ? 'Update Note' : 'Save Note' }}</x-ui.button>
+                        @if($editingId)
+                            <x-ui.button type="button" variant="secondary" wire:click="cancelEdit">Cancel</x-ui.button>
+                        @endif
+                    </div>
+                </form>
+            </x-ui.card>
 
-                <label class="form-label">Clinical Plan</label>
-                <textarea rows="3" class="form-control @error('plan') is-invalid @enderror" wire:model="plan"></textarea>
-                @error('plan') <div class="invalid-feedback">{{ $message }}</div> @enderror
-                <div class="d-flex gap-2 mt-3">
-                    <button class="btn btn-success">{{ $editingId ? 'Update Note' : 'Save Note' }}</button>
-                    @if($editingId)
-                        <button type="button" class="btn btn-outline-secondary" wire:click="cancelEdit">Cancel</button>
-                    @endif
-                </div>
-            </form>
-        </div></div></div>
-        <div class="col-lg-5"><div class="card border-0 shadow-sm"><div class="list-group list-group-flush">
-            @php 
-                $vitalSign = $patient->currentVisit()->vitalSigns()->latest()->first();
-            @endphp
-            <div class="p-4">
-                @if($vitalSign)
-                
-                <h4>Last Vital Signs Taken</h4>
-                <div class="row mb-3">
-                     <p class="mb-0 text-muted">
-                        Visit on:
-                    <strong class="text-success">{{ date('M d, Y',strtotime($patient->currentVisit()->visit_date))  ?? 'No Visit Recorded' }} @ {{ date('h:s A',strtotime($patient->currentVisit()->created_at))}}</strong>
-                    </p>
-                    <hr>
-                    <div class="col-md-2">
-                        <label class="form-label text-muted">By</label>
-                        <p class="h6">{{ $vitalSign->recordedBy->name }}</p>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label text-muted">Date</label>
-                        <p class="h6">{{ $vitalSign->recorded_date->format('M d, Y') }}</p>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label text-muted">Temp</label>
-                        <p class="h6">{{ $vitalSign->body_temperature ?? 'N/A' }}°C</p>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label text-muted">BP</label>
-                        <p class="h6">{{ $vitalSign->blood_pressure_systolic ?? 'N/A' }}/{{ $vitalSign->blood_pressure_diastolic ?? 'N/A' }}</p>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label text-muted">HR</label>
-                        <p class="h6">{{ $vitalSign->heart_rate ?? 'N/A' }} bpm</p>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label text-muted">Resp.</label>
-                        <p class="h6">{{ $vitalSign->respiratory_rate ?? 'N/A' }} </p>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label text-muted">Ox</label>
-                        <p class="h6">{{ $vitalSign->oxygen_saturation ?? 'N/A' }} </p>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label text-muted">Blood</label>
-                        <p class="h6">{{ $vitalSign->blood_glucose ?? 'N/A' }} </p>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label text-muted">Weight</label>
-                        <p class="h6">{{ $vitalSign->weight ?? 'N/A' }} </p>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label text-muted">Height</label>
-                        <p class="h6">{{ $vitalSign->height ?? 'N/A' }} </p>
-                    </div>
-                    <div class="col-md-2">
-                        <label class="form-label text-muted">Remark</label>
-                        <p class="h6">{{ $vitalSign->notes ?? 'N/A' }} </p>
-                    </div>
-                    @if(auth()->user()->hasRole('nurse') || auth()->user()->hasRole('midwife'))
-                        <div class="col-md-12">
-                            <a href="{{ route('patient.vitalsign.create', $patient) }}" class="btn btn-sm btn-outline-primary">Edit in Vital Signs</a>
+            <div class="space-y-5">
+                @php $vitalSign = $patient->currentVisit()->vitalSigns()->latest()->first(); @endphp
+                <x-ui.card title="Last Vital Signs" subtitle="Most recent vitals for the active visit.">
+                    @if($vitalSign)
+                        <div class="grid gap-3 sm:grid-cols-2">
+                            <div><p class="text-xs font-semibold uppercase text-med-muted">By</p><p class="mt-1 text-sm font-semibold text-med-ink">{{ $vitalSign->recordedBy?->name ?? 'N/A' }}</p></div>
+                            <div><p class="text-xs font-semibold uppercase text-med-muted">Date</p><p class="mt-1 text-sm font-semibold text-med-ink">{{ optional($vitalSign->recorded_date)->format('d M Y, H:i') ?? 'N/A' }}</p></div>
+                            <div><p class="text-xs font-semibold uppercase text-med-muted">Temp</p><p class="mt-1 text-sm font-semibold text-med-ink">{{ $vitalSign->body_temperature ?? 'N/A' }}</p></div>
+                            <div><p class="text-xs font-semibold uppercase text-med-muted">BP</p><p class="mt-1 text-sm font-semibold text-med-ink">{{ $vitalSign->blood_pressure_systolic ?? 'N/A' }}/{{ $vitalSign->blood_pressure_diastolic ?? 'N/A' }}</p></div>
+                            <div><p class="text-xs font-semibold uppercase text-med-muted">Heart Rate</p><p class="mt-1 text-sm font-semibold text-med-ink">{{ $vitalSign->heart_rate ?? 'N/A' }}</p></div>
+                            <div><p class="text-xs font-semibold uppercase text-med-muted">Respiration</p><p class="mt-1 text-sm font-semibold text-med-ink">{{ $vitalSign->respiratory_rate ?? 'N/A' }}</p></div>
                         </div>
+                    @else
+                        <x-ui.empty-state title="No Vital Signs" message="No vital signs have been recorded for this active visit." />
                     @endif
-                </div>
-                @else
-                <h4>No vital signs recorded for this visit</h4>
-                @endif
-            </div>
-            <hr>
-            <h4 class="p-4">Recent Notes</h4>
-            @forelse($recent as $note)
-                <div class="list-group-item">
-                    <div class="d-flex justify-content-between gap-2">
-                        <div class="small text-muted">{{ $note->created_at }}</div>
-                        <button type="button" class="btn btn-sm btn-outline-primary" wire:click="edit({{ $note->id }})">Edit</button>
+                </x-ui.card>
+
+                <x-ui.card title="Recent Notes" subtitle="Latest continuation notes for this active visit.">
+                    <div class="space-y-3">
+                        @forelse($recent as $note)
+                            <div class="rounded-md border border-med-line p-4">
+                                <div class="mb-3 flex items-center justify-between gap-3">
+                                    <p class="text-sm font-semibold text-med-ink">{{ optional($note->created_at)->format('d M Y, H:i') }}</p>
+                                    <button type="button" class="mf-focus rounded-md border border-med-line px-3 py-1.5 text-sm font-semibold text-med-primary transition hover:bg-med-canvas" wire:click="edit({{ $note->id }})">Edit</button>
+                                </div>
+                                <div class="space-y-2 text-sm text-med-muted">
+                                    <p><span class="font-semibold text-med-ink">Notes:</span> {{ $note->note ?: 'N/A' }}</p>
+                                    <p><span class="font-semibold text-med-ink">History:</span> {{ $note->history ?: 'N/A' }}</p>
+                                    <p><span class="font-semibold text-med-ink">Examination:</span> {{ $note->examination ?: 'N/A' }}</p>
+                                    <p><span class="font-semibold text-med-ink">Diagnosis:</span> {{ $note->diagnose ?: 'N/A' }}</p>
+                                    <p><span class="font-semibold text-med-ink">Plan:</span> {{ $note->plan ?: 'N/A' }}</p>
+                                </div>
+                            </div>
+                        @empty
+                            <x-ui.empty-state title="No Continuation Notes" message="No continuation notes have been recorded for this active visit." />
+                        @endforelse
                     </div>
-                    <p><b>Notes</b>: {{ $note->note }}</p>
-                    <p><b>History</b>: {{ $note->history }}</p>
-                    <p><b>Examination</b>: {{ $note->examination }}</p>
-                    <p><b>Diagnose</b>: {{ $note->diagnose }}</p>
-                    <p><b>Plan</b>: {{ $note->plan }}</p>
-                </div>
-            @empty
-                <div class="list-group-item text-muted">No continuation notes yet.</div>
-            @endforelse
-            
-        </div></div>
-    
-    </div>
-    </div>
+                </x-ui.card>
+            </div>
+        </div>
+    </x-ui.page>
 </div>

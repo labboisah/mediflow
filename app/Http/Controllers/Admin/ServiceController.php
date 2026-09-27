@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Admin;
 
+use App\Models\Department;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
@@ -13,7 +14,7 @@ class ServiceController extends Controller
      */
     public function index()
     {
-        $query = Service::query();
+        $query = Service::query()->with('department');
 
         // Search functionality
         if ($search = request('search')) {
@@ -46,7 +47,13 @@ class ServiceController extends Controller
         }
 
         $services = $query->paginate(15)->withQueryString();
-        $categories = Service::pluck('category')->unique()->sort();
+        $categories = Service::query()
+            ->whereNotNull('category')
+            ->pluck('category')
+            ->filter()
+            ->unique()
+            ->sort()
+            ->values();
         
         return view('admin.services.index', compact('services', 'categories'));
     }
@@ -73,7 +80,9 @@ class ServiceController extends Controller
         ];
         sort($categories);
         
-        return view('admin.services.create', compact('categories'));
+        $departments = Department::orderBy('name')->get();
+
+        return view('admin.services.create', compact('categories', 'departments'));
     }
 
     /**
@@ -84,11 +93,13 @@ class ServiceController extends Controller
         $validated = $request->validate([
             'code' => 'required|string|unique:services,code|max:50',
             'name' => 'required|string|max:255',
+            'department_id' => 'nullable|exists:departments,id',
             'description' => 'nullable|string|max:500',
             'price' => 'required|numeric|min:0|max:999999.99',
             'category' => 'required|string|max:100',
             'is_active' => 'boolean',
         ]);
+        $validated['is_active'] = $request->boolean('is_active');
 
         Service::create($validated);
 
@@ -101,6 +112,8 @@ class ServiceController extends Controller
      */
     public function show(Service $service)
     {
+        $service->load('department')->loadCount('bills');
+
         return view('admin.services.show', compact('service'));
     }
 
@@ -124,8 +137,10 @@ class ServiceController extends Controller
             'Vaccination',
         ];
         sort($categories);
-        
-        return view('admin.services.edit', compact('service', 'categories'));
+        $departments = Department::orderBy('name')->get();
+        $service->load('department');
+
+        return view('admin.services.edit', compact('service', 'categories', 'departments'));
     }
 
     /**
@@ -142,6 +157,7 @@ class ServiceController extends Controller
             'category' => 'required|string|max:100',
             'is_active' => 'boolean',
         ]);
+        $validated['is_active'] = $request->boolean('is_active');
 
         $service->update($validated);
 

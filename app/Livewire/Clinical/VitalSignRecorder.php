@@ -8,7 +8,7 @@ use App\Models\VitalSign;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class VitalSignRecorder extends Component
 {
     use ManagesClinicalVisit;
@@ -103,3 +103,4 @@ class VitalSignRecorder extends Component
         return $dateOfBirth && $dateOfBirth->age < 18;
     }
 }
+

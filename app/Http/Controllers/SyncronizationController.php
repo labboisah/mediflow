@@ -9,7 +9,7 @@ class SyncronizationController extends Controller
     public function index()
     {
         
-        return view('admin.synch.index');
+        return redirect()->route('admin.sync.index');
     }
 
     public function update(Request $request)
@@ -21,3 +21,4 @@ class SyncronizationController extends Controller
         return response()->json(['message' => 'Data synchronization completed successfully.']);
     }
 }
+

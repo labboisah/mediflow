@@ -302,3 +302,4 @@ class RequestController extends Controller
         return view('lab.request.result', compact('bill'));
     }
 }
+

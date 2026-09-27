@@ -1,4 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.modern')
+
+@section('title', ' param($m) $m.Value.ToUpper() erify. param($m) $m.Value.ToUpper() lade')
+@section('page-title', ' param($m) $m.Value.ToUpper() erify. param($m) $m.Value.ToUpper() lade')
+@section('page-subtitle', 'Billing, finance, and reporting workspace.')
 
 @section('content')
 <div class="container-fluid">
@@ -81,3 +85,4 @@
     });
 </script>
 @endsection
+

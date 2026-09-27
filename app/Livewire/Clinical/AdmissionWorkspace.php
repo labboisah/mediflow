@@ -10,7 +10,7 @@ use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class AdmissionWorkspace extends Component
 {
     use ManagesClinicalVisit;
@@ -167,3 +167,4 @@ class AdmissionWorkspace extends Component
         }
     }
 }
+

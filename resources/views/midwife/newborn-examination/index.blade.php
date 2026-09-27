@@ -1,75 +1,16 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'Newborn Examination Records')
 
 @section('content')
-<div class="container-fluid">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h1 class="h3 mb-0"><i class="bi bi-clipboard2-pulse"></i> Newborn Examination Records</h1>
-            <small class="text-muted">Search and manage all newborn examination records</small>
-        </div>
+<x-ui.page title="Newborn Examination Records" subtitle="Search and manage neonatal examination records.">
+    <div class="space-y-6">
+        <x-ui.card><form method="GET" action="{{ route('midwife.newborn-examination.index') }}" class="grid gap-3 md:grid-cols-[1fr_auto] md:items-end"><label><span class="mb-1 block text-sm font-medium text-med-ink">Search</span><input type="search" name="q" value="{{ $search }}" class="mf-focus block w-full rounded-md border border-med-line px-3 py-2.5 text-sm text-med-ink shadow-sm placeholder:text-med-muted/70" placeholder="Hospital number, mother, registration number, phone, or status"></label><x-ui.button type="submit">Search</x-ui.button></form></x-ui.card>
+        <x-ui.card title="Records" subtitle="Total: {{ $newbornExaminations->count() }}">
+            @if($newbornExaminations->isEmpty())<x-ui.empty-state title="No newborn examination records found" message="Try another search term or record an examination from a newborn record." />@else
+            <x-ui.table><thead class="bg-med-canvas text-left text-xs font-semibold uppercase text-med-muted"><tr><th class="px-4 py-3">Date</th><th class="px-4 py-3">Newborn #</th><th class="px-4 py-3">Mother</th><th class="px-4 py-3">Weight</th><th class="px-4 py-3">Temperature</th><th class="px-4 py-3">Status</th><th class="px-4 py-3">Recorded By</th><th class="px-4 py-3 text-right">Actions</th></tr></thead><tbody class="divide-y divide-med-line bg-white">@foreach($newbornExaminations as $record)@php($patient = $record->newborn?->patient)<tr><td class="px-4 py-4 text-med-muted">{{ $record->examination_date_time?->format('M d, Y h:i A') ?? 'N/A' }}</td><td class="px-4 py-4 font-semibold text-med-ink">{{ $record->newborn?->newborn_registration_number ?? 'N/A' }}</td><td class="px-4 py-4 text-med-muted">{{ $patient?->name() ?? 'N/A' }}</td><td class="px-4 py-4 text-med-muted">{{ $record->weight ?? 'N/A' }}</td><td class="px-4 py-4 text-med-muted">{{ $record->temperature ?? 'N/A' }}</td><td class="px-4 py-4"><x-ui.badge variant="{{ $record->exam_status === 'normal' ? 'success' : ($record->exam_status === 'abnormal' ? 'danger' : 'warning') }}">{{ str($record->exam_status)->headline() }}</x-ui.badge></td><td class="px-4 py-4 text-med-muted">{{ $record->recordedBy?->name ?? 'N/A' }}</td><td class="px-4 py-4"><div class="flex flex-wrap justify-end gap-2"><a href="{{ route('midwife.newborn-examination.show', $record) }}" class="text-sm font-semibold text-med-primary hover:text-med-primaryDark">View</a><a href="{{ route('midwife.newborn-examination.edit', $record) }}" class="text-sm font-semibold text-med-info hover:text-blue-700">Edit</a>@if($patient)<a href="{{ route('midwife.patient.show', $patient) }}" class="text-sm font-semibold text-med-muted hover:text-med-ink">Profile</a>@endif</div></td></tr>@endforeach</tbody></x-ui.table>
+            @endif
+        </x-ui.card>
     </div>
-
-    <form method="GET" action="{{ route('midwife.newborn-examination.index') }}" class="card card-body mb-3">
-        <div class="row g-2 align-items-end">
-            <div class="col-md-10">
-                <label class="form-label">Search</label>
-                <input type="search" name="q" value="{{ $search }}" class="form-control" placeholder="Search by hospital number, mother name, newborn registration number, phone, or status">
-            </div>
-            <div class="col-md-2 d-grid">
-                <button class="btn btn-primary" type="submit"><i class="bi bi-search"></i> Search</button>
-            </div>
-        </div>
-    </form>
-
-    @if($newbornExaminations->isEmpty())
-        <div class="alert alert-info">No newborn examination records found.</div>
-    @else
-        <div class="card">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover align-middle mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Date</th>
-                                <th>Newborn #</th>
-                                <th>Mother</th>
-                                <th>Weight</th>
-                                <th>Temperature</th>
-                                <th>Status</th>
-                                <th>Recorded By</th>
-                                <th class="text-end">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($newbornExaminations as $record)
-                                @php($patient = $record->newborn?->patient)
-                                <tr>
-                                    <td>{{ $record->examination_date_time?->format('M d, Y h:i A') }}</td>
-                                    <td>{{ $record->newborn?->newborn_registration_number ?? 'N/A' }}</td>
-                                    <td>{{ $patient?->name() ?? 'N/A' }}</td>
-                                    <td>{{ $record->weight ?? 'N/A' }}</td>
-                                    <td>{{ $record->temperature ?? 'N/A' }}</td>
-                                    <td><span class="badge bg-secondary">{{ str($record->exam_status)->headline() }}</span></td>
-                                    <td>{{ $record->recordedBy?->name ?? 'N/A' }}</td>
-                                    <td class="text-end">
-                                        <div class="btn-group btn-group-sm">
-                                            <a href="{{ route('midwife.newborn-examination.show', $record) }}" class="btn btn-outline-primary">View</a>
-                                            <a href="{{ route('midwife.newborn-examination.edit', $record) }}" class="btn btn-outline-secondary">Edit</a>
-                                            @if($patient)
-                                                <a href="{{ route('midwife.patient.show', $patient) }}" class="btn btn-outline-info">Profile</a>
-                                            @endif
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-            <div class="card-footer text-muted">Total: <strong>{{ $newbornExaminations->count() }}</strong> records</div>
-        </div>
-    @endif
-</div>
+</x-ui.page>
 @endsection

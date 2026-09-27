@@ -1,63 +1,37 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('title', 'Data Backup')
+@section('page-title', 'Data Backup')
+@section('page-subtitle', 'Create database backups and review current database size.')
 
 @section('content')
-<div class="container-fluid">
-    <div class="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
-        <div>
-            <h1 class="h3 mb-1 d-flex align-items-center">
-                <i class="bi bi-database-down text-success me-2"></i>
-                Data Backup
-            </h1>
-            <p class="text-muted mb-0">Backup tools and database protection options.</p>
-        </div>
-    </div>
+    <x-ui.page title="Data Backup" subtitle="Create database backups and review current database size.">
+        <div class="grid gap-6 xl:grid-cols-12">
+            <x-ui.card class="xl:col-span-4" title="Database Size">
+                <p class="text-3xl font-bold text-med-ink">{{ $databaseSize['formatted'] }}</p>
+            </x-ui.card>
 
-    @if(session('success'))
-        <div class="alert alert-success">
-            <i class="bi bi-check-circle me-1"></i>
-            {{ session('success') }}
-        </div>
-    @endif
+            <x-ui.card class="xl:col-span-8" title="Create Database Backup">
+                <div class="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                    <div class="flex items-start gap-4">
+                        <span class="mf-icon-box">
+                            <i class="bi bi-shield-lock"></i>
+                        </span>
+                        <div>
+                            <p class="font-semibold text-med-ink">Backup current database</p>
+                            <p class="mt-1 text-sm leading-6 text-med-muted">Backups are saved to a connected USB drive first, then to the current user's Downloads folder if no USB drive is available.</p>
+                        </div>
+                    </div>
 
-    @if(session('error'))
-        <div class="alert alert-danger">
-            <i class="bi bi-exclamation-triangle me-1"></i>
-            {{ session('error') }}
-        </div>
-    @endif
-
-    <div class="row g-3 mb-4">
-        <div class="col-12 col-lg-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="text-muted small">Database Size</div>
-                    <div class="display-6 fw-semibold mb-0">{{ $databaseSize['formatted'] }}</div>
+                    <form method="POST" action="{{ route('admin.backup.store') }}">
+                        @csrf
+                        <x-ui.button type="submit">
+                            <i class="bi bi-database-down"></i>
+                            Backup Database
+                        </x-ui.button>
+                    </form>
                 </div>
-            </div>
+            </x-ui.card>
         </div>
-    </div>
-
-    <div class="card border-0 shadow-sm">
-        <div class="card-body">
-            <div class="d-flex flex-wrap align-items-center justify-content-between gap-3">
-                <div class="rounded bg-success-subtle text-success d-inline-flex align-items-center justify-content-center flex-shrink-0" style="width: 48px; height: 48px;">
-                    <i class="bi bi-shield-lock"></i>
-                </div>
-                <div class="flex-grow-1">
-                    <h5 class="mb-1">Create Database Backup</h5>
-                    <p class="text-muted mb-0">The system saves to a connected USB drive first. If no USB drive is available, it saves to the current user Downloads folder.</p>
-                </div>
-                <form method="POST" action="{{ route('admin.backup.store') }}">
-                    @csrf
-                    <button type="submit" class="btn btn-success">
-                        <i class="bi bi-database-down me-1"></i>
-                        Backup Database
-                    </button>
-                </form>
-            </div>
-        </div>
-    </div>
-</div>
+    </x-ui.page>
 @endsection

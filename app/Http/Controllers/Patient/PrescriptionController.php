@@ -17,14 +17,14 @@ class PrescriptionController extends Controller
     }
 
     public function show(Prescription $prescription) {
-        $prescription->load([
-            'patientVisit.patient.demographic',
-            'prescribedBy.department',
-            'prescriptionItems.medicine.batches',
-            'prescriptionItems.route',
-        ]);
+        $patient = $prescription->patientVisit?->patient;
 
-        return view('patient.prescription.show', compact('prescription'));
+        abort_unless($patient, 404);
+
+        return redirect()->route('patient.prescription.create', [
+            'patient' => $patient,
+            'prescription' => $prescription->id,
+        ]);
     }
 
     public function store(Request $request, Patient $patient) {
@@ -198,3 +198,4 @@ class PrescriptionController extends Controller
         ]);
     }
 }
+

@@ -1,61 +1,55 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
-@section('title', 'Schedule Appointment - ' . $patient->demographic->full_name)
-
-@section('header')
-<div class="d-flex align-items-center gap-3">
-    <i class="bi bi-calendar-check text-success" style="font-size: 2rem;"></i>
-    <div>
-        <h1 class="h3 mb-1">Schedule Appointment</h1>
-        <p class="mb-0 text-muted">For: <strong class="text-success">{{ $patient->demographic->full_name ?? 'Unknown' }}</strong></p>
-    </div>
-</div>
-@endsection
+@section('title', 'Schedule Appointment - ' . ($patient->demographic?->full_name ?? 'Patient'))
 
 @section('content')
-<div class="row">
-    <div class="col-lg-6 mx-auto">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-success text-white">
-                <h5 class="mb-0"><i class="bi bi-calendar-event me-2"></i>Appointment Details</h5>
+<x-ui.page title="Schedule Appointment" subtitle="Create a future appointment for {{ $patient->demographic?->full_name ?? 'this patient' }}.">
+    <x-slot:actions>
+        <a href="{{ route('record.patients.show', $patient) }}" class="mf-focus inline-flex items-center justify-center gap-2 rounded-md border border-med-line bg-white px-3 py-2 text-sm font-semibold text-med-ink transition hover:bg-med-canvas">
+            Back To Profile
+        </a>
+    </x-slot:actions>
+
+    <form action="{{ route('record.appointments.store', $patient) }}" method="POST" class="grid gap-6 xl:grid-cols-[0.75fr_1.25fr]">
+        @csrf
+
+        <x-ui.card title="Patient Context">
+            <div class="space-y-4">
+                <div>
+                    <p class="text-xs font-semibold uppercase text-med-muted">Patient</p>
+                    <p class="mt-1 text-lg font-semibold text-med-ink">{{ $patient->demographic?->full_name ?? 'N/A' }}</p>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold uppercase text-med-muted">Hospital Number</p>
+                    <p class="mt-1 text-base font-semibold text-med-primary">{{ $patient->hospital_number }}</p>
+                </div>
+                <div>
+                    <p class="text-xs font-semibold uppercase text-med-muted">Phone</p>
+                    <p class="mt-1 text-base text-med-ink">{{ $patient->demographic?->phone_number ?? 'N/A' }}</p>
+                </div>
             </div>
-            <div class="card-body">
-                <form action="{{ route('record_officer.appointments.store', $patient->id) }}" method="POST">
-                    @csrf
+        </x-ui.card>
 
-                    <div class="mb-4">
-                        <label for="appointment_date" class="form-label">Appointment Date <span class="text-danger">*</span></label>
-                        <input type="date" class="form-control @error('appointment_date') is-invalid @enderror" 
-                               id="appointment_date" name="appointment_date" value="{{ old('appointment_date') }}" required>
-                        @error('appointment_date')<div class="invalid-feedback">{{ $message }}</div>@enderror
+        <div class="space-y-6">
+            <x-ui.card title="Appointment Details" subtitle="Choose the appointment date, time, and any relevant note.">
+                <div class="grid gap-4 md:grid-cols-2">
+                    <x-ui.input label="Appointment Date" name="appointment_date" type="date" value="{{ old('appointment_date') }}" required />
+                    <x-ui.input label="Appointment Time" name="appointment_time" type="time" value="{{ old('appointment_time') }}" required />
+                    <div class="md:col-span-2">
+                        <x-ui.textarea label="Notes" name="notes" rows="4" placeholder="Any additional notes about this appointment">{{ old('notes') }}</x-ui.textarea>
                     </div>
+                </div>
+            </x-ui.card>
 
-                    <div class="mb-4">
-                        <label for="appointment_time" class="form-label">Appointment Time <span class="text-danger">*</span></label>
-                        <input type="time" class="form-control @error('appointment_time') is-invalid @enderror" 
-                               id="appointment_time" name="appointment_time" value="{{ old('appointment_time') }}" required>
-                        @error('appointment_time')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div class="mb-4">
-                        <label for="notes" class="form-label">Notes</label>
-                        <textarea class="form-control @error('notes') is-invalid @enderror" 
-                                  id="notes" name="notes" rows="4" 
-                                  placeholder="Any additional notes about the appointment">{{ old('notes') }}</textarea>
-                        @error('notes')<div class="invalid-feedback">{{ $message }}</div>@enderror
-                    </div>
-
-                    <div class="d-flex gap-2 pt-3 border-top">
-                        <button type="submit" class="btn btn-success flex-grow-1">
-                            <i class="bi bi-check-circle me-2"></i>Schedule Appointment
-                        </button>
-                        <a href="{{ route('record_officer.patients.show', $patient->id) }}" class="btn btn-outline-secondary">
-                            <i class="bi bi-x-circle me-2"></i>Cancel
-                        </a>
-                    </div>
-                </form>
+            <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                <a href="{{ route('record.patients.show', $patient) }}" class="mf-focus inline-flex items-center justify-center rounded-md border border-med-line bg-white px-4 py-2 text-sm font-semibold text-med-ink transition hover:bg-med-canvas">
+                    Cancel
+                </a>
+                <button type="submit" class="mf-focus inline-flex items-center justify-center rounded-md border border-med-primary bg-med-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-med-primaryDark">
+                    Schedule Appointment
+                </button>
             </div>
         </div>
-    </div>
-</div>
+    </form>
+</x-ui.page>
 @endsection

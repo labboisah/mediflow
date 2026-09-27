@@ -1,8 +1,8 @@
 @php
     $maxVisitCount = max($visitStatusRows->max('count') ?: 1, 1);
     $maxBillCount = max($billStatusRows->max('count') ?: 1, 1);
-    $dashboardTitle = $pageTitle;
-    $dashboardSubtitle = $pageSubtitle;
+    $dashboardTitle = $pageTitle ?? 'Dashboard';
+    $dashboardSubtitle = $pageSubtitle ?? config('app.name');
 
     $metricCards = [
         [
@@ -234,3 +234,4 @@
         setInterval(updateAdminDashboardLocalClock, 1000);
     </script>
 @endpush
+

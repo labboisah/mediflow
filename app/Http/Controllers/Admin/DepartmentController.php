@@ -9,15 +9,26 @@ use App\Models\Department;
 class DepartmentController extends Controller
 {
     public function index() {
-        return view('admin.departments.index',['departments'=>Department::all()]);
+        return view('admin.departments.index', [
+            'departments' => Department::orderBy('name')->get(),
+        ]);
     }
 
     public function create() {
-        return view('admin.departments.create',['departments'=>Department::all()]);
+        return view('admin.departments.create');
     }
 
     public function edit($departmentId) {
-        return view('admin.departments.edit',['department'=>Department::find($departmentId)]);
+        return view('admin.departments.edit', [
+            'department' => Department::findOrFail($departmentId),
+        ]);
+    }
+
+    public function show(Department $department) {
+        $routeName = request()->route()?->getName() ?? '';
+        $prefix = str_starts_with($routeName, 'medical-director.') ? 'medical-director' : 'admin';
+
+        return redirect()->route("{$prefix}.departments.edit", $department);
     }
 
     public function store(Request $request) {

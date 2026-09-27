@@ -283,7 +283,6 @@ class PermissionSeeder extends Seeder
     private function assignPermissionsToRoles(): void
     {
         $roles = Role::whereIn('name', [
-            'superadmin',
             'administrator',
             'record',
             'accountant',
@@ -363,10 +362,6 @@ class PermissionSeeder extends Seeder
 
         ];
         
-        if (isset($roles['superadmin'])) {
-            $roles['superadmin']->permissions()->sync(Permission::pluck('id')->all());
-        }
-
         if (isset($roles['administrator'])) {
             $roles['administrator']->sync($adminPermissions);
         }

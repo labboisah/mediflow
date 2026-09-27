@@ -62,7 +62,6 @@ class ModulePermissionSeeder extends Seeder
             }
         }
 
-        $this->syncPlatformRoleAssignments();
     }
 
     private function createDepartmentHeadRoles(): void
@@ -78,31 +77,6 @@ class ModulePermissionSeeder extends Seeder
                 ]
             );
         }
-    }
-
-    private function syncPlatformRoleAssignments(): void
-    {
-        $platformModuleIds = Module::query()
-            ->whereIn('license_module', config('mediflow_modules.platform_modules', ['platform']))
-            ->pluck('id');
-
-        $platformPermissionIds = Permission::query()
-            ->whereIn('module_id', $platformModuleIds)
-            ->pluck('id');
-
-        $superAdmin = Role::where('name', 'superadmin')->first();
-
-        if ($superAdmin) {
-            $superAdmin->modules()->sync($platformModuleIds);
-            $superAdmin->permissions()->sync($platformPermissionIds);
-        }
-
-        Role::whereIn('name', ['administrator', 'medical_director'])
-            ->get()
-            ->each(function (Role $role) use ($platformModuleIds, $platformPermissionIds) {
-                $role->modules()->detach($platformModuleIds);
-                $role->permissions()->detach($platformPermissionIds);
-            });
     }
 
     private function modules(): array
@@ -196,10 +170,6 @@ class ModulePermissionSeeder extends Seeder
             $this->item('admin_investigations', 'Investigations Setup', 'bi-clipboard2-data', 'admin.investigations.index', 'laboratory', 'administration', ['administrator', 'medical_director'], ['investigation.read'], ['admin.investigations.*'], 216),
             $this->item('file_types', 'File Types', 'bi-folder2-open', 'admin.file-types.index', 'access_control', 'administration', ['administrator', 'medical_director'], ['file_type.read', 'patient.read'], ['admin.file-types.*'], 217),
             $this->item('module_access', 'Module Access', 'bi-ui-checks-grid', 'admin.access-control', 'access_control', 'administration', ['administrator'], ['module_access.manage'], ['admin.access-control'], 218, false),
-            $this->item('client_management', 'Clients', 'bi-buildings', 'admin.clients.index', 'platform', 'platform', ['superadmin'], ['client.manage'], ['admin.clients.*'], 218),
-            $this->item('license_management', 'License Management', 'bi-patch-check', 'admin.license-management', 'platform', 'platform', ['superadmin'], ['license.manage'], ['admin.license-management'], 219),
-            $this->item('agent_management', 'Agents', 'bi-person-badge', 'admin.agents.index', 'platform', 'platform', ['superadmin'], ['agent.manage'], ['admin.agents.*'], 220),
-
             $this->item('data_sync', 'Data Sync', 'bi-cloud-arrow-up', 'admin.sync.index', 'synchronization', 'system', ['administrator'], ['sync.read', 'sync.create', 'sync.update'], ['admin.sync.*'], 230),
             $this->item('system_update', 'System Update', 'bi-arrow-repeat', 'admin.system.update', 'maintenance', 'system', ['administrator'], ['system.update'], ['admin.system.*'], 231),
             $this->item('database_backup', 'Data Backup', 'bi-database-down', 'admin.backup.index', 'maintenance', 'system', ['administrator'], ['backup.read', 'backup.create'], ['admin.backup.*'], 232),

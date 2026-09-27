@@ -1,4 +1,8 @@
-@extends('layouts.app')
+@extends('layouts.modern')
+
+@section('title', 'Create.Blade')
+@section('page-title', 'Create.Blade')
+@section('page-subtitle', 'Mediflow workspace.')
 
 @section('title', 'Record Vital Signs - ' . ($patient->demographic->full_name ?? 'Patient'))
 
@@ -212,3 +216,4 @@
     </div>
 </div>
 @endsection
+

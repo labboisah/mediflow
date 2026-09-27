@@ -18,12 +18,13 @@ class ModuleUserAccessSeeder extends Seeder
                     'license_module' => $module->license_module,
                 ]);
             })
-            ->filter(fn (array $item) => filled($item['license_module']))
+            ->filter(fn (array $item) => filled($item['license_module']) && $item['license_module'] !== 'platform')
             ->groupBy('role')
             ->map(fn ($items) => $items->pluck('license_module')->unique()->values());
 
         $allModules = Module::query()
             ->whereNotNull('license_module')
+            ->where('license_module', '!=', 'platform')
             ->pluck('license_module')
             ->unique()
             ->values();
@@ -32,9 +33,7 @@ class ModuleUserAccessSeeder extends Seeder
             $modules = collect();
 
             if ($user->hasRole('administrator')) {
-                $modules = $allModules->reject(fn (string $module) => in_array($module, config('mediflow_modules.platform_modules', ['platform']), true));
-            } elseif ($user->isSuperAdmin()) {
-                $modules = collect(config('mediflow_modules.platform_modules', ['platform']));
+                $modules = $allModules;
             } else {
                 foreach ($user->roles as $role) {
                     $modules = $modules->merge($modulesByRole->get($role->name, collect()));

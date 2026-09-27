@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('page-title', 'Enter Result')
 
@@ -151,3 +151,4 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 </script>
 @endsection
+

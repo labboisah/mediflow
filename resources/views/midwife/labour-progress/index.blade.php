@@ -1,69 +1,14 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
-@section('title', 'Labour Progress - ' . $labour->patient->full_name)
+@section('title', 'Labour Progress Records')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row mb-4">
-        <div class="col-md-8">
-            <h1 class="h3 mb-0"><i class="bi bi-list-check"></i> Labour Progress Records</h1>
-            <small class="text-muted">{{ $labour->patient->full_name }} - Labour on {{ $labour->labour_onset_time ? $labour->labour_onset_time->format('M d, Y H:i') : 'N/A' }}</small>
-        </div>
-        <div class="col-md-4 text-end">
-            <a href="{{ route('midwife.labour.progress.create', $labour) }}" class="btn btn-primary">
-                <i class="bi bi-plus-circle"></i> New Progress
-            </a>
-            <a href="{{ route('midwife.labour.show', $labour) }}" class="btn btn-outline-secondary">
-                <i class="bi bi-arrow-left"></i> Back to Labour
-            </a>
-        </div>
-    </div>
-
-    @if($progressRecords->isEmpty())
-        <div class="alert alert-info">No progress entries found.</div>
-    @else
-        <div class="card">
-            <div class="card-body p-0">
-                <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Date / Time</th>
-                                <th>Dilation</th>
-                                <th>Effacement</th>
-                                <th>Contractions</th>
-                                <th>FHR</th>
-                                <th>Rec. by</th>
-                                <th>Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($progressRecords as $progress)
-                                <tr>
-                                    <td>{{ $progress->recorded_at->format('M d, Y H:i') }}</td>
-                                    <td>{{ $progress->cervical_dilation ?? 'N/A' }} cm</td>
-                                    <td>{{ $progress->cervical_effacement ?? 'N/A' }}%</td>
-                                    <td>{{ $progress->contraction_frequency ?? 'N/A' }}/10m ({{ $progress->contraction_intensity ?? 'N/A' }})</td>
-                                    <td>{{ $progress->fetal_heart_rate ?? 'N/A' }} bpm</td>
-                                    <td>{{ $progress->recordedBy->name ?? 'N/A' }}</td>
-                                    <td>
-                                        <div class="btn-group btn-group-sm" role="group">
-                                            <a href="{{ route('midwife.labour-progress.show', $progress) }}" class="btn btn-outline-info" title="View"><i class="bi bi-eye"></i></a>
-                                            <a href="{{ route('midwife.labour-progress.edit', $progress) }}" class="btn btn-outline-warning" title="Edit"><i class="bi bi-pencil"></i></a>
-                                            <form action="{{ route('midwife.labour-progress.destroy', $progress) }}" method="POST" style="display:inline">
-                                                @csrf
-                                                @method('DELETE')
-                                                <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Delete this progress record?')"><i class="bi bi-trash"></i></button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    @endif
-</div>
+    <x-ui.page title="Labour Progress Records" subtitle="{{ $labour->patient->full_name ?? $labour->patient->name() }} | Labour on {{ $labour->labour_onset_time ? $labour->labour_onset_time->format('M d, Y H:i') : 'N/A' }}">
+        <x-slot name="actions"><a href="{{ route('midwife.labour.progress.create', $labour) }}" class="inline-flex items-center justify-center rounded-md border border-med-primary bg-med-primary px-3 py-2 text-sm font-semibold text-white transition hover:bg-med-primaryDark">New Progress</a><a href="{{ route('midwife.labour.show', $labour) }}" class="inline-flex items-center justify-center rounded-md border border-med-line bg-white px-3 py-2 text-sm font-semibold text-med-ink transition hover:bg-med-canvas">Back to Labour</a></x-slot>
+        @if($progressRecords->isEmpty())
+            <x-ui.empty-state title="No Progress Entries" message="No labour progress entries have been recorded for this labour." />
+        @else
+            <x-ui.table><thead class="bg-med-canvas text-left text-xs font-semibold uppercase text-med-muted"><tr><th class="px-4 py-3">Date / Time</th><th class="px-4 py-3">Dilation</th><th class="px-4 py-3">Effacement</th><th class="px-4 py-3">Contractions</th><th class="px-4 py-3">FHR</th><th class="px-4 py-3">Recorded By</th><th class="px-4 py-3 text-right">Actions</th></tr></thead><tbody class="divide-y divide-med-line bg-white">@foreach($progressRecords as $progress)<tr><td class="px-4 py-4 text-med-muted">{{ $progress->recorded_at->format('M d, Y H:i') }}</td><td class="px-4 py-4 text-med-muted">{{ $progress->cervical_dilation ?? 'N/A' }} cm</td><td class="px-4 py-4 text-med-muted">{{ $progress->cervical_effacement ?? 'N/A' }}%</td><td class="px-4 py-4 text-med-muted">{{ $progress->contraction_frequency ?? 'N/A' }}/10m ({{ $progress->contraction_intensity ?? 'N/A' }})</td><td class="px-4 py-4 text-med-muted">{{ $progress->fetal_heart_rate ?? 'N/A' }} bpm</td><td class="px-4 py-4 text-med-muted">{{ $progress->recordedBy->name ?? 'N/A' }}</td><td class="px-4 py-4"><div class="flex flex-wrap justify-end gap-2"><a href="{{ route('midwife.labour.progress.show', [$labour, $progress]) }}" class="text-sm font-semibold text-med-primary hover:text-med-primaryDark">View</a><a href="{{ route('midwife.labour.progress.edit', [$labour, $progress]) }}" class="text-sm font-semibold text-med-info hover:text-blue-700">Edit</a><form action="{{ route('midwife.labour.progress.destroy', [$labour, $progress]) }}" method="POST" onsubmit="return confirm('Delete this progress record?')">@csrf @method('DELETE')<button type="submit" class="text-sm font-semibold text-med-danger hover:text-red-800">Delete</button></form></div></td></tr>@endforeach</tbody></x-ui.table>
+        @endif
+    </x-ui.page>
 @endsection

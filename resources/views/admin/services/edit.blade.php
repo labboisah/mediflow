@@ -1,122 +1,60 @@
-@extends('layouts.app')
+@extends('layouts.modern')
+
+@section('title', 'Edit Service')
+@section('page-title', 'Edit Service')
+@section('page-subtitle', 'Update service pricing, category, department, and billing availability.')
 
 @section('content')
-<div class="container-fluid">
-    <div class="row justify-content-center">
-        <div class="col-md-6">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h1 class="h3 mb-0">Edit Service</h1>
-            </div>
+    <x-ui.page title="Edit Service" subtitle="Update service pricing, category, department, and billing availability.">
+        <div class="grid gap-6 xl:grid-cols-12">
+            <x-ui.card class="xl:col-span-8" title="{{ $service->name }}">
+                <form action="{{ route('admin.services.update', $service) }}" method="POST" class="space-y-5">
+                    @csrf
+                    @method('PUT')
 
-            <div class="card shadow-sm">
-                <div class="card-header bg-light">
-                    <h5 class="mb-0">{{ $service->name }}</h5>
-                </div>
-                <div class="card-body">
-                    <form action="{{ route('admin.services.update', $service) }}" method="POST">
-                        @csrf
-                        @method('PUT')
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <x-ui.input label="Service Code" name="code" value="{{ old('code', $service->code) }}" placeholder="e.g., GH-001" required />
+                        <x-ui.input label="Service Name" name="name" value="{{ old('name', $service->name) }}" placeholder="e.g., General Consultation" required />
+                        <x-ui.input label="Price" name="price" type="number" step="0.01" value="{{ old('price', $service->price) }}" placeholder="0.00" required />
 
-                        <div class="mb-3">
-                            <label for="code" class="form-label">Service Code <span class="text-danger">*</span></label>
-                            <input type="text" id="code" name="code" 
-                                class="form-control @error('code') is-invalid @enderror" 
-                                placeholder="e.g., GH-001" value="{{ old('code', $service->code) }}" required>
-                            <small class="text-muted">Unique identifier for this service</small>
-                            @error('code')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
+                        <x-ui.select label="Category" name="category" required>
+                            <option value="">Select category</option>
+                            @foreach($categories as $cat)
+                                <option value="{{ $cat }}" @selected(old('category', $service->category) == $cat)>{{ $cat }}</option>
+                            @endforeach
+                        </x-ui.select>
 
-                        <div class="mb-3">
-                            <label for="name" class="form-label">Service Name <span class="text-danger">*</span></label>
-                            <input type="text" id="name" name="name" 
-                                class="form-control @error('name') is-invalid @enderror" 
-                                placeholder="e.g., General Consultation" value="{{ old('name', $service->name) }}" required>
-                            @error('name')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="description" class="form-label">Description</label>
-                            <textarea id="description" name="description" 
-                                class="form-control @error('description') is-invalid @enderror" 
-                                rows="3" placeholder="Service description">{{ old('description', $service->description) }}</textarea>
-                            @error('description')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="row">
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="price" class="form-label">Price <span class="text-danger">*</span></label>
-                                    <input type="number" id="price" name="price" step="0.01" 
-                                        class="form-control @error('price') is-invalid @enderror" 
-                                        placeholder="0.00" value="{{ old('price', $service->price) }}" required>
-                                    @error('price')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="mb-3">
-                                    <label for="category" class="form-label">Category <span class="text-danger">*</span></label>
-                                    <select id="category" name="category" 
-                                        class="form-select @error('category') is-invalid @enderror" required>
-                                        <option value="{{$service->category?? ''}}">{{ $service->category ?? '-- Select Category --' }}</option>
-                                        @foreach($categories as $cat)
-                                            <option value="{{ $cat }}" @selected(old('category', $service->category) == $cat)>
-                                                {{ $cat }}
-                                            </option>
-                                        @endforeach
-                                    </select>
-                                    @error('category')
-                                        <div class="invalid-feedback">{{ $message }}</div>
-                                    @enderror
-                                </div>
-                            </div>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="department_id" class="form-label">Department</label>
-                            <select id="department_id" name="department_id" 
-                                class="form-select @error('department_id') is-invalid @enderror">
-                                <option value="{{$service->department_id?? ''}}">{{ $service->department->name ?? '-- Select Department --' }}</option>
-                                @foreach(App\Models\Department::all() as $dept)
-                                    <option value="{{ $dept->id }}" @selected(old('department_id', $service->department_id) == $dept->id)>
-                                        {{ $dept->name }}
-                                    </option>
+                        <div class="md:col-span-2">
+                            <x-ui.select label="Department" name="department_id">
+                                <option value="">Select department</option>
+                                @foreach($departments as $department)
+                                    <option value="{{ $department->id }}" @selected(old('department_id', $service->department_id) == $department->id)>{{ $department->name }}</option>
                                 @endforeach
-                            </select>
-                            @error('department_id')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
+                            </x-ui.select>
                         </div>
 
-                        <div class="mb-3">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
-                                    value="1" @checked(old('is_active', $service->is_active))>
-                                <label class="form-check-label" for="is_active">
-                                    Active (Available for billing)
-                                </label>
-                            </div>
+                        <div class="md:col-span-2">
+                            <x-ui.textarea label="Description" name="description" rows="3" placeholder="Service description">{{ old('description', $service->description) }}</x-ui.textarea>
                         </div>
+                    </div>
 
-                        <div class="d-flex gap-2 mt-4">
-                            <button type="submit" class="btn btn-warning">
-                                <i class="bi bi-pencil"></i> Update Service
-                            </button>
-                            <a href="{{ route('admin.services.show', $service) }}" class="btn btn-secondary">
-                                <i class="bi bi-x-circle"></i> Cancel
-                            </a>
-                        </div>
-                    </form>
-                </div>
-            </div>
+                    <label class="flex items-center gap-3 rounded-md border border-med-line bg-white px-4 py-3 text-sm font-medium text-med-muted">
+                        <input class="h-4 w-4 rounded border-med-line text-med-primary" type="checkbox" name="is_active" value="1" @checked(old('is_active', $service->is_active))>
+                        Active and available for billing
+                    </label>
+
+                    <div class="flex flex-wrap gap-3 border-t border-med-line pt-5">
+                        <x-ui.button type="submit">
+                            <i class="bi bi-check-circle"></i>
+                            Update Service
+                        </x-ui.button>
+
+                        <a href="{{ route('admin.services.show', $service) }}">
+                            <x-ui.button type="button" variant="secondary">Cancel</x-ui.button>
+                        </a>
+                    </div>
+                </form>
+            </x-ui.card>
         </div>
-    </div>
-</div>
+    </x-ui.page>
 @endsection

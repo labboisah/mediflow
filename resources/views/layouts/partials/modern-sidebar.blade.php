@@ -2,12 +2,10 @@
     $sidebarUser = Auth::user();
     $sidebarService = app(\App\Services\SidebarService::class);
     $sidebarGroups = $sidebarService->groupsFor($sidebarUser);
-    $dashboardRoute = $sidebarUser?->isSuperAdmin()
-        ? route('dashboard')
-        : ($sidebarUser?->hasRole('medical_director')
-            ? route('medical-director.index')
-            : ($sidebarUser?->hasRole('administrator') ? route('admin.index') : route('dashboard')));
-    $dashboardLabel = $sidebarUser?->isSuperAdmin() ? 'Platform' : 'Dashboard';
+    $dashboardRoute = $sidebarUser?->hasRole('medical_director')
+        ? route('medical-director.index')
+        : ($sidebarUser?->hasRole('administrator') ? route('admin.index') : route('dashboard'));
+    $dashboardLabel = 'Dashboard';
 
     $isRouteActive = fn (array $patterns) => collect($patterns)->contains(fn ($pattern) => request()->routeIs($pattern));
     $activitiesOpen = request()->routeIs('reports.activities.*');

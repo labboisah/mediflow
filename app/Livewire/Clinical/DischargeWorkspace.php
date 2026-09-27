@@ -7,7 +7,7 @@ use Illuminate\Support\Carbon;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class DischargeWorkspace extends Component
 {
     public Admission $admission;
@@ -79,3 +79,4 @@ class DischargeWorkspace extends Component
         $this->feedbackType = $type;
     }
 }
+

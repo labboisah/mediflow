@@ -155,7 +155,6 @@ permission.create
 permission.update
 permission.delete
 module_access.manage
-license.manage
 ```
 
 ### Dependencies

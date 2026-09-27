@@ -11,12 +11,12 @@ use Livewire\Attributes\Layout;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-#[Layout('layouts.live')]
+#[Layout('layouts.modern')]
 class MyActivityReport extends Component
 {
     use WithPagination;
 
-    protected string $paginationTheme = 'bootstrap';
+    protected string $paginationTheme = 'tailwind';
 
     public string $activityType = '';
     public string $dateFrom = '';
@@ -267,3 +267,4 @@ class MyActivityReport extends Component
         ]);
     }
 }
+

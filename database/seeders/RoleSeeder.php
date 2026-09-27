@@ -14,12 +14,6 @@ class RoleSeeder extends Seeder
     {
         $roles = [
             [
-                'name' => 'superadmin',
-                'display_name' => 'Super Admin',
-                'description' => 'Platform owner for modules, licenses, activation, invoices, payments, and partner management',
-            ],
-
-            [
                 'name' => 'administrator',
                 'display_name' => 'Administrator',
                 'description' => 'Hospital administrator with full hospital access inside activated plan modules',

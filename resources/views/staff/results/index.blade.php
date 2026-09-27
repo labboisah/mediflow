@@ -1,4 +1,4 @@
-@extends('layouts.app')
+@extends('layouts.modern')
 
 @section('page-title', 'Result Entry')
 
@@ -22,3 +22,4 @@
     </form>
 </div>
 @endsection
+
