@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->web(append: [\App\Http\Middleware\ApplySystemBranding::class]);
         $middleware->alias([
             'installation.admin' => \App\Http\Middleware\EnsureInstallationAdmin::class,
             'role' => \App\Http\Middleware\CheckRole::class,

@@ -4,6 +4,10 @@ namespace App\Livewire\Admin;
 
 use App\Models\AuditLog;
 use App\Models\ClientLicense;
+use App\Models\SystemSetting;
+use App\Services\SystemBranding;
+use Illuminate\Support\Facades\Storage;
+use Livewire\WithFileUploads;
 use App\Services\LicenseService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
@@ -13,6 +17,17 @@ use Livewire\Component;
 #[Layout('layouts.modern')]
 class InstallationSetup extends Component
 {
+    use WithFileUploads;
+
+    public string $brandName = '';
+    public string $brandAddress = '';
+    public string $welcomeHeading = '';
+    public string $welcomeStatement = '';
+    public string $welcomeTemplate = 'auto';
+    public $logo;
+    public bool $removeLogo = false;
+    public string $brandingMessage = '';
+
     public string $clientName = '';
     public string $plan = 'hospital';
     public array $modules = [];
@@ -27,6 +42,13 @@ class InstallationSetup extends Component
 
     public function mount(LicenseService $license): void
     {
+        $settings = app(SystemBranding::class)->settings();
+        $this->brandName = $settings?->brand_name ?? config('app.name');
+        $this->brandAddress = $settings?->address ?? config('app.address', '');
+        $this->welcomeHeading = $settings?->welcome_heading ?? '';
+        $this->welcomeStatement = $settings?->welcome_statement ?? '';
+        $this->welcomeTemplate = $settings?->welcome_template ?? 'auto';
+
         $current = $license->currentLicense();
         $this->clientName = $current?->client_name ?? config('app.title', config('app.name'));
         $this->plan = $license->currentPlan() ?? 'hospital';
@@ -95,9 +117,79 @@ class InstallationSetup extends Component
         $this->savedMessage = 'Installation saved. Package restrictions now apply to all users. Existing records are retained.';
     }
 
+    private function brandingRules(): array
+    {
+        return [
+            'brandName' => ['required', 'string', 'max:120'],
+            'brandAddress' => ['nullable', 'string', 'max:255'],
+            'welcomeHeading' => ['nullable', 'string', 'max:180'],
+            'welcomeStatement' => ['nullable', 'string', 'max:1500'],
+            'welcomeTemplate' => ['required', Rule::in(array_merge(['auto'], array_keys(config('welcome_templates'))))],
+            'logo' => ['nullable', 'image', 'mimes:png,jpg,jpeg,webp', 'max:2048', 'dimensions:max_width=2048,max_height=2048'],
+            'removeLogo' => ['boolean'],
+        ];
+    }
+
+    public function updatedLogo(): void
+    {
+        $this->validateOnly('logo', $this->brandingRules());
+        $this->removeLogo = false;
+    }
+
+    public function saveBranding(): void
+    {
+        abort_unless(auth()->user()?->is_installation_admin, 403);
+        $this->validate($this->brandingRules());
+        $newPath = null;
+        $oldPath = null;
+        try {
+            if ($this->logo && ! $this->removeLogo) {
+                $newPath = $this->logo->store('branding', 'local');
+                if (! $newPath) {
+                    $this->addError('logo', 'The logo could not be stored. Please try again.');
+                    return;
+                }
+            }
+            DB::transaction(function () use ($newPath, &$oldPath) {
+                $settings = SystemSetting::query()->lockForUpdate()->find(1) ?? new SystemSetting;
+                $before = $settings->only(['brand_name', 'address', 'welcome_heading', 'welcome_statement', 'welcome_template', 'logo_path']);
+                $oldPath = $settings->logo_path;
+                $settings->id = 1;
+                $settings->fill([
+                    'brand_name' => trim($this->brandName),
+                    'address' => trim($this->brandAddress),
+                    'welcome_heading' => trim($this->welcomeHeading) ?: null,
+                    'welcome_statement' => trim($this->welcomeStatement) ?: null,
+                    'welcome_template' => $this->welcomeTemplate,
+                    'logo_path' => $newPath ?: ($this->removeLogo ? null : $oldPath),
+                ])->save();
+                AuditLog::create([
+                    'actor_id' => auth()->id(), 'action' => 'system.branding_updated',
+                    'model_type' => SystemSetting::class, 'model_id' => 1,
+                    'before' => $before, 'after' => $settings->only(array_keys($before)),
+                    'ip' => request()->ip(), 'user_agent' => request()->userAgent(),
+                ]);
+            });
+        } catch (\Throwable $exception) {
+            if ($newPath) {
+                Storage::disk('local')->delete($newPath);
+            }
+            throw $exception;
+        }
+        if ($oldPath && ($newPath || $this->removeLogo) && str_starts_with($oldPath, 'branding/')) {
+            Storage::disk('local')->delete($oldPath);
+        }
+        $this->reset('logo', 'removeLogo');
+        app(SystemBranding::class)->apply();
+        $this->brandingMessage = 'System branding saved. The welcome page, login, and application branding are updated.';
+    }
+
     public function render()
     {
         return view('components.admin.installation-setup', [
+            'welcomeTemplates' => config('welcome_templates'),
+            'welcomePreview' => app(SystemBranding::class)->template($this->welcomeTemplate, $this->plan),
+            'currentLogoUrl' => app(SystemBranding::class)->logoUrl(),
             'plans' => config('mediflow_modules.plans'),
             'features' => config('mediflow_modules.features'),
             'required' => config('mediflow_modules.required'),

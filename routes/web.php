@@ -45,6 +45,8 @@ use App\Http\Controllers\WifiSharingController;
 use App\Services\WifiSharingService;
 
 
+Route::get('/branding/logo', [\App\Http\Controllers\BrandingController::class, 'logo'])->name('branding.logo');
+
 // ajax routes
 Route::get('/ajax/investigations/{typeId}', [App\Http\Controllers\AjaxController::class, 'getInvestigations'])->name('ajax.get-investigations');
 Route::get('/ajax/beds/{wardId}', [App\Http\Controllers\AjaxController::class, 'getWardBeds'])->name('ajax.get-ward-beds');
@@ -52,7 +54,12 @@ Route::get('/ajax/medicines/{medicineTypeId}', [App\Http\Controllers\AjaxControl
 Route::get('/ajax/state/{stateId}/get-lgas', [App\Http\Controllers\AjaxController::class, 'getLgas'])->name('ajax.get-lgas');
 
 Route::get('/', function (Illuminate\Http\Request $request, WifiSharingService $wifiSharing) {
-    return view('welcome', [
+    $branding = app(\App\Services\SystemBranding::class);
+    $settings = $branding->settings();
+    return view($settings ? 'welcome-installation' : 'welcome', [
+        'branding' => $branding,
+        'settings' => $settings,
+        'template' => $branding->template($settings?->welcome_template ?? 'auto'),
         'wifiSharing' => $wifiSharing->status(),
         'canManageWifiSharing' => $wifiSharing->canManage($request),
     ]);

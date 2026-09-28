@@ -21,9 +21,9 @@
        }">
     <div class="mb-5 flex shrink-0 items-center justify-between px-2">
         <a href="{{ $dashboardRoute }}" class="flex min-w-0 items-center gap-3">
-            <img src="{{ asset('images/logo.png') }}" alt="{{ config('app.name') }}" class="h-10 w-10 rounded-md object-contain">
+            <img src="{{ app(\App\Services\SystemBranding::class)->logoUrl() }}" alt="{{ config('app.name') }}" class="h-10 w-10 rounded-md object-contain">
             <span class="min-w-0" x-show="! sidebarCollapsed">
-                <span class="block text-lg font-bold text-med-ink">Mediflow</span>
+                <span class="block text-lg font-bold text-med-ink">{{ config('app.name') }}</span>
                 <span class="block text-sm font-medium text-med-muted">Healthcare operations</span>
             </span>
         </a>

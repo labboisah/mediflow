@@ -17,7 +17,7 @@
 
     <title>{{ config('app.name') }} | {{ $modernBrowserTitle }}</title>
 
-    <link rel="icon" href="{{ asset('images/logo.png') }}" type="image/png">
+    <link rel="icon" href="{{ app(\App\Services\SystemBranding::class)->logoUrl() }}">
 
     @if($hasModernAssets)
         @vite(['resources/css/modern.css', 'resources/js/modern.js'])

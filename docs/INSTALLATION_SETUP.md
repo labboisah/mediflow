@@ -34,3 +34,13 @@ php artisan view:cache
 ```
 
 Tests use an isolated in-memory SQLite schema and cover setup authorization, revoked access, presets, dependency validation, explicit disabled modules, inactive/expired licenses, direct route restrictions, middleware persistence, and report datasets.
+
+## System branding and welcome pages
+
+The same Installation Setup screen includes a separate **System branding** form. It saves brand name, organization address, optional welcome heading and statement, logo, and welcome template without altering the installation package or staff access.
+
+Logo uploads accept PNG, JPEG, and WebP up to 2 MB and 2048 ? 2048 pixels. Logos use generated filenames on the private local disk and are served by the read-only `/branding/logo` endpoint; no storage symlink is required. Replacement/removal cleans up the previous logo after the database save succeeds. SVG uploads are rejected. Changes are audited as `system.branding_updated`.
+
+Automatic template selection follows the saved installation package. Six styles are available: Pharmacy, Clinic, Diagnostics Center, Maternity Clinic, Hospital, and Enterprise. A manual selection overrides the automatic choice without changing module access. Empty welcome text uses the selected template?s default wording. Welcome text is escaped, not rendered as HTML. The preview uses the selected package; save package changes separately to apply them publicly.
+
+Saved branding appears on the welcome page, login screen, app favicon/sidebar, and existing web receipt/report headers that read `app.name`, `app.title`, or `app.address`. No `.env` editing is required. The original marketing welcome page remains until branding is first saved. Settings live in the singleton `system_settings` row, separate from license data. Apply `2026_09_28_000001_create_system_settings_table` when upgrading another installation.

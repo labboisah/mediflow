@@ -32,6 +32,7 @@ class InstallationSetupTest extends TestCase
             foreach (['before', 'after', 'meta', 'ip', 'user_agent'] as $column) { $table->text($column)->nullable(); }
             $table->timestamps();
         });
+        (require database_path('migrations/2026_09_28_000001_create_system_settings_table.php'))->up();
         (require database_path('migrations/2026_08_27_000002_create_client_licenses_table.php'))->up();
         (require database_path('migrations/2026_08_27_000003_create_client_enabled_modules_table.php'))->up();
     }
@@ -150,6 +151,61 @@ class InstallationSetupTest extends TestCase
         $license->update(['plan' => 'maternity_clinic']);
         $this->assertTrue($service->reportTableEnabled('deliveries'));
         $this->assertFalse($service->reportTableEnabled('investigation_requests'));
+    }
+
+    public function test_branding_saves_separately_and_escapes_public_text(): void
+    {
+        $this->license();
+        Livewire::actingAs($this->admin())->test(InstallationSetup::class)
+            ->set('brandName', 'Test Pharmacy')->set('welcomeHeading', '<script>alert(1)</script>')
+            ->set('welcomeStatement', 'Welcome to our team')->set('welcomeTemplate', 'pharmacy')
+            ->call('saveBranding')->assertHasNoErrors()->assertSee('System branding saved');
+        $this->assertDatabaseHas('system_settings', ['id' => 1, 'brand_name' => 'Test Pharmacy']);
+        $this->assertSame('pharmacy', app(LicenseService::class)->currentPlan());
+        $this->assertDatabaseHas('audit_logs', ['action' => 'system.branding_updated']);
+        auth()->logout();
+        $this->get('/login')->assertOk()->assertSee('Login to Test Pharmacy');
+        $this->get('/')->assertOk()->assertSee('&lt;script&gt;alert(1)&lt;/script&gt;', false)
+            ->assertDontSee('<script>alert(1)</script>', false);
+    }
+
+    public function test_branding_logo_upload_delivery_replacement_and_removal(): void
+    {
+        \Illuminate\Support\Facades\Storage::fake('local');
+        $screen = Livewire::actingAs($this->admin())->test(InstallationSetup::class)
+            ->set('logo', \Illuminate\Http\UploadedFile::fake()->image('logo.png', 120, 120))
+            ->call('saveBranding')->assertHasNoErrors();
+        $old = \App\Models\SystemSetting::find(1)->logo_path;
+        \Illuminate\Support\Facades\Storage::disk('local')->assertExists($old);
+        $this->get('/branding/logo')->assertOk()->assertHeader('X-Content-Type-Options', 'nosniff');
+        $screen->set('logo', \Illuminate\Http\UploadedFile::fake()->image('new.png', 120, 120))
+            ->call('saveBranding')->assertHasNoErrors();
+        \Illuminate\Support\Facades\Storage::disk('local')->assertMissing($old);
+        $screen->set('removeLogo', true)->call('saveBranding')->assertHasNoErrors();
+        $this->assertNull(\App\Models\SystemSetting::find(1)->logo_path);
+        $this->get('/branding/logo')->assertNotFound();
+    }
+
+    public function test_invalid_branding_template_and_logo_are_rejected(): void
+    {
+        Livewire::actingAs($this->admin())->test(InstallationSetup::class)
+            ->set('welcomeTemplate', '../../private')->call('saveBranding')->assertHasErrors('welcomeTemplate')
+            ->set('logo', \Illuminate\Http\UploadedFile::fake()->create('logo.svg', 1, 'image/svg+xml'))
+            ->assertHasErrors('logo');
+        $this->assertDatabaseCount('system_settings', 0);
+    }
+
+    public function test_automatic_template_tracks_package_and_all_six_render(): void
+    {
+        $license = $this->license();
+        $branding = app(\App\Services\SystemBranding::class);
+        foreach (array_keys(config('welcome_templates')) as $key) {
+            $license->update(['plan' => $key]);
+            $this->assertSame($key, $branding->template()['key']);
+            \App\Models\SystemSetting::updateOrCreate(['id' => 1], ['brand_name' => 'Test Brand', 'welcome_template' => 'auto']);
+            $this->get('/')->assertOk()->assertSee('data-template="'.$key.'"', false);
+        }
+        $this->assertSame('pharmacy', $branding->template('pharmacy')['key']);
     }
 
     public function test_six_presets_and_shared_routes_are_consistent(): void

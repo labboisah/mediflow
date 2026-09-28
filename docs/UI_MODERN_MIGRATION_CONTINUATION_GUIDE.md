@@ -6,7 +6,7 @@ Use this document as the prompt guide for continuing the Mediflow modern UI migr
 
 ## Installation Configuration Update
 
-Super admin Installation Setup is available at `/admin/installation`. See [INSTALLATION_SETUP.md](INSTALLATION_SETUP.md) for package configuration, account provisioning, route enforcement, and tests.
+Super admin Installation Setup is available at `/admin/installation`. See [INSTALLATION_SETUP.md](INSTALLATION_SETUP.md) for package configuration, system branding, welcome-page templates, account provisioning, route enforcement, and tests.
 
 ## Current Stop Point
 

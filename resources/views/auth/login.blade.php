@@ -3,9 +3,9 @@
 
     <div class="mb-5 text-center">
         <a href="{{ url('/') }}" class="mx-auto mb-4 inline-flex items-center justify-center">
-            <img src="{{ asset('images/logo.png') }}" alt="Mediflow" class="h-12 w-12 rounded-md object-contain" width="48" height="48" style="width:48px;height:48px;max-width:48px;object-fit:contain;">
+            <img src="{{ app(\App\Services\SystemBranding::class)->logoUrl() }}" alt="{{ config('app.name') }}" class="h-12 w-12 rounded-md object-contain" width="48" height="48" style="width:48px;height:48px;max-width:48px;object-fit:contain;">
         </a>
-        <h1 class="text-xl font-semibold text-med-ink">Login to Mediflow</h1>
+        <h1 class="text-xl font-semibold text-med-ink">Login to {{ config('app.name') }}</h1>
         <p class="mt-1 text-sm text-med-muted">Access your healthcare workspace.</p>
     </div>
 
