@@ -54,6 +54,16 @@ class SidebarService
 
     public function canShowItem(User $user, Module $module): bool
     {
+        if ($module->name === 'pharmacy_services') {
+            return \App\Models\PharmacyService::canManage($user)
+                && $this->license->moduleEnabled('pharmacy') && $this->routeCanBeGenerated($module->route);
+        }
+
+        if ($module->name === 'department_users') {
+            return $user->department_id && $user->hasRole('head_of_department')
+                && $this->license->moduleEnabled('access_control') && $this->routeCanBeGenerated($module->route);
+        }
+
         if (! $this->license->routeEnabled($module->route) || ! $this->license->userHasModuleAccess($user, $module->license_module)) {
             return false;
         }

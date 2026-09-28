@@ -13,7 +13,7 @@ class FinanceController extends Controller
 {
     public function bills()
     {
-        $transactions = StockTransaction::with(['bill.payments', 'payment.paymentMethod', 'stockTransactionItems.medicineBatch.medicine', 'createdBy'])
+        $transactions = StockTransaction::with(['bill.payments', 'payment.paymentMethod', 'stockTransactionItems.medicineBatch.medicine', 'serviceItems', 'createdBy'])
             ->whereNotNull('bill_id')
             ->latest()
             ->paginate(25);
@@ -23,7 +23,7 @@ class FinanceController extends Controller
 
     public function payments()
     {
-        $transactions = StockTransaction::with(['bill', 'payment.paymentMethod', 'stockTransactionItems.medicineBatch.medicine', 'createdBy'])
+        $transactions = StockTransaction::with(['bill', 'payment.paymentMethod', 'stockTransactionItems.medicineBatch.medicine', 'serviceItems', 'createdBy'])
             ->whereNotNull('payment_id')
             ->latest()
             ->paginate(25);
@@ -33,7 +33,7 @@ class FinanceController extends Controller
 
     public function receipt(Payment $payment)
     {
-        $transaction = StockTransaction::with(['stockTransactionItems.medicineBatch.medicine', 'bill', 'payment.paymentMethod', 'createdBy'])
+        $transaction = StockTransaction::with(['stockTransactionItems.medicineBatch.medicine', 'serviceItems', 'bill', 'payment.paymentMethod', 'createdBy'])
             ->where('payment_id', $payment->id)
             ->firstOrFail();
 
@@ -75,7 +75,7 @@ class FinanceController extends Controller
         $from = $validated['from'] ?? today()->startOfMonth()->toDateString();
         $to = $validated['to'] ?? today()->toDateString();
 
-        $transactions = StockTransaction::with(['bill', 'payment.paymentMethod', 'stockTransactionItems.medicineBatch.medicine', 'createdBy'])
+        $transactions = StockTransaction::with(['bill', 'payment.paymentMethod', 'stockTransactionItems.medicineBatch.medicine', 'serviceItems', 'createdBy'])
             ->whereNotNull('bill_id')
             ->whereNotNull('payment_id')
             ->whereDate('created_at', '>=', $from)

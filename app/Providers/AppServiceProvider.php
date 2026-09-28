@@ -26,6 +26,8 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         \Livewire\Livewire::addPersistentMiddleware([
+            \App\Http\Middleware\CheckRole::class,
+            \App\Http\Middleware\EnsurePharmacyManager::class,
             \App\Http\Middleware\EnsureInstallationModules::class,
             \App\Http\Middleware\EnsureInstallationAdmin::class,
         ]);

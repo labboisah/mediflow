@@ -1,10 +1,11 @@
 <div>
-    <x-ui.page title="Pharmacy Transaction" subtitle="Select medicines, collect payment, create bill, and print receipt.">
+    <x-ui.page title="Pharmacy Transaction" subtitle="Add medicines and services, collect one payment, and print one receipt.">
         <x-slot:actions>
             <a href="{{ route('pharmacy.transactions.index') }}" class="mf-focus inline-flex items-center justify-center gap-2 rounded-md border border-med-line bg-white px-3 py-2 text-sm font-semibold text-med-ink transition hover:bg-med-canvas"><i class="bi bi-list-ul"></i>Transactions</a>
         </x-slot:actions>
 
         <div class="grid gap-5 xl:grid-cols-[minmax(320px,0.85fr)_minmax(0,1.35fr)]">
+            <div class="space-y-5">
             <x-ui.card title="Medicine Selection" subtitle="Search available, unexpired batches and add them to the cart.">
                 <div class="space-y-4">
                     <x-ui.input label="Search Medicine" type="search" wire:model.live.debounce.300ms="search" placeholder="Name, generic, company, or batch" />
@@ -34,9 +35,22 @@
                     </div>
                 </div>
             </x-ui.card>
+            <x-ui.card title="Services" subtitle="Use the quantity above for each medicine or service you add.">
+                @if(\App\Models\PharmacyService::canManage(auth()->user()))
+                    <a href="{{ route('pharmacy.services.index') }}" class="text-med-primary underline">Manage service charges</a>
+                @endif
+                <div class="mt-3 space-y-2">
+                    @forelse($services as $service)
+                        <button type="button" wire:click="addServiceToCart({{ $service->id }})" class="mf-focus flex w-full justify-between rounded-md border border-med-line p-3 text-left">
+                            <span>{{ $service->name }}</span><strong>&#8358;{{ number_format($service->price, 2) }}</strong>
+                        </button>
+                    @empty<p class="text-med-muted">No active services. Ask the Head of Pharmacy to set up service charges.</p>@endforelse
+                </div>
+            </x-ui.card>
+            </div>
 
             <div class="space-y-5">
-                <x-ui.card title="Cart" subtitle="Review selected medicines before collecting payment.">
+                <x-ui.card title="Cart" subtitle="Review medicines and services before collecting payment.">
                     <x-slot:actions>
                         @if(count($cart) > 0)
                             <button type="button" class="mf-focus inline-flex items-center justify-center gap-2 rounded-md border border-red-200 bg-white px-3 py-2 text-sm font-semibold text-med-danger transition hover:bg-red-50" wire:click="clearCart" wire:confirm="Clear all items from this cart?"><i class="bi bi-trash"></i>Clear</button>
@@ -44,17 +58,24 @@
                     </x-slot:actions>
 
                     <x-ui.table>
-                        <thead class="bg-med-canvas/80 text-left text-xs font-semibold uppercase tracking-wide text-med-muted"><tr><th class="px-4 py-3">Medicine</th><th class="px-4 py-3">Batch</th><th class="px-4 py-3 text-right">Price</th><th class="px-4 py-3 text-right">Qty</th><th class="px-4 py-3 text-right">Subtotal</th><th class="px-4 py-3 text-right">Action</th></tr></thead>
+                        <thead class="bg-med-canvas/80 text-left text-xs font-semibold uppercase tracking-wide text-med-muted"><tr><th class="px-4 py-3">Item</th><th class="px-4 py-3">Type / Batch</th><th class="px-4 py-3 text-right">Price</th><th class="px-4 py-3 text-right">Qty</th><th class="px-4 py-3 text-right">Subtotal</th><th class="px-4 py-3 text-right">Action</th></tr></thead>
                         <tbody class="divide-y divide-med-line bg-white">
                             @forelse($cart as $index => $item)
-                                <tr class="hover:bg-med-canvas/50" wire:key="cart-item-{{ $item['batch_id'] }}"><td class="px-4 py-3 font-semibold text-med-ink">{{ $item['medicine'] }}</td><td class="px-4 py-3 text-med-muted">{{ $item['batch_number'] }}</td><td class="px-4 py-3 text-right text-med-muted">&#8358;{{ number_format($item['price'], 2) }}</td><td class="px-4 py-3 text-right text-med-muted">{{ $item['quantity'] }}</td><td class="px-4 py-3 text-right font-semibold text-med-ink">&#8358;{{ number_format($item['subtotal'], 2) }}</td><td class="px-4 py-3 text-right"><button type="button" class="mf-focus inline-flex h-8 w-8 items-center justify-center rounded-md border border-red-200 text-med-danger hover:bg-red-50" wire:click="removeFromCart({{ $index }})" aria-label="Remove item"><i class="bi bi-x-lg"></i></button></td></tr>
+                                <tr class="hover:bg-med-canvas/50" wire:key="cart-item-{{ $index }}"><td class="px-4 py-3 font-semibold text-med-ink">{{ $item['medicine'] }}</td><td class="px-4 py-3 text-med-muted">{{ $item['batch_number'] }}</td><td class="px-4 py-3 text-right text-med-muted">&#8358;{{ number_format($item['price'], 2) }}</td><td class="px-4 py-3 text-right text-med-muted">{{ $item['quantity'] }}</td><td class="px-4 py-3 text-right font-semibold text-med-ink">&#8358;{{ number_format($item['subtotal'], 2) }}</td><td class="px-4 py-3 text-right"><button type="button" class="mf-focus inline-flex h-8 w-8 items-center justify-center rounded-md border border-red-200 text-med-danger hover:bg-red-50" wire:click="removeFromCart({{ $index }})" aria-label="Remove item"><i class="bi bi-x-lg"></i></button></td></tr>
                             @empty
-                                <tr><td colspan="6" class="px-4 py-8"><x-ui.empty-state title="No Medicine Added" message="Select a medicine batch to start this transaction." /></td></tr>
+                                <tr><td colspan="6" class="px-4 py-8"><x-ui.empty-state title="No Items Added" message="Select a medicine or service to start this transaction." /></td></tr>
                             @endforelse
                         </tbody>
                         <tfoot class="bg-med-canvas/60"><tr><th colspan="4" class="px-4 py-3 text-right text-med-ink">Total</th><th class="px-4 py-3 text-right text-med-ink">&#8358;{{ number_format($total, 2) }}</th><th></th></tr></tfoot>
                     </x-ui.table>
 
+                    <div class="mt-5 grid gap-4 md:grid-cols-2">
+                        <div><x-ui.input label="Patient / Customer Name" wire:model="patientName" placeholder="Required when billing a service" />
+                        @error('patientName')<p class="text-sm text-med-danger">{{ $message }}</p>@enderror</div>
+                        <div><x-ui.input label="Phone (optional)" wire:model="patientPhone" maxlength="30" />
+                        @error('patientPhone')<p class="text-sm text-med-danger">{{ $message }}</p>@enderror</div>
+                    </div>
+                    @foreach($errors->get('cart.*') as $messages) @foreach($messages as $message)<p class="text-sm text-med-danger">{{ $message }}</p>@endforeach @endforeach
                     <div class="mt-5 grid gap-4 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_140px] md:items-end">
                         <div>
                             <x-ui.select label="Payment Method" wire:model="paymentMethodId">
@@ -77,7 +98,7 @@
                         <div class="grid gap-4 md:grid-cols-3"><div><p class="text-sm text-med-muted">Amount Paid</p><p class="mt-1 font-bold text-med-ink">&#8358;{{ number_format($receiptTransaction->payment?->amount ?? 0, 2) }}</p></div><div><p class="text-sm text-med-muted">Payment Method</p><p class="mt-1 font-bold text-med-ink">{{ $receiptTransaction->payment?->paymentMethod?->name ?? 'N/A' }}</p></div><div><p class="text-sm text-med-muted">Collected By</p><p class="mt-1 font-bold text-med-ink">{{ $receiptTransaction->createdBy?->name ?? 'System' }}</p></div></div>
                     </x-ui.card>
 
-                    <div id="pharmacy-thermal-receipt" class="hidden"><div class="thermal-receipt"><div class="text-center"><h5 class="mb-1">{{ strtoupper(config('app.title') ?? config('app.name')) }}</h5><div>{{ strtoupper(config('app.address') ?? '') }}</div><div class="fw-bold mt-1">PHARMACY RECEIPT</div></div><div class="divider"></div><p><strong>Receipt:</strong> {{ $receiptTransaction->payment?->payment_id }}</p><p><strong>Bill:</strong> {{ $receiptTransaction->bill?->bill_number }}</p><p><strong>Date:</strong> {{ $receiptTransaction->payment?->payment_date?->format('M d, Y h:i A') }}</p><p><strong>Method:</strong> {{ $receiptTransaction->payment?->paymentMethod?->name ?? 'N/A' }}</p>@if($receiptTransaction->payment?->reference_number)<p><strong>Ref:</strong> {{ $receiptTransaction->payment->reference_number }}</p>@endif<div class="divider"></div><table>@foreach($receiptTransaction->stockTransactionItems as $item)<tr><td>{{ \Illuminate\Support\Str::limit($item->medicineBatch?->medicine?->name ?? 'N/A', 22) }}</td><td class="text-right">{{ $item->quantity }} x {{ number_format($item->price, 2) }}</td></tr><tr><td class="small">Batch {{ $item->medicineBatch?->batch_number ?? 'N/A' }}</td><td class="text-right">{{ number_format($item->subtotal, 2) }}</td></tr>@endforeach</table><div class="divider"></div><p><strong>Total Paid:</strong> {{ number_format($receiptTransaction->payment?->amount ?? 0, 2) }}</p><p><strong>Served By:</strong> {{ $receiptTransaction->createdBy?->name ?? 'System' }}</p><div class="divider"></div><p class="text-center">Thank you.</p></div></div>
+                    <div id="pharmacy-thermal-receipt" class="hidden">@include('pharmacy.partials.combined-receipt', ['transaction' => $receiptTransaction, 'payment' => $receiptTransaction->payment])</div>
                 @endif
             </div>
         </div>

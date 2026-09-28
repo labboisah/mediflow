@@ -26,6 +26,7 @@
     </style>
 </head>
 <body>
+<p>Revenue includes pharmacy services. Cost and gross profit use medicine purchase costs only; service labour and supplies are not deducted.</p>
     <table class="header">
         <tr>
             <td style="width: 84px;">
@@ -108,7 +109,7 @@
                 <th>Date</th>
                 <th>Bill</th>
                 <th>Receipt</th>
-                <th>Medicines</th>
+                <th>Medicines / Services</th>
                 <th>Collected By</th>
                 <th class="text-end">Revenue</th>
                 <th class="text-end">Cost</th>
@@ -126,6 +127,7 @@
                         @foreach($transaction->stockTransactionItems as $item)
                             {{ $item->medicineBatch?->medicine?->name ?? 'N/A' }} x {{ $item->quantity }}@if(! $loop->last); @endif
                         @endforeach
+                        @foreach($transaction->serviceItems as $item)<div>{{ $item->name }} x {{ $item->quantity }} (Service)</div>@endforeach
                     </td>
                     <td>{{ $transaction->createdBy?->name ?? 'System' }}</td>
                     <td class="text-end">{{ number_format($row['revenue'], 2) }}</td>

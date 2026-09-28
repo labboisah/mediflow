@@ -12,6 +12,10 @@ class StockTransaction extends Model
         return $this->hasMany(StockTransactionItem::class, 'transaction_id');
     }
 
+    public function serviceItems() {
+        return $this->hasMany(PharmacyServiceItem::class, 'transaction_id');
+    }
+
     public function createdBy() {
         return $this->belongsTo(User::class, 'created_by');
     }

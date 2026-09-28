@@ -2,15 +2,9 @@
 
 namespace App\Livewire\Pharmacy;
 
-use App\Models\Bill;
 use App\Models\MedicineBatch;
-use App\Models\Payment;
 use App\Models\PaymentMethod;
-use App\Models\PharmacyDispense;
 use App\Models\StockTransaction;
-use App\Models\StockTransactionItem;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 use Livewire\Attributes\Layout;
 use Livewire\Component;
 
@@ -22,7 +16,11 @@ class TransactionWorkspace extends Component
     public int|string $quantity = 1;
     public string $paymentMethodId = '';
     public string $referenceNumber = '';
+    public string $patientName = '';
+    public string $patientPhone = '';
+    #[\Livewire\Attributes\Locked]
     public array $cart = [];
+    #[\Livewire\Attributes\Locked]
     public ?int $receiptTransactionId = null;
 
     public function mount(): void
@@ -34,6 +32,7 @@ class TransactionWorkspace extends Component
     {
         return view('components.pharmacy.transaction-workspace', [
             'batches' => $this->availableBatches(),
+            'services' => \App\Models\PharmacyService::where('is_active', true)->orderBy('name')->get(),
             'paymentMethods' => PaymentMethod::where('is_active', true)->orderBy('name')->get(),
             'total' => $this->total(),
             'receiptTransaction' => $this->receiptTransaction(),
@@ -55,7 +54,7 @@ class TransactionWorkspace extends Component
             return;
         }
 
-        $existingIndex = collect($this->cart)->search(fn ($item) => (int) $item['batch_id'] === $batch->id);
+        $existingIndex = collect($this->cart)->search(fn ($item) => (int) ($item['batch_id'] ?? 0) === $batch->id);
 
         if ($existingIndex !== false) {
             $newQuantity = (int) $this->cart[$existingIndex]['quantity'] + $quantity;
@@ -90,6 +89,25 @@ class TransactionWorkspace extends Component
         $this->addToCart();
     }
 
+    public function addServiceToCart(int $id): void
+    {
+        $this->validate(['quantity' => ['required', 'integer', 'min:1', 'max:10000']]);
+        $service = \App\Models\PharmacyService::where('is_active', true)->findOrFail($id);
+        $index = collect($this->cart)->search(fn ($item) => (int) ($item['service_id'] ?? 0) === $id);
+        $quantity = (int) $this->quantity;
+        if ($index !== false) {
+            $quantity += (int) $this->cart[$index]['quantity'];
+            unset($this->cart[$index]);
+        }
+        $this->cart[] = [
+            'service_id' => $id, 'batch_id' => null, 'medicine' => $service->name,
+            'batch_number' => 'Service', 'price' => (float) $service->price,
+            'quantity' => $quantity, 'subtotal' => round($quantity * (float) $service->price, 2),
+        ];
+        $this->cart = array_values($this->cart);
+        $this->quantity = 1;
+    }
+
     public function removeFromCart(int $index): void
     {
         if (! isset($this->cart[$index])) {
@@ -98,13 +116,15 @@ class TransactionWorkspace extends Component
 
         unset($this->cart[$index]);
         $this->cart = array_values($this->cart);
-        $this->feedback('Medicine removed from cart.', 'warning');
+        $this->feedback('Item removed from cart.', 'warning');
     }
 
     public function clearCart(): void
     {
         $this->cart = [];
         $this->receiptTransactionId = null;
+        $this->patientName = '';
+        $this->patientPhone = '';
         $this->feedback('Cart cleared.', 'warning');
     }
 
@@ -116,93 +136,18 @@ class TransactionWorkspace extends Component
         ]);
 
         if (empty($this->cart)) {
-            $this->feedback('Add at least one medicine to the cart.', 'warning');
+            $this->feedback('Add at least one medicine or service to the cart.', 'warning');
             return;
         }
 
-        $transaction = DB::transaction(function () use ($validated) {
-            $transaction = StockTransaction::create([
-                'total_amount' => 0,
-                'type' => 'dispense',
-                'created_by' => auth()->id(),
-            ]);
-
-            $totalAmount = 0;
-            $medicineNames = [];
-
-            foreach ($this->cart as $item) {
-                $batch = MedicineBatch::with('medicine')->whereKey($item['batch_id'])->lockForUpdate()->firstOrFail();
-                $quantity = (int) $item['quantity'];
-                $price = (float) $batch->selling_price;
-                $subtotal = round($price * $quantity, 2);
-
-                if ($quantity < 1 || $batch->quantity_remaining < $quantity) {
-                    throw ValidationException::withMessages([
-                        'cart' => "Insufficient stock for {$batch->medicine?->name}.",
-                    ]);
-                }
-
-                $totalAmount += $subtotal;
-                $medicineNames[] = "{$batch->medicine?->name} x {$quantity}";
-
-                StockTransactionItem::create([
-                    'transaction_id' => $transaction->id,
-                    'medicine_batch_id' => $batch->id,
-                    'quantity' => $quantity,
-                    'price' => $price,
-                    'subtotal' => $subtotal,
-                ]);
-
-                PharmacyDispense::create([
-                    'medicine_batch_id' => $batch->id,
-                    'type' => 'dispense',
-                    'quantity' => $quantity,
-                    'reference' => $transaction->id,
-                    'created_by' => auth()->id(),
-                ]);
-
-                $batch->decrement('quantity_remaining', $quantity);
-            }
-
-            $bill = Bill::create([
-                'department_id' => auth()->user()?->department_id,
-                'bill_number' => Bill::generateBillNumber(),
-                'service_description' => 'Pharmacy transaction: ' . implode(', ', $medicineNames),
-                'amount' => $totalAmount,
-                'due_amount' => $totalAmount,
-                'status' => 'pending',
-                'issued_by' => auth()->id(),
-                'issued_date' => now(),
-                'due_date' => now(),
-                'notes' => 'Generated from pharmacy transaction #' . $transaction->id,
-            ]);
-
-            $payment = Payment::create([
-                'payment_id' => Payment::generatePaymentID(),
-                'amount' => $totalAmount,
-                'payment_method_id' => (int) $validated['paymentMethodId'],
-                'reference_number' => $validated['referenceNumber'] ?: null,
-                'status' => 'completed',
-                'notes' => 'Payment collected for pharmacy transaction #' . $transaction->id,
-                'bill_id' => $bill->id,
-                'paid_by' => auth()->id(),
-                'payment_date' => now(),
-            ]);
-
-            $bill->update(['status' => 'paid']);
-
-            $transaction->update([
-                'total_amount' => $totalAmount,
-                'reference' => $bill->bill_number,
-                'bill_id' => $bill->id,
-                'payment_id' => $payment->id,
-            ]);
-
-            return $transaction;
-        });
+        $transaction = app(\App\Services\PharmacyCheckout::class)->complete(
+            $this->cart, $validated, $this->patientName, $this->patientPhone
+        );
 
         $this->cart = [];
         $this->referenceNumber = '';
+        $this->patientName = '';
+        $this->patientPhone = '';
         $this->receiptTransactionId = $transaction->id;
         $this->feedback('Transaction completed. Receipt is ready.');
         $this->dispatch('print-pharmacy-thermal');
@@ -235,7 +180,7 @@ class TransactionWorkspace extends Component
     private function receiptTransaction(): ?StockTransaction
     {
         return $this->receiptTransactionId
-            ? StockTransaction::with(['stockTransactionItems.medicineBatch.medicine', 'bill', 'payment.paymentMethod', 'createdBy'])->find($this->receiptTransactionId)
+            ? StockTransaction::with(['stockTransactionItems.medicineBatch.medicine', 'serviceItems', 'bill', 'payment.paymentMethod', 'createdBy'])->find($this->receiptTransactionId)
             : null;
     }
 

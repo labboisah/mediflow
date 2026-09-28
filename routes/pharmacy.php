@@ -17,8 +17,13 @@ Route::prefix('pharmacy')
 ->name('pharmacy.')
 ->group(function () {
 
+Route::get('/services', \App\Livewire\Pharmacy\ServiceManager::class)->name('services.index');
+
+Route::get('/receipts/{payment}', [FinanceController::class, 'receipt'])
+    ->middleware('role:pharmacist,pharmacy_technician')->name('receipts.show');
+
 Route::prefix('transactions')
-->middleware('role:pharmacist')
+->middleware('role:pharmacist,pharmacy_technician')
 ->name('transactions.')
 ->group(function () {
     Route::get('/', TransactionIndex::class)->name('index');
@@ -28,7 +33,7 @@ Route::prefix('transactions')
 });
 
 Route::prefix('prescriptions')
-->middleware('role:pharmacist')
+->middleware('role:pharmacist,pharmacy_technician')
 ->name('prescriptions.')
 ->group(function () {
     Route::get('/', [PrescriptionController::class,'index'])->name('index');

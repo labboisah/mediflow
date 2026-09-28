@@ -116,6 +116,10 @@ class User extends Authenticatable
      */
     public function hasRole(string|array $role): bool
     {
+        if (($role === 'head_of_department' || (is_array($role) && in_array('head_of_department', $role, true))) && $this->isDepartmentHead()) {
+            return true;
+        }
+
         if (is_array($role)) {
             return $this->roles()->whereIn('name', $role)->exists();
         }
@@ -128,7 +132,14 @@ class User extends Authenticatable
      */
     public function hasAnyRole(array $roles): bool
     {
-        return $this->roles()->whereIn('name', $roles)->exists();
+        return $this->hasRole($roles);
+    }
+
+    public function isDepartmentHead(): bool
+    {
+        if (! $this->department_id || ! $this->department) return false;
+        $specificRole = 'head_of_'.\Illuminate\Support\Str::slug($this->department->name, '_');
+        return $this->roles()->whereIn('name', ['head_of_department', $specificRole])->exists();
     }
 
     /**

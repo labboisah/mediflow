@@ -86,6 +86,12 @@ class RoleSeeder extends Seeder
             ],
 
             [
+                'name' => 'pharmacy_technician',
+                'display_name' => 'Pharmacy Technician',
+                'description' => 'Supports pharmacy sales and prescription dispensing without pharmacy management access',
+            ],
+
+            [
                 'name' => 'head_of_department',
                 'display_name' => 'Head of Department',
                 'description' => 'Manages consumables, stock, generate financial report, and general inventory',

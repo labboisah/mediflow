@@ -72,7 +72,7 @@ class ModulePermissionSeeder extends Seeder
             Role::updateOrCreate(
                 ['name' => $roleName],
                 [
-                    'display_name' => ucwords(strtolower($department->name)),
+                    'display_name' => 'Head of '.ucwords(strtolower($department->name)),
                     'description' => 'Head of department role for ' . $department->name,
                 ]
             );
@@ -107,8 +107,8 @@ class ModulePermissionSeeder extends Seeder
             $this->item('doctor_prescriptions', 'Prescriptions', 'bi-prescription2', 'doctor.clinicals.prescriptions', 'clinical_care', 'medications', ['doctor'], ['prescription.read', 'prescription.create'], ['doctor.clinicals.prescriptions'], 50),
             $this->item('doctor_drug_charts', 'Drug Chart', 'bi-capsule-pill', 'doctor.clinicals.drug-charts', 'clinical_care', 'medications', ['doctor'], ['drug_chart.read', 'prescription.read'], ['doctor.clinicals.drug-charts'], 51),
             $this->item('nurse_drug_charts', 'Drug Chart', 'bi-capsule-pill', 'nurse.clinicals.drug-charts', 'clinical_care', 'medications', ['nurse'], ['drug_chart.read', 'nursing_note.read'], ['nurse.clinicals.drug-charts'], 52),
-            $this->item('pharmacy_prescriptions', 'Prescription Dispensing', 'bi-prescription2', 'pharmacy.prescriptions.index', 'pharmacy', 'medications', ['pharmacist'], ['dispense.read', 'pharmacy_sale.read'], ['pharmacy.prescriptions.*'], 53),
-            $this->item('pharmacy_transactions', 'Stock Transactions', 'bi-arrow-left-right', 'pharmacy.transactions.index', 'pharmacy', 'medications', ['pharmacist'], ['stock_transaction.read', 'pharmacy_sale.read'], ['pharmacy.transactions.index', 'pharmacy.transactions.create'], 54),
+            $this->item('pharmacy_prescriptions', 'Prescription Dispensing', 'bi-prescription2', 'pharmacy.prescriptions.index', 'pharmacy', 'medications', ['pharmacist', 'pharmacy_technician'], ['dispense.read', 'pharmacy_sale.read'], ['pharmacy.prescriptions.*'], 53),
+            $this->item('pharmacy_transactions', 'Stock Transactions', 'bi-arrow-left-right', 'pharmacy.transactions.index', 'pharmacy', 'medications', ['pharmacist', 'pharmacy_technician'], ['stock_transaction.read', 'pharmacy_sale.read'], ['pharmacy.transactions.index', 'pharmacy.transactions.create'], 54),
             $this->item('pharmacy_medicines', 'Medicines', 'bi-capsule', 'pharmacy.medicines.index', 'pharmacy', 'medications', ['pharmacist', 'head_of_department'], ['medicine.read'], ['pharmacy.medicines.*'], 55),
             $this->item('pharmacy_stock', 'Pharmacy Stock', 'bi-box-seam', 'pharmacy.stocks.index', 'pharmacy', 'medications', ['pharmacist', 'head_of_department'], ['medicine_stock.read'], ['pharmacy.stocks.index', 'pharmacy.stocks.create'], 56),
             $this->item('pharmacy_stock_reconciliation', 'Stock Reconciliation', 'bi-clipboard-check', 'pharmacy.stocks.reconciliation', 'pharmacy', 'medications', ['head_of_department'], ['stock_reconciliation.read', 'medicine_stock.read'], ['pharmacy.stocks.reconciliation'], 57),
@@ -149,7 +149,7 @@ class ModulePermissionSeeder extends Seeder
             $this->item('medical_director_wards', 'Wards', 'bi-hospital', 'medical-director.wards.index', 'wards_beds', 'wards_admissions', ['medical_director'], ['ward.read', 'bed.read'], ['medical-director.wards.*', 'medical-director.beds.*'], 154),
 
             $this->item('departments', 'Departments', 'bi-buildings', 'admin.departments.index', 'department_management', 'departments_inventory', ['administrator', 'medical_director'], ['department.read'], ['admin.departments.*'], 170),
-            $this->item('department_users', 'Department Users', 'bi-people', 'department.users.index', 'department_management', 'departments_inventory', ['head_of_department'], ['department_user.read', 'user.read'], ['department.users.*'], 171),
+            $this->item('department_users', 'Department Users', 'bi-people', 'department.users.index', 'access_control', 'departments_inventory', ['head_of_department'], ['department_user.read', 'user.read'], ['department.users.*'], 171),
             $this->item('department_investigations', 'Department Investigations', 'bi-clipboard2-data', 'department.investigations.index', 'department_management', 'departments_inventory', ['head_of_department'], ['investigation.read'], ['department.investigations.*'], 172),
             $this->item('department_consumables', 'Consumables', 'bi-box-seam', 'department.consumables.index', 'department_management', 'departments_inventory', ['head_of_department'], ['consumable.read'], ['department.consumables.*'], 173),
             $this->item('department_stocks', 'Consumable Stock', 'bi-boxes', 'department.stocks.index', 'department_management', 'departments_inventory', ['head_of_department'], ['consumable_stock.read'], ['department.stocks.*'], 174),

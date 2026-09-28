@@ -44,3 +44,23 @@ Logo uploads accept PNG, JPEG, and WebP up to 2 MB and 2048 ? 2048 pixels. Logos
 Automatic template selection follows the saved installation package. Six styles are available: Pharmacy, Clinic, Diagnostics Center, Maternity Clinic, Hospital, and Enterprise. A manual selection overrides the automatic choice without changing module access. Empty welcome text uses the selected template?s default wording. Welcome text is escaped, not rendered as HTML. The preview uses the selected package; save package changes separately to apply them publicly.
 
 Saved branding appears on the welcome page, login screen, app favicon/sidebar, and existing web receipt/report headers that read `app.name`, `app.title`, or `app.address`. No `.env` editing is required. The original marketing welcome page remains until branding is first saved. Settings live in the singleton `system_settings` row, separate from license data. Apply `2026_09_28_000001_create_system_settings_table` when upgrading another installation.
+
+## Department heads and technician roles
+
+Department-specific head roles are named from the department, for example `head_of_pharmacy` (Head of Pharmacy) and `head_of_laboratory` (Head of Laboratory). Administrators assign these roles and the matching department through User Management. Existing `head_of_department` assignments remain supported; existing users are not automatically reassigned. A named head role only acts as an HOD when its department matches the user's assigned department.
+
+HODs use `/department/users` to create staff, change names/login details, and assign operational roles within their own department. Staff role choices follow `config/department_staff.php` and the enabled installation modules. Unrecognized department names require an administrator to add the appropriate mapping. HODs cannot edit themselves, other departments, installation administrators, administrator/head accounts, or accounts holding roles outside the department's allowed set. Role and user updates are transactional and audited without recording passwords. Associated operational module access is updated alongside the roles.
+
+Department Users uses the Access Control module, so it is available in standalone installations without enabling the full Departments & Inventory package. Installation Setup remains restricted to installation administrators, and no mandatory activation or remote licensing restriction was added.
+
+`pharmacy_technician` is an operational role for pharmacy sales and dispensing; it does not grant medicine/stock management or pharmacy finance administration. `lab_technician` reuses the existing role instead of introducing a duplicate.
+
+Apply the focused update on existing installations:
+
+```sh
+php artisan db:seed --class=TechnicianRoleSeeder --force
+```
+
+This creates/updates named department-head roles, adds Pharmacy Technician, ensures Lab Technician exists, and updates Department Users navigation. It preserves existing role assignments and permissions rather than reseeding users or resetting access.
+
+Tests: `php vendor/phpunit/phpunit/phpunit tests/Feature/DepartmentUsersTest.php tests/Feature/InstallationSetupTest.php`.

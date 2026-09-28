@@ -22,6 +22,8 @@ class DatabaseSeeder extends Seeder
 
         // Create modules and attach them to roles
         $this->call(ModulePermissionSeeder::class);
+        $this->call(TechnicianRoleSeeder::class);
+        $this->call(PharmacyServiceModuleSeeder::class);
 
         // Create Medical Director role and scoped oversight access
         $this->call(MedicalDirectorSeeder::class);

@@ -288,6 +288,9 @@ class Bill extends Model
 
     // lets check if total bill services + investigations equals bill amount (after discount)
     public function isAmountConsistent() {
+        if ($this->stockTransactions()->exists()) {
+            return round((float) $this->stockTransactions()->sum('total_amount'), 2) === round((float) $this->amount, 2);
+        }
         $totalServices = $this->totalBillServices();
         $totalInvestigations = $this->totalBillInvestigations();
         $total = $totalServices + $totalInvestigations;
