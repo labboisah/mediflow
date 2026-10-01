@@ -24,6 +24,8 @@ class DatabaseSeeder extends Seeder
         $this->call(ModulePermissionSeeder::class);
         $this->call(TechnicianRoleSeeder::class);
         $this->call(PharmacyServiceModuleSeeder::class);
+        $this->call(SpecialistModuleSeeder::class);
+        $this->call(PartnerNetworkSeeder::class);
 
         // Create Medical Director role and scoped oversight access
         $this->call(MedicalDirectorSeeder::class);

@@ -13,10 +13,11 @@ return [
     |
     */
 
-    'name' => env('APP_NAME', 'FAYHOS'),
+    'name' => env('APP_NAME', 'MEDIFLOW'),
+    'mode' => strtolower(trim((string) env('APP_MODE', 'standalone'))),
 
-    'title' => env('APP_TITLE', 'FATIMA YAHAYA HOSPITAL, SIFAWA'),
-    'address' => env('APP_ADDRESS', 'NO 5. BIRNIN KEBBI ROAD, SIFAWA BODINGA LG, SOKOTO STATE'),
+    'title' => env('APP_TITLE', 'MEDICAL RECORD FLOW, SOKOTO'),
+    'address' => env('APP_ADDRESS', 'NO 23. SARDA QUARTERS AREA, WAMAKO LG, SOKOTO STATE'),
 
 
 

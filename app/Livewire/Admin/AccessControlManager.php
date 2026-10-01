@@ -9,6 +9,7 @@ use App\Models\Permission;
 use App\Models\Role;
 use App\Models\TemporaryPermission;
 use App\Models\User;
+use App\Services\InstallationCatalog;
 use App\Services\LicenseService;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -22,18 +23,29 @@ class AccessControlManager extends Component
     private const PROTECTED_ROLES = ['administrator'];
 
     public string $roleSearch = '';
+
     public ?int $selectedRoleId = null;
+
     public string $roleName = '';
+
     public string $roleDisplayName = '';
+
     public string $roleDescription = '';
+
     public array $selectedPermissionIds = [];
+
     public array $selectedUserIds = [];
 
     public string $permissionName = '';
+
     public string $permissionDisplayName = '';
+
     public string $permissionModule = '';
+
     public string $permissionDescription = '';
+
     public string $permissionSearch = '';
+
     public string $moduleFilter = '';
 
     public function mount(): void
@@ -65,13 +77,13 @@ class AccessControlManager extends Component
 
     public function selectRole(int $roleId): void
     {
-        $role = Role::with(['permissions', 'users'])->findOrFail($roleId);
+        $role = app(InstallationCatalog::class)->roles()->with(['permissions', 'users'])->findOrFail($roleId);
 
         $this->selectedRoleId = $role->id;
         $this->roleName = $role->name;
         $this->roleDisplayName = $role->display_name ?? '';
         $this->roleDescription = $role->description ?? '';
-        $this->selectedPermissionIds = $role->permissions->pluck('id')->map(fn ($id) => (string) $id)->all();
+        $this->selectedPermissionIds = app(InstallationCatalog::class)->permissions()->whereHas('roles', fn ($q) => $q->where('roles.id', $role->id))->pluck('id')->map(fn ($id) => (string) $id)->all();
         $this->selectedUserIds = $role->users->pluck('id')->map(fn ($id) => (string) $id)->all();
     }
 
@@ -92,9 +104,14 @@ class AccessControlManager extends Component
 
         if ($this->isProtectedRole($this->selectedRole())) {
             $this->dispatch('toast', message: 'This system role is protected and cannot be edited here.', type: 'warning');
+
             return;
         }
 
+        app(InstallationCatalog::class)->roleInput($this->roleName, $this->selectedPermissionIds);
+        if ($this->selectedRoleId) {
+            app(InstallationCatalog::class)->ids('roles', [$this->selectedRoleId], 'selectedRoleId');
+        }
         DB::transaction(function () use ($validated) {
             $role = Role::updateOrCreate(
                 ['id' => $this->selectedRoleId],
@@ -121,11 +138,13 @@ class AccessControlManager extends Component
 
         if (! $role) {
             $this->dispatch('toast', message: 'Select a role first.', type: 'warning');
+
             return;
         }
 
         if ($this->isProtectedRole($role)) {
             $this->dispatch('toast', message: 'Protected role users are managed from the user edit screen.', type: 'warning');
+
             return;
         }
 
@@ -135,6 +154,9 @@ class AccessControlManager extends Component
         ]);
 
         $role->users()->sync($this->selectedUserIds);
+        foreach ($role->users()->get() as $user) {
+            app(\App\Services\RoleModuleAccess::class)->grantMissing($user);
+        }
         AuditLog::record(auth()->user(), 'role.users.sync', $role, null, ['users' => $this->selectedUserIds]);
 
         $this->selectRole($role->id);
@@ -151,6 +173,7 @@ class AccessControlManager extends Component
 
         if ($this->isProtectedRole($role)) {
             $this->dispatch('toast', message: 'Protected system roles cannot be deleted.', type: 'warning');
+
             return;
         }
 
@@ -174,6 +197,7 @@ class AccessControlManager extends Component
             'permissionDescription' => ['nullable', 'string'],
         ]);
 
+        abort_unless(app(InstallationCatalog::class)->permissionAllowed($this->permissionModule, $this->permissionName), 403);
         $permission = Permission::create([
             'name' => str($validated['permissionName'])->lower()->replace(' ', '.')->toString(),
             'display_name' => $validated['permissionDisplayName'] ?: str($validated['permissionName'])->headline()->toString(),
@@ -204,6 +228,7 @@ class AccessControlManager extends Component
 
         if (! $this->licenseModules()->contains($licenseModule)) {
             $this->dispatch('toast', message: 'This module is not enabled by the current license.', type: 'warning');
+
             return;
         }
 
@@ -234,10 +259,9 @@ class AccessControlManager extends Component
 
     private function roles(): Collection
     {
-        return Role::withCount(['users', 'permissions'])
+        return app(InstallationCatalog::class)->roles()->withCount(['users', 'permissions'])
             ->when($this->roleSearch !== '', function ($query) {
-                $query->where('name', 'like', "%{$this->roleSearch}%")
-                    ->orWhere('display_name', 'like', "%{$this->roleSearch}%");
+                $query->where(fn ($q) => $q->where('name', 'like', "%{$this->roleSearch}%")->orWhere('display_name', 'like', "%{$this->roleSearch}%"));
             })
             ->orderBy('name')
             ->get();
@@ -245,16 +269,16 @@ class AccessControlManager extends Component
 
     private function selectedRole(): ?Role
     {
-        return $this->selectedRoleId ? Role::with(['permissions', 'users'])->find($this->selectedRoleId) : null;
+        return $this->selectedRoleId ? app(InstallationCatalog::class)->roles()->with(['permissions', 'users'])->find($this->selectedRoleId) : null;
     }
 
     private function permissionGroups(): Collection
     {
-        return Permission::query()
+        return app(InstallationCatalog::class)->permissions()
             ->when($this->permissionSearch !== '', function ($query) {
-                $query->where('name', 'like', "%{$this->permissionSearch}%")
+                $query->where(fn ($q) => $q->where('name', 'like', "%{$this->permissionSearch}%")
                     ->orWhere('display_name', 'like', "%{$this->permissionSearch}%")
-                    ->orWhere('description', 'like', "%{$this->permissionSearch}%");
+                    ->orWhere('description', 'like', "%{$this->permissionSearch}%"));
             })
             ->when($this->moduleFilter !== '', function ($query) {
                 $this->moduleFilter === 'general'
@@ -269,7 +293,7 @@ class AccessControlManager extends Component
 
     private function modules(): Collection
     {
-        return Permission::query()
+        return app(InstallationCatalog::class)->permissions()
             ->select('module')
             ->distinct()
             ->orderBy('module')
@@ -282,8 +306,8 @@ class AccessControlManager extends Component
     private function summary(): array
     {
         return [
-            'roles' => Role::count(),
-            'permissions' => Permission::count(),
+            'roles' => app(InstallationCatalog::class)->roles()->count(),
+            'permissions' => app(InstallationCatalog::class)->permissions()->count(),
             'users' => User::count(),
             'temporary_permissions' => TemporaryPermission::active()->count(),
         ];
@@ -320,13 +344,13 @@ class AccessControlManager extends Component
                     ->orWhere('expires_at', '>=', now());
             })
             ->get(['user_id', 'license_module'])
-            ->mapWithKeys(fn (ModuleUserAccess $access) => [$access->user_id . ':' . $access->license_module => true])
+            ->mapWithKeys(fn (ModuleUserAccess $access) => [$access->user_id.':'.$access->license_module => true])
             ->all();
     }
 
     private function selectFirstRole(): void
     {
-        $role = Role::orderBy('name')->first();
+        $role = app(InstallationCatalog::class)->roles()->orderBy('name')->first();
 
         if ($role) {
             $this->selectRole($role->id);
@@ -345,7 +369,7 @@ class AccessControlManager extends Component
 
     private function modulePermissionQuery(string $module)
     {
-        return Permission::query()
+        return app(InstallationCatalog::class)->permissions()
             ->when(
                 $module === 'general',
                 fn ($query) => $query->where(fn ($builder) => $builder->whereNull('module')->orWhere('module', 'general')),

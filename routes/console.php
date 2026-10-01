@@ -131,3 +131,6 @@ Artisan::command('installation:admin {email} {--revoke}', function () {
     ]);
     $this->info($user->is_installation_admin ? 'Installation access granted.' : 'Installation access revoked.');
 })->purpose('Grant or revoke installation configuration access for an existing account');
+
+\Illuminate\Support\Facades\Schedule::command('partners:deliver')->everyMinute()->withoutOverlapping()
+    ->when(fn()=>\Illuminate\Support\Facades\Schema::hasTable('partner_outbox') && app(\App\Services\LicenseService::class)->moduleEnabled('partner_network'));

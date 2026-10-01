@@ -8,6 +8,9 @@
         <a href="{{ route('patient.show', $patient) }}" class="mf-focus inline-flex items-center justify-center rounded-md border border-med-line bg-white px-3 py-2 text-sm font-semibold text-med-ink transition hover:bg-med-canvas">Back to Profile</a>
     </x-slot:actions>
 
+    @if(\Illuminate\Support\Facades\Schema::hasTable('specialist_consultations') && auth()->user()->hasPermission('specialist_consultation.read') && app(\App\Services\SpecialistAccess::class)->patients(auth()->user())->whereKey($patient->id)->exists())
+        <a class="text-med-primary underline" href="{{ route('clinical-history.specialist',$patient) }}">Specialist clinical history</a>
+    @endif
     <div class="space-y-5">
         @forelse($visits as $visit)
             <x-ui.card title="Visit {{ optional($visit->visit_date)->format('M d, Y') ?? optional($visit->created_at)->format('M d, Y') }}" subtitle="{{ $visit->visit_type ?? 'Clinical visit' }} | {{ ucfirst($visit->status ?? 'active') }}">

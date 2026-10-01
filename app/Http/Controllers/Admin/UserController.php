@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\User;
-use App\Models\Role;
-use App\Models\AuditLog;
-use App\Models\Department;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
-use Illuminate\Support\Str;
-use Illuminate\Support\Facades\Mail;
 use App\Mail\UserCreated;
+use App\Models\AuditLog;
+use App\Models\User;
+use App\Services\InstallationCatalog;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Str;
 
 class UserController extends Controller
 {
@@ -22,7 +21,7 @@ class UserController extends Controller
         if ($search = request('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('email', 'like', "%{$search}%");
+                    ->orWhere('email', 'like', "%{$search}%");
             });
         }
 
@@ -37,14 +36,15 @@ class UserController extends Controller
         }
 
         $users = $query->paginate(15)->withQueryString();
-        $roles = Role::orderBy('name')->get();
+        $roles = app(InstallationCatalog::class)->roles()->orderBy('name')->get();
+
         return view('admin.users.index', compact('users', 'roles'));
     }
 
     public function create()
     {
-        $roles = Role::orderBy('name')->get();
-        $departments = Department::orderBy('name')->get();
+        $roles = app(InstallationCatalog::class)->roles()->orderBy('name')->get();
+        $departments = app(InstallationCatalog::class)->departments()->orderBy('name')->get();
 
         return view('admin.users.create', compact('roles', 'departments'));
     }
@@ -56,8 +56,8 @@ class UserController extends Controller
             return redirect()->route('admin.users.index')->with('error', 'You cannot edit your own roles here.');
         }
 
-        $roles = Role::orderBy('name')->get();
-        $departments = Department::orderBy('name')->get();
+        $roles = app(InstallationCatalog::class)->roles()->orderBy('name')->get();
+        $departments = app(InstallationCatalog::class)->departments()->orderBy('name')->get();
         $userRoles = $user->roles->pluck('id')->toArray();
 
         return view('admin.users.edit', compact('user', 'roles', 'departments', 'userRoles'));
@@ -67,8 +67,9 @@ class UserController extends Controller
     {
         $user->load(['roles', 'department']);
 
-        $roles = Role::orderBy('name')->get();
+        $roles = app(InstallationCatalog::class)->roles()->orderBy('name')->get();
         $userRoles = $user->roles->pluck('id')->toArray();
+
         return view('admin.users.show', compact('user', 'roles', 'userRoles'));
     }
 
@@ -78,40 +79,42 @@ class UserController extends Controller
         if ($user->id === auth()->id()) {
             return redirect()->route('admin.users.index')->with('error', 'You cannot edit your own roles.');
         }
-      
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'department_id' => 'required|exists:departments,id',
-            'email' => 'required|email|unique:users,email,' . $user->id,
+            'email' => 'required|email|unique:users,email,'.$user->id,
             'password' => 'nullable|string|min:6|confirmed',
             'roles' => 'nullable|array',
             'roles.*' => 'exists:roles,id',
         ]);
- 
+
+        app(InstallationCatalog::class)->ids('roles', $validated['roles'] ?? [], 'roles');
+        app(InstallationCatalog::class)->ids('departments', [$validated['department_id']], 'department_id');
         $before = $user->toArray();
-        
+
         $user->update([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'department_id' => $validated['department_id'],
         ]);
-        
-        if (!empty($validated['password'])) {
+
+        if (! empty($validated['password'])) {
             $user->password = $validated['password'];
             $user->save();
         }
 
         if ($request->has('roles')) {
             $user->syncRoles($request->roles);
+            app(\App\Services\RoleModuleAccess::class)->grantMissing($user);
         } else {
             $user->removeAllRoles();
         }
 
         $after = $user->fresh()->toArray();
-        
+
         AuditLog::record(auth()->user(), 'user.update', $user, $before, $after);
-        
-        
+
         return redirect()->route('admin.users.index')->with('success', 'User updated successfully.');
     }
 
@@ -126,6 +129,8 @@ class UserController extends Controller
             'roles.*' => 'exists:roles,id',
         ]);
 
+        app(InstallationCatalog::class)->ids('roles', $validated['roles'] ?? [], 'roles');
+        app(InstallationCatalog::class)->ids('departments', [$validated['department_id']], 'department_id');
         $password = $validated['password'] ?? Str::random(12);
 
         $user = User::create([
@@ -137,6 +142,7 @@ class UserController extends Controller
 
         if ($request->has('roles')) {
             $user->syncRoles($request->roles);
+            app(\App\Services\RoleModuleAccess::class)->grantMissing($user);
         }
 
         // Send welcome email with temporary password
@@ -144,7 +150,7 @@ class UserController extends Controller
             Mail::to($user->email)->send(new UserCreated($user, $password));
         } catch (\Throwable $e) {
             // Log but don't fail the request
-            logger()->error('Failed to send user created email: ' . $e->getMessage());
+            logger()->error('Failed to send user created email: '.$e->getMessage());
         }
 
         AuditLog::record(auth()->user(), 'user.create', $user, null, $user->toArray());
@@ -163,14 +169,15 @@ class UserController extends Controller
         $user->delete();
 
         AuditLog::record(auth()->user(), 'user.delete', null, $before, null);
+
         return redirect()->route('admin.users.index')->with('success', 'User deleted successfully.');
     }
 
     public function restore($id)
     {
         $user = User::withTrashed()->findOrFail($id);
-        
-        if (!$user->trashed()) {
+
+        if (! $user->trashed()) {
             return redirect()->route('admin.users.index')->with('error', 'User is not deleted.');
         }
 
@@ -178,6 +185,7 @@ class UserController extends Controller
         $user->restore();
         $after = $user->fresh()->toArray();
         AuditLog::record(auth()->user(), 'user.restore', $user, $before, $after);
+
         return redirect()->route('admin.users.index')->with('success', 'User restored successfully.');
     }
 }

@@ -12,11 +12,15 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
         then: function () {
             foreach (\Illuminate\Support\Facades\Route::getRoutes() as $route) {
+                $route->middleware(\App\Http\Middleware\EnsureCentralLicense::class);
                 $route->middleware(\App\Http\Middleware\EnsureInstallationModules::class);
+                $route->middleware(\App\Http\Middleware\ProtectSpecialistRecords::class);
+                $route->middleware(\App\Http\Middleware\IsolatePartnerPortal::class);
             }
         },
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        $middleware->redirectGuestsTo(fn ($request) => $request->routeIs('partner.*') ? route('partner.login') : route('login'));
         $middleware->web(append: [\App\Http\Middleware\ApplySystemBranding::class]);
         $middleware->alias([
             'installation.admin' => \App\Http\Middleware\EnsureInstallationAdmin::class,

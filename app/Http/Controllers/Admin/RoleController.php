@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\Role;
-use App\Models\Permission;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Role;
+use App\Services\InstallationCatalog;
+use Illuminate\Http\Request;
 
 class RoleController extends Controller
 {
@@ -13,13 +13,15 @@ class RoleController extends Controller
 
     public function index()
     {
-        $roles = Role::with('permissions')->paginate(10);
+        $roles = app(InstallationCatalog::class)->roles()->with(['permissions' => fn ($q) => $q->whereIn('permissions.id', app(InstallationCatalog::class)->permissions()->select('id'))])->paginate(10);
+
         return view('admin.roles.index', compact('roles'));
     }
 
     public function create()
     {
-        $permissions = Permission::all();
+        $permissions = app(InstallationCatalog::class)->permissions()->get();
+
         return view('admin.roles.create', compact('permissions'));
     }
 
@@ -32,6 +34,7 @@ class RoleController extends Controller
             'permissions.*' => 'exists:permissions,id',
         ]);
 
+        app(InstallationCatalog::class)->roleInput($validated['name'], $validated['permissions'] ?? []);
         $role = Role::create([
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
@@ -46,24 +49,28 @@ class RoleController extends Controller
 
     public function edit(Role $role)
     {
-        $permissions = Permission::all();
-        $rolePermissions = $role->permissions->pluck('id')->toArray();
+        abort_unless(app(InstallationCatalog::class)->roles()->whereKey($role->id)->exists(), 403);
+        $permissions = app(InstallationCatalog::class)->permissions()->get();
+        $rolePermissions = app(InstallationCatalog::class)->permissions()->whereHas('roles', fn ($q) => $q->where('roles.id', $role->id))->pluck('id')->toArray();
+
         return view('admin.roles.edit', compact('role', 'permissions', 'rolePermissions'));
     }
 
     public function update(Request $request, Role $role)
     {
+        abort_unless(app(InstallationCatalog::class)->roles()->whereKey($role->id)->exists(), 403);
         if (in_array($role->name, self::PROTECTED_ROLES, true)) {
             return redirect()->route('admin.roles.index')->with('error', 'Cannot edit protected system roles.');
         }
 
         $validated = $request->validate([
-            'name' => 'required|unique:roles,name,' . $role->id . '|max:255',
+            'name' => 'required|unique:roles,name,'.$role->id.'|max:255',
             'description' => 'nullable|string',
             'permissions' => 'nullable|array',
             'permissions.*' => 'exists:permissions,id',
         ]);
 
+        app(InstallationCatalog::class)->roleInput($validated['name'], $validated['permissions'] ?? []);
         $role->update([
             'name' => $validated['name'],
             'description' => $validated['description'] ?? null,
@@ -78,11 +85,13 @@ class RoleController extends Controller
 
     public function destroy(Role $role)
     {
+        abort_unless(app(InstallationCatalog::class)->roles()->whereKey($role->id)->exists(), 403);
         if (in_array($role->name, self::PROTECTED_ROLES, true)) {
             return redirect()->route('admin.roles.index')->with('error', 'Cannot delete protected system roles.');
         }
 
         $role->delete();
+
         return redirect()->route('admin.roles.index')->with('success', 'Role deleted successfully.');
     }
 }

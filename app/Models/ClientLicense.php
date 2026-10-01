@@ -10,6 +10,7 @@ class ClientLicense extends Model
     protected $fillable = [
         'client_name',
         'plan',
+        'selected_packages',
         'license_key',
         'branch_limit',
         'starts_at',
@@ -18,6 +19,7 @@ class ClientLicense extends Model
     ];
 
     protected $casts = [
+        'selected_packages' => 'array',
         'starts_at' => 'datetime',
         'expires_at' => 'datetime',
         'branch_limit' => 'integer',

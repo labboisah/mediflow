@@ -56,6 +56,9 @@ trait Syncable
      */
     public function createSyncOperation($operation = 'update', $payload = null): SyncOperation
     {
+        if (app(\App\Services\SpecialistSyncBoundary::class)->localOnly($this)) {
+            throw new \LogicException('Specialist clinical records require a complete exchange adapter and remain local to this installation.');
+        }
         $this->ensureSyncUuid();
 
         return SyncOperation::create([

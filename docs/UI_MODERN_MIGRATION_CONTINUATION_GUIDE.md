@@ -8,6 +8,10 @@ Use this document as the prompt guide for continuing the Mediflow modern UI migr
 
 Super admin Installation Setup is available at `/admin/installation`. See [INSTALLATION_SETUP.md](INSTALLATION_SETUP.md) for package configuration, system branding, welcome-page templates, account provisioning, route enforcement, and tests.
 
+## Specialist Package
+
+Specialist is implemented as the seventh package. See [Specialist Operations](SPECIALIST_OPERATIONS.md) for deployment, configuration, verification and facility acceptance, and [Specialist Package Implementation Specification](SPECIALIST_PACKAGE_IMPLEMENTATION_SPEC.md) for the design contract.
+
 ## Current Stop Point
 
 Phase 8 billing, finance, and reports are complete. Continue with the final cleanup phase for remaining legacy/fallback screens.
@@ -603,3 +607,13 @@ If a migrated screen uses Livewire, test:
 
 
 
+
+## Specialist package implementation (2026-09-29)
+
+The Specialist workspace is implemented using the modern shell and existing `x-ui` components at `/specialist`. Practice setup, scoped appointments/patients, consultations, orders/results/referrals, billing, reports and history use `resources/views/specialist` and controller routes. The sidebar entry is seeded through the module registry, not hardcoded. Specialist package combinations and branding extend Installation Setup.
+
+See [Specialist Operations](SPECIALIST_OPERATIONS.md) for activation, staff privileges, verified checks and remaining facility acceptance. Do not reseed users or enable optional modules to make standalone screens work. Automatic synchronization of Specialist clinical records is intentionally blocked until a complete exchange contract exists.
+
+## Care Network implementation
+
+The internal Partner Network at `/care-network` uses the modern shell and seeded module navigation. The restricted portal at `/partner-portal` uses a separate authentication guard and limited shell. Registration/review/agreements, disclosure preview, cases, reports and private documents are implemented in `resources/views/network`. See [Care Network Operations](CARE_NETWORK_OPERATIONS.md) for activation, validation and remaining browser/facility acceptance.

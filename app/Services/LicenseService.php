@@ -31,6 +31,16 @@ class LicenseService
         return in_array('*', $modules, true) ? $this->allKnownModules($modules) : $modules;
     }
 
+    public function selectedPackages(): array
+    {
+        return $this->currentLicense()?->selected_packages ?: [$this->currentPlan()];
+    }
+
+    public function packageModules(array $packages): array
+    {
+        return collect($packages)->flatMap(fn ($package) => $this->planModules($package))->unique()->values()->all();
+    }
+
     public function configuredModules(): array
     {
         $license = $this->currentLicense();
@@ -42,7 +52,7 @@ class LicenseService
             }
         }
 
-        return $this->planModules($this->currentPlan() ?? '');
+        return $this->packageModules($this->selectedPackages());
     }
 
     public function enabledModules(): array

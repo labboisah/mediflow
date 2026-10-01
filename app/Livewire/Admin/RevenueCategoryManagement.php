@@ -12,6 +12,11 @@ class RevenueCategoryManagement extends Component
 {
     use WithPagination;
 
+    public function boot(): void
+    {
+        app(\App\Services\PackageFinanceAccess::class)->authorize();
+    }
+
     protected string $paginationTheme = 'tailwind';
 
     public string $search = '';

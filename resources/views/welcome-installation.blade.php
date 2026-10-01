@@ -9,7 +9,14 @@
     <link rel="stylesheet" href="{{ asset('vendor/bootstrap-icons/font/bootstrap-icons.css') }}">
     <link rel="stylesheet" href="{{ asset('css/installation-welcome.css') }}">
 </head>
-<body data-template="{{ $template['key'] }}" data-layout="{{ $template['layout'] }}" style="--brand-accent: {{ $template['accent'] }}; --brand-background: {{ $template['background'] }};">
+@php
+    $appearance = $settings?->welcome_appearance ?? [];
+    $colors = $branding->colors($template, $appearance['colors'] ?? []);
+    $backgroundImage = $branding->imageUrl('background');
+    $heroImage = $branding->imageUrl('hero');
+    $supportingImage = $branding->imageUrl('supporting');
+@endphp
+<body data-custom-colors="{{ !empty(array_filter($appearance['colors'] ?? [])) ? 'true' : 'false' }}" data-template="{{ $template['key'] }}" data-layout="{{ $template['layout'] }}" style="--brand-accent: {{ $colors['accent'] }}; --brand-background: {{ $colors['background'] }}; --brand-text: {{ $colors['text'] }};">
     @php
         $destination = auth()->check() ? route(auth()->user()->is_installation_admin ? 'admin.installation' : 'dashboard') : route('login');
         $workspaceLabel = auth()->check() ? 'Open workspace' : 'Staff login';
@@ -20,7 +27,8 @@
         <a class="button button-outline" href="{{ $destination }}">{{ $workspaceLabel }} <i class="bi bi-arrow-up-right" aria-hidden="true"></i></a>
     </header>
     <main>
-        <section class="hero">
+        <section class="hero {{ $backgroundImage ? 'has-background' : '' }}">
+            @if($backgroundImage)<img class="hero-background" src="{{ $backgroundImage }}" alt="" aria-hidden="true">@endif
             <div class="hero-copy">
                 <p class="eyebrow"><span></span>{{ $template['eyebrow'] }}</p>
                 <h1>{{ $settings?->welcome_heading ?: $template['heading'] }}</h1>
@@ -34,13 +42,15 @@
                 </div>
             </div>
             <aside class="welcome-panel" aria-label="Welcome">
-                <div class="panel-symbol"><i class="bi {{ $template['icon'] }}" aria-hidden="true"></i></div>
+                @if($heroImage)<img class="welcome-artwork" src="{{ $heroImage }}" alt="{{ $appearance['images']['hero']['alt'] ?? '' }}">@else
+                <div class="panel-symbol"><i class="bi {{ $template['icon'] }}" aria-hidden="true"></i></div>@endif
                 <p class="eyebrow">Welcome to</p>
                 <h2>{{ config('app.name') }}</h2>
                 @if(config('app.address'))<p class="address">{{ config('app.address') }}</p>@endif
                 <div class="panel-note"><i class="bi bi-person-badge" aria-hidden="true"></i><span>A dedicated workspace for our team.</span></div>
             </aside>
         </section>
+        @if($supportingImage)<div class="supporting-artwork"><img src="{{ $supportingImage }}" alt="{{ $appearance['images']['supporting']['alt'] ?? '' }}" loading="lazy"></div>@endif
         @if(count($publicModules))
             <section class="services" aria-labelledby="workspace-heading">
                 <div><p class="eyebrow">Working together</p><h2 id="workspace-heading">Our workspace</h2></div>

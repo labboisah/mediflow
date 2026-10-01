@@ -10,6 +10,7 @@ class PatientReferral extends Model
     use SoftDeletes;
 
     protected $fillable = [
+        'specialist_consultation_id', 'specialist_token', 'destination_type', 'destination_user_id', 'collaboration_partner_id', 'urgency', 'outcome', 'outcome_admission_id',
         'patient_id',
         'referral_date',
         'referred_to_department',

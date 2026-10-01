@@ -6,6 +6,8 @@ return [
     'required' => ['core', 'access_control'],
 
     'dependencies' => [
+        'partner_network' => ['specialist'],
+        'specialist' => ['patient_records', 'clinical_care', 'billing'],
         'clinical_care' => ['patient_records'],
         'doctor' => ['patient_records', 'clinical_care'],
         'nursing' => ['patient_records', 'clinical_care'],
@@ -17,6 +19,8 @@ return [
     ],
 
     'features' => [
+        'partner_network' => 'Partner Network',
+        'specialist' => 'Specialist Care',
         'core' => 'Core System',
         'patient_records' => 'Patient Records',
         'clinical_care' => 'Clinical Care',
@@ -39,6 +43,11 @@ return [
     ],
 
     'plans' => [
+        'specialist' => [
+            'label' => 'Care Network',
+            'description' => 'Specialist consultations, appointments, care plans, referrals, billing and reports.',
+            'modules' => ['core', 'access_control', 'patient_records', 'clinical_care', 'specialist', 'billing', 'reports', 'partner_network'],
+        ],
         'diagnostic_center' => [
             'label' => 'Diagnostic Center',
             'description' => 'Laboratory, radiology, patient registration, billing, finance, and reports.',
@@ -111,6 +120,7 @@ return [
     ],
 
     'legacy_plan_aliases' => [
+        'care_network' => 'specialist',
         'clinic' => 'general_clinic',
         'diagnostic_annex' => 'diagnostic_center',
         'maternity' => 'maternity_clinic',

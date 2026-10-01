@@ -12,7 +12,7 @@ class SyncObserver
      */
     public function created(Model $model): void
     {
-        if (!config('sync.behavior.auto_sync_enabled')) {
+        if (!config('sync.behavior.auto_sync_enabled') || app(\App\Services\SpecialistSyncBoundary::class)->localOnly($model)) {
             return;
         }
 
@@ -24,7 +24,7 @@ class SyncObserver
      */
     public function updated(Model $model): void
     {
-        if (!config('sync.behavior.auto_sync_enabled')) {
+        if (!config('sync.behavior.auto_sync_enabled') || app(\App\Services\SpecialistSyncBoundary::class)->localOnly($model)) {
             return;
         }
 
@@ -46,7 +46,7 @@ class SyncObserver
      */
     public function deleted(Model $model): void
     {
-        if (!config('sync.behavior.auto_sync_enabled')) {
+        if (!config('sync.behavior.auto_sync_enabled') || app(\App\Services\SpecialistSyncBoundary::class)->localOnly($model)) {
             return;
         }
 

@@ -54,9 +54,25 @@ class SidebarService
 
     public function canShowItem(User $user, Module $module): bool
     {
+        $finance = app(PackageFinanceAccess::class);
+        if ($finance->matches($module->route)) {
+            return $finance->allows($user) && str_starts_with($module->route, 'admin.') && $this->routeCanBeGenerated($module->route);
+        }
+
         if ($module->name === 'pharmacy_services') {
             return \App\Models\PharmacyService::canManage($user)
                 && $this->license->moduleEnabled('pharmacy') && $this->routeCanBeGenerated($module->route);
+        }
+
+        if (in_array($module->name, ['pharmacy_medicines', 'pharmacy_stock', 'pharmacy_stock_reconciliation', 'pharmacy_batches', 'pharmacy_expiry_alerts', 'pharmacy_finance_report'], true)) {
+            $isHead = $user->hasRole('head_of_department')
+                && str_contains(strtolower((string) $user->department?->name), 'pharmacy');
+            if (! $user->hasRole('pharmacist') && ! $isHead) {
+                return false;
+            }
+            if ($module->name === 'pharmacy_stock_reconciliation' && ! $isHead) {
+                return false;
+            }
         }
 
         if ($module->name === 'department_users') {

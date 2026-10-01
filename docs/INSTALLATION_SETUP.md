@@ -41,7 +41,7 @@ The same Installation Setup screen includes a separate **System branding** form.
 
 Logo uploads accept PNG, JPEG, and WebP up to 2 MB and 2048 ? 2048 pixels. Logos use generated filenames on the private local disk and are served by the read-only `/branding/logo` endpoint; no storage symlink is required. Replacement/removal cleans up the previous logo after the database save succeeds. SVG uploads are rejected. Changes are audited as `system.branding_updated`.
 
-Automatic template selection follows the saved installation package. Six styles are available: Pharmacy, Clinic, Diagnostics Center, Maternity Clinic, Hospital, and Enterprise. A manual selection overrides the automatic choice without changing module access. Empty welcome text uses the selected template?s default wording. Welcome text is escaped, not rendered as HTML. The preview uses the selected package; save package changes separately to apply them publicly.
+Automatic template selection follows the saved installation package. Seven styles are available: Pharmacy, Clinic, Diagnostics Center, Maternity Clinic, Hospital, Enterprise, and Care Network. A manual selection overrides the automatic choice without changing module access. Empty welcome text uses the selected template?s default wording. Welcome text is escaped, not rendered as HTML. The preview uses the selected package; save package changes separately to apply them publicly.
 
 Saved branding appears on the welcome page, login screen, app favicon/sidebar, and existing web receipt/report headers that read `app.name`, `app.title`, or `app.address`. No `.env` editing is required. The original marketing welcome page remains until branding is first saved. Settings live in the singleton `system_settings` row, separate from license data. Apply `2026_09_28_000001_create_system_settings_table` when upgrading another installation.
 
@@ -64,3 +64,36 @@ php artisan db:seed --class=TechnicianRoleSeeder --force
 This creates/updates named department-head roles, adds Pharmacy Technician, ensures Lab Technician exists, and updates Department Users navigation. It preserves existing role assignments and permissions rather than reseeding users or resetting access.
 
 Tests: `php vendor/phpunit/phpunit/phpunit tests/Feature/DepartmentUsersTest.php tests/Feature/InstallationSetupTest.php`.
+
+## Specialist and companion packages
+
+Specialist is the seventh installation package. Choose the primary package for branding and optional companion packages for combined operations. The setup form suggests the union of their modules; review the actual module selection before saving. Explicit saved module rows remain authoritative. Enterprise can be a companion package when branch management is required; this does not establish cross-branch clinical isolation.
+
+Existing installations are backfilled to their current normalized package. Deployment does not activate Specialist or assign clinical privileges. Installation Setup remains accessible to authorized installation administrators.
+
+See [Specialist Operations](SPECIALIST_OPERATIONS.md) for migrations, focused role seeding, staff provisioning, practice configuration, verification and rollback. [Specialist Package Implementation Specification](SPECIALIST_PACKAGE_IMPLEMENTATION_SPEC.md) retains the design and acceptance contract.
+
+## Care Network naming and Partner Network
+
+Care Network is now the displayed name of the Specialist package. The persisted `specialist` key remains valid; `care_network` is an alias. The Specialist Care workspace retains its clinical name. Partner Network is a separately selectable module depending on Specialist Care; new preset suggestions include it while existing saved module selections are preserved. See [Care Network Operations](CARE_NETWORK_OPERATIONS.md) for the additive upgrade and restricted partner portal.
+
+## Administrator registration
+
+Installation Setup includes a separate **Administrator registration** form for the full name, email, password and password confirmation. Save system branding first on a new installation. The brand-based email is only an editable suggestion; registering the account requires an explicit form submission. New passwords require at least eight characters and matching confirmation.
+
+The form manages one linked operational administrator. Existing linked accounts populate the form. Leave both password fields empty when updating to preserve the password; enter and confirm a new password to change it. Duplicate emails, deleted/partner-only/installation-admin account links and unauthorized access are rejected. Passwords are hashed and excluded from audit data and success messages; form password fields clear after submission.
+
+Branding and package saves no longer create or rename accounts. Existing accounts, including the previously provisioned administrator, are preserved. The account receives the existing administrator role, not installation-super-admin authority. Additional staff remain managed through User Management.
+
+The existing `2026_09_30_000002_link_installation_administrator.php` migration remains required. The earlier automatic provisioning command has been removed; use the registration form. No new migration is needed for this form change.
+
+
+## Welcome page appearance
+
+In **Installation Setup > System branding**, the installation super administrator can upload a welcome background, main welcome image, and supporting graphic, in addition to the existing logo. These assets are public welcome-page content; do not upload patient information. Main and supporting images have optional screen-reader descriptions. The background is decorative and uses a light overlay to help preserve readability.
+
+Choose accent, welcome background, and welcome text colors with the color picker or a six-digit hex value (`#RRGGBB`). Clear a color with **Use template default**. Existing installations retain their package templates until an override is saved. Appearance overrides apply to the public welcome page; application branding continues to use the saved name and logo.
+
+Images accept PNG, JPEG, and WebP, up to 4 MB and 4096 x 4096 pixels per artwork image. Logo limits remain 2 MB and 2048 x 2048 pixels. Each artwork slot has an upload preview and a removal checkbox. Replacements and removals take effect with **Save system branding**. Use **View saved welcome page** to review the complete layout on desktop and mobile. Replacement files are retained only after settings save successfully; superseded files are deleted after commit. Changes are audited.
+
+Deploy migration `2026_09_30_000003_add_welcome_appearance_to_system_settings.php` before using these controls. Images use the local disk and controlled public branding routes, so a public storage symlink is unnecessary. Include local branding files and the system settings table in backups.

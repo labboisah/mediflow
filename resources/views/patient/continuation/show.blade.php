@@ -28,7 +28,7 @@
                
                 <h5 class="mb-4 d-flex align-items-center gap-2">
                     <i class="bi bi-eyedropper me-2 text-primary"></i>
-                    <b><em>{{ $investigationRequest->investigation->investigationType->name }}</em></b> Investigation Details
+                    <b><em>{{ $investigationRequest->investigation?->investigationType?->name ?? 'External investigation' }}</em></b> Investigation Details
                 </h5>
                 <hr style="height: 3px; background-color: green;">
                 @if($investigationRequest->investigationResults->count() > 0)
@@ -48,7 +48,7 @@
                         <td><b>Patient Name:</b></td><td> {{ $investigationRequest->patientVisit->patient->demographic->full_name ?? 'N/A' }}</td>
                     </tr>
                     <tr>
-                        <td><b>Investigation:</b></td><td> {{ $investigationRequest->investigation->name ?? 'N/A'}}</td>
+                        <td><b>Investigation:</b></td><td> {{ $investigationRequest->requested_name ?? $investigationRequest->investigation?->name ?? 'N/A'}}</td>
                     </tr>
                     <tr>
                         <td><b>Requested By:</b></td><td> {{ $investigationRequest->requestedBy->name ?? 'N/A' }}</td>

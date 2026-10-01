@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "24ced9cb7ed050648c1705a9a71b4cef",
+    "content-hash": "14925c8eb11564a6eb70dfb100edf4f2",
     "packages": [
         {
             "name": "barryvdh/laravel-dompdf",
@@ -1561,6 +1561,39 @@
                 }
             ],
             "time": "2025-08-22T14:27:06+00:00"
+        },
+        {
+            "name": "kernelbridge/licensing-client-laravel",
+            "version": "1.0.0",
+            "dist": {
+                "type": "path",
+                "url": "../kernelbridge/packages/kernelbridge/licensing-client-laravel",
+                "reference": "4a9aa167c8d82e5c457d8069c2f8ddfd1795fb72"
+            },
+            "require": {
+                "laravel/framework": "^12.0",
+                "php": "^8.3"
+            },
+            "type": "library",
+            "extra": {
+                "laravel": {
+                    "providers": [
+                        "KernelBridge\\LicensingClient\\KernelBridgeLicensingServiceProvider"
+                    ]
+                }
+            },
+            "autoload": {
+                "psr-4": {
+                    "KernelBridge\\LicensingClient\\": "src/"
+                }
+            },
+            "license": [
+                "proprietary"
+            ],
+            "description": "Reusable Laravel client for KernelBridge licensing, subscriptions and entitlements.",
+            "transport-options": {
+                "relative": true
+            }
         },
         {
             "name": "laravel/framework",

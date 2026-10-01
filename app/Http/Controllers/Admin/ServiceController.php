@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers\Admin;
 
-use App\Models\Department;
-use App\Models\Service;
-use Illuminate\Http\Request;
 use App\Http\Controllers\Controller;
+use App\Models\Service;
+use App\Services\InstallationCatalog;
+use Illuminate\Http\Request;
 
 class ServiceController extends Controller
 {
@@ -14,15 +14,15 @@ class ServiceController extends Controller
      */
     public function index()
     {
-        $query = Service::query()->with('department');
+        $query = app(InstallationCatalog::class)->services()->with('department');
 
         // Search functionality
         if ($search = request('search')) {
             $query->where(function ($q) use ($search) {
                 $q->where('name', 'like', "%{$search}%")
-                  ->orWhere('code', 'like', "%{$search}%")
-                  ->orWhere('description', 'like', "%{$search}%")
-                  ->orWhere('category', 'like', "%{$search}%");
+                    ->orWhere('code', 'like', "%{$search}%")
+                    ->orWhere('description', 'like', "%{$search}%")
+                    ->orWhere('category', 'like', "%{$search}%");
             });
         }
 
@@ -47,14 +47,14 @@ class ServiceController extends Controller
         }
 
         $services = $query->paginate(15)->withQueryString();
-        $categories = Service::query()
+        $categories = app(InstallationCatalog::class)->services()
             ->whereNotNull('category')
             ->pluck('category')
             ->filter()
             ->unique()
             ->sort()
             ->values();
-        
+
         return view('admin.services.index', compact('services', 'categories'));
     }
 
@@ -78,9 +78,10 @@ class ServiceController extends Controller
             'Family',
             'Vaccination',
         ];
+        $categories = array_values(array_filter($categories, fn ($category) => app(InstallationCatalog::class)->categoryAllowed($category)));
         sort($categories);
-        
-        $departments = Department::orderBy('name')->get();
+
+        $departments = app(InstallationCatalog::class)->departments()->orderBy('name')->get();
 
         return view('admin.services.create', compact('categories', 'departments'));
     }
@@ -99,6 +100,7 @@ class ServiceController extends Controller
             'category' => 'required|string|max:100',
             'is_active' => 'boolean',
         ]);
+        app(InstallationCatalog::class)->serviceInput($validated);
         $validated['is_active'] = $request->boolean('is_active');
 
         Service::create($validated);
@@ -112,6 +114,7 @@ class ServiceController extends Controller
      */
     public function show(Service $service)
     {
+        abort_unless(app(InstallationCatalog::class)->services()->whereKey($service->id)->exists(), 403);
         $service->load('department')->loadCount('bills');
 
         return view('admin.services.show', compact('service'));
@@ -122,6 +125,7 @@ class ServiceController extends Controller
      */
     public function edit(Service $service)
     {
+        abort_unless(app(InstallationCatalog::class)->services()->whereKey($service->id)->exists(), 403);
         $categories = [
             'Consultations',
             'Laboratory',
@@ -136,8 +140,9 @@ class ServiceController extends Controller
             'Family',
             'Vaccination',
         ];
+        $categories = array_values(array_filter($categories, fn ($category) => app(InstallationCatalog::class)->categoryAllowed($category)));
         sort($categories);
-        $departments = Department::orderBy('name')->get();
+        $departments = app(InstallationCatalog::class)->departments()->orderBy('name')->get();
         $service->load('department');
 
         return view('admin.services.edit', compact('service', 'categories', 'departments'));
@@ -148,8 +153,9 @@ class ServiceController extends Controller
      */
     public function update(Request $request, Service $service)
     {
+        abort_unless(app(InstallationCatalog::class)->services()->whereKey($service->id)->exists(), 403);
         $validated = $request->validate([
-            'code' => 'required|string|unique:services,code,' . $service->id . '|max:50',
+            'code' => 'required|string|unique:services,code,'.$service->id.'|max:50',
             'name' => 'required|string|max:255',
             'department_id' => 'nullable|exists:departments,id',
             'description' => 'nullable|string|max:500',
@@ -157,6 +163,7 @@ class ServiceController extends Controller
             'category' => 'required|string|max:100',
             'is_active' => 'boolean',
         ]);
+        app(InstallationCatalog::class)->serviceInput($validated);
         $validated['is_active'] = $request->boolean('is_active');
 
         $service->update($validated);
@@ -170,6 +177,7 @@ class ServiceController extends Controller
      */
     public function destroy(Service $service)
     {
+        abort_unless(app(InstallationCatalog::class)->services()->whereKey($service->id)->exists(), 403);
         $service->delete();
 
         return redirect()->route('admin.services.index')
@@ -181,7 +189,7 @@ class ServiceController extends Controller
      */
     public function restore($service)
     {
-        $service = Service::withTrashed()->findOrFail($service);
+        $service = app(InstallationCatalog::class)->services()->withTrashed()->findOrFail($service);
         $service->restore();
 
         return redirect()->route('admin.services.index')

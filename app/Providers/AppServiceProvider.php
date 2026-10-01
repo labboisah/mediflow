@@ -29,6 +29,8 @@ class AppServiceProvider extends ServiceProvider
             \App\Http\Middleware\CheckRole::class,
             \App\Http\Middleware\EnsurePharmacyManager::class,
             \App\Http\Middleware\EnsureInstallationModules::class,
+            \App\Http\Middleware\ProtectSpecialistRecords::class,
+            \App\Http\Middleware\IsolatePartnerPortal::class,
             \App\Http\Middleware\EnsureInstallationAdmin::class,
         ]);
 

@@ -11,6 +11,7 @@ class Payment extends Model
     use SoftDeletes, Syncable;
 
     protected $fillable = [
+        'specialist_token',
         'bill_id',
         'patient_id',
         'payment_id',

@@ -117,6 +117,7 @@ class Bill extends Model
     {
         return $user
             && (int) $this->issued_by === (int) $user->id
+            && ! $this->specialist_consultation_id
             && $this->issued_date
             && $this->issued_date->isSameDay(now());
     }
@@ -129,11 +130,13 @@ class Bill extends Model
             && ! $this->trashed()
             && in_array((string) $this->status, ['pending', 'partial'], true)
             && (float) $this->balance > 0
+            && ! $this->specialist_consultation_id
             && ! $this->stockTransactions()->exists();
     }
 
     public function hasBlockingDeleteReferences(): bool
     {
+        if ($this->specialist_consultation_id) return true;
         return $this->payments()->exists()
             || $this->serviceRequests()->exists()
             || $this->investigationRequests()->exists()
@@ -142,12 +145,14 @@ class Bill extends Model
 
     public function hasBlockingSoftDeleteReferences(): bool
     {
+        if ($this->specialist_consultation_id) return true;
         return $this->payments()->where('status', 'completed')->exists()
             || $this->stockTransactions()->exists();
     }
 
     public function deleteBlockReason(): ?string
     {
+        if ($this->specialist_consultation_id) return 'This bill is linked to a Specialist consultation and must be preserved.';
         if ($this->payments()->exists()) {
             return 'This bill has payment records and cannot be deleted.';
         }
@@ -169,6 +174,7 @@ class Bill extends Model
 
     public function softDeleteBlockReason(): ?string
     {
+        if ($this->specialist_consultation_id) return 'This bill is linked to a Specialist consultation and must be preserved.';
         if ($this->payments()->where('status', 'completed')->exists()) {
             return 'This bill has completed payment records and cannot be deleted.';
         }

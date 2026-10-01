@@ -10,6 +10,7 @@
         "barryvdh/laravel-dompdf": "^3.1",
         "diglactic/laravel-breadcrumbs": "^10.0",
         "doctrine/dbal": "^4.4",
+        "kernelbridge/licensing-client-laravel": "1.0",
         "laravel/framework": "^12.0",
         "laravel/tinker": "^2.10.1",
         "livewire/livewire": "^4.3"
@@ -87,5 +88,11 @@
         }
     },
     "minimum-stability": "stable",
-    "prefer-stable": true
+    "prefer-stable": true,
+    "repositories": {
+        "kernelbridge": {
+            "type": "path",
+            "url": "../kernelbridge/packages/kernelbridge/licensing-client-laravel"
+        }
+    }
 }

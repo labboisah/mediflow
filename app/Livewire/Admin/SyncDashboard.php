@@ -54,6 +54,7 @@ class SyncDashboard extends Component
             ->orderBy('id')
             ->chunkById(100, function ($records) use (&$queued) {
                 foreach ($records as $record) {
+                    if (app(\App\Services\SpecialistSyncBoundary::class)->localOnly($record)) continue;
                     $syncOperation = $record->createSyncOperation(
                         $record->wasRecentlyCreated ? 'create' : 'update'
                     );

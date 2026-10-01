@@ -1,6 +1,12 @@
 <?php
 
 return [
+    'specialist' => [
+        'label' => 'Care Network', 'eyebrow' => 'Personal specialist care', 'icon' => 'bi-person-heart',
+        'heading' => 'Connected care, centered on you.',
+        'statement' => 'Welcome to our specialist practice. Supporting your consultations, care plans and follow-up, in person or online.',
+        'layout' => 'split', 'accent' => '#3554a5', 'background' => '#f0f3fc',
+    ],
     'pharmacy' => [
         'label' => 'Pharmacy', 'eyebrow' => 'Your pharmacy workspace', 'icon' => 'bi-capsule',
         'heading' => 'Everyday pharmacy, thoughtfully organized.',

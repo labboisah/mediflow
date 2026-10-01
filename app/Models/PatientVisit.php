@@ -11,6 +11,7 @@ class PatientVisit extends Model
     use SoftDeletes, Syncable;
 
     protected $fillable = [
+        'specialist_origin',
         'patient_id',
         'visit_date',
         'visit_type',

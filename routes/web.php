@@ -47,6 +47,8 @@ use App\Services\WifiSharingService;
 
 Route::get('/branding/logo', [\App\Http\Controllers\BrandingController::class, 'logo'])->name('branding.logo');
 
+Route::get('/branding/image/{slot}', [\App\Http\Controllers\BrandingController::class, 'image'])->whereIn('slot', ['background', 'hero', 'supporting'])->name('branding.image');
+
 // ajax routes
 Route::get('/ajax/investigations/{typeId}', [App\Http\Controllers\AjaxController::class, 'getInvestigations'])->name('ajax.get-investigations');
 Route::get('/ajax/beds/{wardId}', [App\Http\Controllers\AjaxController::class, 'getWardBeds'])->name('ajax.get-ward-beds');
@@ -309,6 +311,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('vital-signs/patients/{patient}/history', [VitalSignsController::class, 'history'])->name('vital_signs.history');
 });
 
+require __DIR__.'/installation.php';
 require __DIR__.'/auth.php';
 require __DIR__.'/admin.php';
 require __DIR__.'/nurse.php';
@@ -321,3 +324,7 @@ require __DIR__.'/pharmacy.php';
 require __DIR__.'/department.php';
 require __DIR__.'/medical-director.php';
 require __DIR__.'/reports.php';
+
+require __DIR__.'/specialist.php';
+
+require __DIR__.'/partner-network.php';
