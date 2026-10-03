@@ -21,6 +21,7 @@ class InvestigationRequestWorkspace extends Component
 
     public ?int $editingRequestId = null;
     public string $clinicalDiagnoses = '';
+    public string $investigationSearch = '';
     public int $discount = 0;
 
     public array $rows = [
@@ -38,7 +39,27 @@ class InvestigationRequestWorkspace extends Component
 
     public function render()
     {
-        $investigations = Investigation::with('investigationType')->orderBy('name')->get();
+        $selectedInvestigationIds = collect($this->rows)
+            ->pluck('investigation_id')
+            ->filter()
+            ->map(fn ($id) => (int) $id)
+            ->values()
+            ->all();
+
+        $investigations = Investigation::with('investigationType')
+            ->when(trim($this->investigationSearch) !== '', function (Builder $query): void {
+                $search = '%' . trim($this->investigationSearch) . '%';
+
+                $query->where(function (Builder $investigationQuery) use ($search): void {
+                    $investigationQuery
+                        ->where('name', 'like', $search)
+                        ->orWhere('code', 'like', $search);
+                });
+            })
+            ->when($selectedInvestigationIds !== [], fn (Builder $query) => $query->orWhereIn('id', $selectedInvestigationIds))
+            ->orderBy('name')
+            ->limit(50)
+            ->get();
 
         return view('components.clinical.investigation-request-workspace', [
             'types' => InvestigationType::with('investigations')->where('is_active', true)->orderBy('name')->get(),
@@ -50,6 +71,31 @@ class InvestigationRequestWorkspace extends Component
                 ->limit(10)
                 ->get(),
         ]);
+    }
+
+    public function toggleInvestigation(int $investigationId): void
+    {
+        abort_unless(auth()->user()->hasAnyRole(['doctor', 'nurse', 'midwife']), 403);
+
+        $existingIndex = collect($this->rows)->search(
+            fn (array $row): bool => (int) ($row['investigation_id'] ?? 0) === $investigationId
+        );
+
+        if ($existingIndex !== false) {
+            $this->removeRow((int) $existingIndex);
+            return;
+        }
+
+        $investigation = Investigation::findOrFail($investigationId);
+        $this->rows = array_values(array_filter(
+            $this->rows,
+            fn (array $row): bool => ! empty($row['type_id']) || ! empty($row['investigation_id']) || ! empty($row['specimen'])
+        ));
+        $this->rows[] = [
+            'type_id' => (string) $investigation->investigation_type_id,
+            'investigation_id' => (string) $investigation->id,
+            'specimen' => '',
+        ];
     }
 
     public function addRow(): void
@@ -351,4 +397,3 @@ class InvestigationRequestWorkspace extends Component
         $this->resetValidation();
     }
 }
-
