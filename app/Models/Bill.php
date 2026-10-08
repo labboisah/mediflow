@@ -45,6 +45,10 @@ class Bill extends Model
         return $this->belongsTo(User::class, 'issued_by');
     }
 
+    public function diagnosticContact()
+    {
+        return $this->hasOne(DiagnosticBillContact::class);
+    }
     public function investigationRequests()
     {
         return $this->hasMany(InvestigationRequest::class);
@@ -306,3 +310,4 @@ class Bill extends Model
 
     
 }
+

@@ -58,11 +58,18 @@
                         <td class="px-4 py-4">
                             <div class="flex flex-wrap justify-end gap-2">
                                 @if ($isPaid)
-                                    <a href="{{ route('radiology.requests.createResult', $investigationRequest) }}" class="text-sm font-semibold text-med-primary hover:text-med-primaryDark">Result</a>
-
-                                    @if ($investigationRequest->completed_at)
-                                        <a href="{{ route('radiology.requests.show', $investigationRequest) }}" class="text-sm font-semibold text-med-success hover:text-green-700">Print</a>
-                                        <a href="{{ route('radiology.requests.editResult', $investigationRequest) }}" class="text-sm font-semibold text-med-info hover:text-blue-700">Edit</a>
+                                    @if (auth()->user()->hasRole('radiographer') && ! $investigationRequest->diagnosticReport?->performed_at)
+                                        <form method="POST" action="{{ route('radiology.requests.markPerformed', $investigationRequest) }}">@csrf <button class="text-sm font-semibold text-med-primary hover:text-med-primaryDark">Mark performed</button></form>
+                                    @endif
+                                    @if (auth()->user()->hasRole('radiologist') && $investigationRequest->diagnosticReport?->performed_at)
+                                        @if ($investigationRequest->diagnosticReport?->reported_at)
+                                            <a href="{{ route('radiology.requests.editResult', $investigationRequest) }}" class="text-sm font-semibold text-med-info hover:text-blue-700">Amend report</a>
+                                        @else
+                                            <a href="{{ route('radiology.requests.createResult', $investigationRequest) }}" class="text-sm font-semibold text-med-primary hover:text-med-primaryDark">Report</a>
+                                        @endif
+                                    @endif
+                                    @if ($investigationRequest->completed_at || $investigationRequest->diagnosticReport?->performed_at)
+                                        <a href="{{ route('radiology.requests.show', $investigationRequest) }}" class="text-sm font-semibold text-med-success hover:text-green-700">View / Print</a>
                                     @endif
                                 @else
                                     <span class="text-sm font-medium text-med-muted">Awaiting payment</span>
@@ -85,3 +92,4 @@
         </div>
     </x-ui.card>
 </div>
+

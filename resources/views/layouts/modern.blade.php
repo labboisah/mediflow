@@ -24,6 +24,7 @@
     @else
         <link rel="stylesheet" href="{{ asset('vendor/bootstrap-icons/font/bootstrap-icons.css') }}">
         <link rel="stylesheet" href="{{ asset('css/modern-fallback.css') }}">
+        <link rel="stylesheet" href="{{ asset('css/modern.css') }}">
         @vite('resources/js/app.js')
     @endif
     @livewireStyles

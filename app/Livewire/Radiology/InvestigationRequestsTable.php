@@ -28,6 +28,8 @@ class InvestigationRequestsTable extends Component
                 'patientVisit.patient.demographic',
                 'requestedBy',
                 'performedBy',
+                'diagnosticReport',
+                'walkinPatient',
                 'investigation',
             ])
             ->whereHas('bill')
@@ -65,4 +67,5 @@ class InvestigationRequestsTable extends Component
         ]);
     }
 }
+
 

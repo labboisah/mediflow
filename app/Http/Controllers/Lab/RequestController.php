@@ -206,6 +206,7 @@ class RequestController extends Controller
         }
 
         $investigationRequests = $query
+            ->whereHas('investigation.investigationType', fn ($type) => $type->where('department_id', auth()->user()->department_id))
             ->where('payment_status', 'paid')
             ->where('status', '!=', 'Completed')
             ->get();
@@ -250,16 +251,25 @@ class RequestController extends Controller
         }
 
         $investigationRequests = $query
+            ->whereHas('investigation.investigationType', fn ($type) => $type->where('department_id', auth()->user()->department_id))
             ->where('payment_status', 'paid')
             ->where('status', '!=', 'Completed')
             ->get();
 
         foreach ($investigationRequests as $investigationRequest) {
             $requestParameters = $validated['parameters'][$investigationRequest->id] ?? [];
+            $investigationRequest->loadMissing('investigation.parameters');
+            $allowedParameterIds = $investigationRequest->investigation->parameters->pluck('id')->map(fn ($id) => (string) $id)->all();
+            foreach (array_keys($requestParameters) as $parameterId) {
+                abort_unless(in_array((string) $parameterId, $allowedParameterIds, true), 422, 'A result parameter does not belong to this investigation.');
+            }
+            if ($allowedParameterIds && collect($allowedParameterIds)->contains(fn ($id) => trim((string) ($requestParameters[$id] ?? '')) === '')) {
+                return back()->withInput()->with('error', 'Complete every configured laboratory parameter before submitting results.');
+            }
             $hasResult = false;
 
             foreach ($requestParameters as $parameterId => $value) {
-                if ($value === null || $value === '') {
+                if ($value === null || trim((string) $value) === '') {
                     continue;
                 }
 
@@ -302,4 +312,7 @@ class RequestController extends Controller
         return view('lab.request.result', compact('bill'));
     }
 }
+
+
+
 

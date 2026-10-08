@@ -9,7 +9,10 @@
 
             <div class="grid gap-6 xl:grid-cols-12">
                 <x-ui.card class="xl:col-span-8" title="Result Details" subtitle="Enter findings for each configured parameter.">
-                    <div class="space-y-4">
+                                        <div class="space-y-4">
+                        <x-ui.textarea label="Clinical Note" name="clinical_note" rows="3">{{ old('clinical_note', $investigationRequest->diagnosticReport?->clinical_note) }}</x-ui.textarea>
+                        <x-ui.textarea label="Findings" name="findings" rows="7" required>{{ old('findings', $investigationRequest->diagnosticReport?->findings) }}</x-ui.textarea>
+                        <x-ui.textarea label="Impression" name="impression" rows="4" required>{{ old('impression', $investigationRequest->diagnosticReport?->impression) }}</x-ui.textarea>
                         @forelse($investigationRequest->investigation->parameters as $parameter)
                             <x-ui.textarea
                                 label="{{ $parameter->name }}"
@@ -42,3 +45,4 @@
         </form>
     </x-ui.page>
 @endsection
+

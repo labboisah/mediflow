@@ -41,6 +41,10 @@ class InvestigationRequest extends Model
         return $this->hasMany(InvestigationResult::class);
     }
 
+    public function diagnosticReport() {
+        return $this->hasOne(DiagnosticReport::class);
+    }
+
     public function bill() {
         return $this->belongsTo(Bill::class);
     }
@@ -79,3 +83,5 @@ class InvestigationRequest extends Model
         $request->update(['lab_no'=>$number]);
     }
 }
+
+

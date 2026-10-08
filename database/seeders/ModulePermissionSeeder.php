@@ -118,7 +118,7 @@ class ModulePermissionSeeder extends Seeder
             $this->item('lab_requests', 'Lab Requests', 'bi-vial', 'lab.requests.index', 'laboratory', 'diagnostics', ['lab_technician', 'lab_scientist'], ['laboratory_request.read', 'investigation_request.read'], ['lab.requests.*'], 70),
             $this->item('lab_results', 'Results Entry', 'bi-clipboard2-data', 'lab.result', 'laboratory', 'diagnostics', ['lab_technician', 'lab_scientist'], ['laboratory_result.create', 'investigation_result.create'], ['lab.result'], 71),
             $this->item('lab_investigations', 'Lab Investigations', 'bi-list-check', 'lab.investigations.index', 'laboratory', 'diagnostics', ['lab_technician', 'lab_scientist'], ['laboratory_investigation.read', 'investigation.read'], ['lab.investigations.*'], 72),
-            $this->item('radiology_requests', 'Radiology Requests', 'bi-radioactive', 'radiology.requests.index', 'radiology', 'diagnostics', ['radiologist'], ['radiology_request.read', 'investigation_request.read'], ['radiology.requests.*'], 73),
+            $this->item('radiology_requests', 'Radiology Requests', 'bi-radioactive', 'radiology.requests.index', 'radiology', 'diagnostics', ['radiologist', 'radiographer'], ['radiology_request.read', 'investigation_request.read'], ['radiology.requests.*'], 73),
             $this->item('radiology_investigations', 'Radiology Investigations', 'bi-list-check', 'radiology.investigations.index', 'radiology', 'diagnostics', ['radiologist'], ['radiology_investigation.read', 'investigation.read'], ['radiology.investigations.*'], 74),
 
             $this->item('antenatal_care', 'Antenatal Care', 'bi-heart-pulse-fill', 'midwife.antenatal.index', 'maternity', 'maternity', ['midwife'], ['antenatal_care.read', 'antenatal_care.create'], ['midwife.antenatal.*', 'midwife.anc-management'], 90),
@@ -204,3 +204,4 @@ class ModulePermissionSeeder extends Seeder
         ];
     }
 }
+

@@ -70,7 +70,7 @@
 
             <div class="print-content p-6">
                 <div class="mb-6 text-center">
-                    <h2 class="text-xl font-bold text-med-success">FATIMA YAHAYA HOSPITAL, SIFAWA</h2>
+                    <h2 class="text-xl font-bold text-med-success">{{ config('app.name', 'MediFlow') }}</h2>
                     <h4 class="mt-2 text-sm font-semibold uppercase tracking-wide text-med-muted">Department of {{ strtoupper(auth()->user()->department->name) }}</h4>
                 </div>
 
@@ -84,7 +84,14 @@
                     </div>
                 </div>
 
-                <div class="result-section mt-6">
+                                @if($investigationRequest->diagnosticReport)
+                    <div class="mt-5 grid gap-4 border-b border-med-line pb-5 text-sm">
+                        <div><h5 class="font-semibold text-med-ink">Clinical Note</h5><p class="mt-1 whitespace-pre-line text-med-muted">{{ $investigationRequest->diagnosticReport->clinical_note ?: '—' }}</p></div>
+                        <div><h5 class="font-semibold text-med-ink">Findings</h5><p class="mt-1 whitespace-pre-line text-med-muted">{{ $investigationRequest->diagnosticReport->findings ?: '—' }}</p></div>
+                        <div><h5 class="font-semibold text-med-ink">Impression</h5><p class="mt-1 whitespace-pre-line text-med-muted">{{ $investigationRequest->diagnosticReport->impression ?: '—' }}</p></div>
+                    </div>
+                @endif
+<div class="result-section mt-6">
                     <h5 class="mb-3 text-lg font-semibold text-med-ink">{{ $investigationRequest->investigation->name }}</h5>
 
                     @if($investigationRequest->investigationResults->isEmpty())
@@ -115,8 +122,8 @@
                     @if($investigationRequest->result_image)
                         <div class="mt-6">
                             <h6 class="mb-2 text-sm font-semibold text-med-ink">Attached Image</h6>
-                            <a href="{{ asset('storage/' . $investigationRequest->result_image) }}" target="_blank">
-                                <img src="{{ asset('storage/' . $investigationRequest->result_image) }}" class="max-h-[720px] w-full rounded-md border border-med-line object-contain" alt="Radiology Image">
+                            <a href="{{ route('radiology.requests.image', $investigationRequest) }}" target="_blank">
+                                <img src="{{ route('radiology.requests.image', $investigationRequest) }}" class="max-h-[720px] w-full rounded-md border border-med-line object-contain" alt="Radiology Image">
                             </a>
                             <p class="no-print mt-2 text-sm text-med-muted">Click image to open full size in a new tab.</p>
                         </div>
@@ -126,3 +133,5 @@
         </section>
     </x-ui.page>
 @endsection
+
+

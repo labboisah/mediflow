@@ -10,7 +10,10 @@
 
             <div class="grid gap-6 xl:grid-cols-12">
                 <x-ui.card class="xl:col-span-8" title="Result Details" subtitle="Update recorded findings for this request.">
-                    <div class="space-y-4">
+                                        <div class="space-y-4">
+                        <x-ui.textarea label="Clinical Note" name="clinical_note" rows="3">{{ old('clinical_note', $investigationRequest->diagnosticReport?->clinical_note) }}</x-ui.textarea>
+                        <x-ui.textarea label="Findings" name="findings" rows="7" required>{{ old('findings', $investigationRequest->diagnosticReport?->findings) }}</x-ui.textarea>
+                        <x-ui.textarea label="Impression" name="impression" rows="4" required>{{ old('impression', $investigationRequest->diagnosticReport?->impression) }}</x-ui.textarea>
                         @forelse($investigationRequest->investigation->parameters as $parameter)
                             @php($existing = $investigationRequest->investigationResults->firstWhere('parameter_id', $parameter->id))
                             <x-ui.textarea
@@ -37,8 +40,8 @@
 
                     @if($investigationRequest->result_image)
                         <div class="mt-5 rounded-md border border-med-line bg-med-canvas/60 p-3">
-                            <a href="{{ asset('storage/' . $investigationRequest->result_image) }}" target="_blank">
-                                <img src="{{ asset('storage/' . $investigationRequest->result_image) }}" class="max-h-80 w-full rounded-md border border-med-line object-contain" alt="Radiology Image">
+                            <a href="{{ route('radiology.requests.image', $investigationRequest) }}" target="_blank">
+                                <img src="{{ route('radiology.requests.image', $investigationRequest) }}" class="max-h-80 w-full rounded-md border border-med-line object-contain" alt="Radiology Image">
                             </a>
 
                             <label class="mt-3 flex items-center gap-2 text-sm font-medium text-med-ink">
@@ -57,3 +60,5 @@
         </form>
     </x-ui.page>
 @endsection
+
+

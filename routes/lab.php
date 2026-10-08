@@ -14,11 +14,7 @@ use App\Models\InvestigationResult;
 
 
 
-Route::middleware([
-        'auth',
-        'verified',
-        
-    ])
+Route::middleware(['auth', 'verified', 'module:laboratory', 'role:lab_technician,lab_scientist'])
     ->prefix('lab')
     ->name('lab.')
     ->group(function () {
@@ -31,7 +27,7 @@ Route::middleware([
     });
 
 
-Route::middleware(['auth', 'verified'])
+Route::middleware(['auth', 'verified', 'module:laboratory', 'role:lab_technician,lab_scientist'])
 ->prefix('lab')
 ->name('lab.')
 ->namespace('Lab')
@@ -74,3 +70,7 @@ Route::middleware(['auth', 'verified'])
 
     
 });
+
+
+
+
