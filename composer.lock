@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "14925c8eb11564a6eb70dfb100edf4f2",
+    "content-hash": "e85e9812e9333d0865c32b22b135f9c8",
     "packages": [
         {
             "name": "barryvdh/laravel-dompdf",
@@ -1564,11 +1564,17 @@
         },
         {
             "name": "kernelbridge/licensing-client-laravel",
-            "version": "1.0.0",
+            "version": "1.2.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/labboisah/laravel-licensing-package.git",
+                "reference": "91e6a7228e7ab4a4978f7058516153b66c8c7216"
+            },
             "dist": {
-                "type": "path",
-                "url": "../kernelbridge/packages/kernelbridge/licensing-client-laravel",
-                "reference": "4a9aa167c8d82e5c457d8069c2f8ddfd1795fb72"
+                "type": "zip",
+                "url": "https://api.github.com/repos/labboisah/laravel-licensing-package/zipball/91e6a7228e7ab4a4978f7058516153b66c8c7216",
+                "reference": "91e6a7228e7ab4a4978f7058516153b66c8c7216",
+                "shasum": ""
             },
             "require": {
                 "laravel/framework": "^12.0",
@@ -1591,9 +1597,11 @@
                 "proprietary"
             ],
             "description": "Reusable Laravel client for KernelBridge licensing, subscriptions and entitlements.",
-            "transport-options": {
-                "relative": true
-            }
+            "support": {
+                "source": "https://github.com/labboisah/laravel-licensing-package/tree/1.2.0",
+                "issues": "https://github.com/labboisah/laravel-licensing-package/issues"
+            },
+            "time": "2026-10-09T10:18:07+00:00"
         },
         {
             "name": "laravel/framework",
