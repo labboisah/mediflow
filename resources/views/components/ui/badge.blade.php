@@ -4,6 +4,7 @@
 
 @php
     $classes = [
+        'primary' => 'bg-med-primary text-white ring-med-primary',
         'success' => 'bg-green-50 text-med-primary ring-green-200',
         'warning' => 'bg-orange-50 text-orange-700 ring-orange-200',
         'danger' => 'bg-red-50 text-med-danger ring-red-200',

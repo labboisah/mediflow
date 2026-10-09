@@ -124,6 +124,24 @@ class PharmacyServicesTest extends TestCase
         $this->assertDatabaseCount('pharmacy_service_items', 0); $this->assertDatabaseCount('payments', 0);
     }
 
+    public function test_expiry_badge_variants_follow_remaining_time_bands(): void
+    {
+        $cases = [
+            [today()->subDay(), 'danger'],
+            [today()->addMonths(4), 'danger'],
+            [today()->addMonths(5), 'warning'],
+            [today()->addMonths(11), 'warning'],
+            [today()->addYear(), 'success'],
+            [today()->addYears(2), 'success'],
+            [today()->addYears(2)->addDay(), 'primary'],
+        ];
+
+        foreach ($cases as [$expiryDate, $variant]) {
+            $batch = new MedicineBatch(['expiry_date' => $expiryDate->toDateString()]);
+            $this->assertSame($variant, $batch->expiryBadgeVariant());
+        }
+    }
+
     public function test_disabled_payment_method_is_rejected(): void
     {
         PaymentMethod::find(1)->update(['is_active' => false]);

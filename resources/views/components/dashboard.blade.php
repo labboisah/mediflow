@@ -119,7 +119,7 @@
                                                 <div class="fw-semibold">{{ $batch->medicine?->name ?? 'N/A' }}</div>
                                                 <small class="text-muted">Batch {{ $batch->batch_number }}</small>
                                             </div>
-                                            <span class="badge text-bg-danger align-self-center">{{ $batch->expiry_date }}</span>
+                                            <span class="badge text-bg-{{ $batch->expiryBadgeVariant() }} align-self-center">{{ $batch->expiry_date }}</span>
                                         </div>
                                     @empty
                                         <div class="text-muted">No expiry alerts.</div>

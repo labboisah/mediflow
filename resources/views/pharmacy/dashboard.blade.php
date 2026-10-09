@@ -7,7 +7,7 @@
     $pharmacyDashboardDepartment = strtolower((string) $pharmacyDashboardUser?->department?->name);
     $canManageInventory = $pharmacyDashboardUser?->hasRole('pharmacist') || ($pharmacyDashboardUser?->hasRole('head_of_department') && str_contains($pharmacyDashboardDepartment, 'pharmacy'));
     $lowStockCount = $canManageInventory ? \App\Models\MedicineBatch::where('quantity_remaining', '<=', 10)->count() : 0;
-    $expiringBatches = $canManageInventory ? \App\Models\MedicineBatch::with('medicine')->whereDate('expiry_date', '>=', today())->whereDate('expiry_date', '<=', today()->addDays(60))->orderBy('expiry_date')->limit(10)->get() : collect();
+    $expiringBatches = $canManageInventory ? \App\Models\MedicineBatch::with('medicine')->whereDate('expiry_date', '>=', today())->whereDate('expiry_date', '<=', today()->addYears(3))->orderBy('expiry_date')->limit(10)->get() : collect();
 @endphp
 
 <x-ui.page title="Pharmacy Dashboard" subtitle="Prescription queue, dispensing activity, and pharmacy inventory alerts.">
@@ -25,7 +25,7 @@
 
         @if($canManageInventory)
             <x-ui.card class="xl:col-span-4" title="Expiry Alerts">
-                <div class="divide-y divide-med-line">@forelse($expiringBatches as $drug)<div class="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"><div><p class="font-semibold text-med-ink">{{ $drug->medicine?->name ?? 'N/A' }}</p><p class="text-sm text-med-muted">{{ $drug->batch_number }}</p></div><x-ui.badge variant="danger">{{ $drug->expiry_date }}</x-ui.badge></div>@empty<x-ui.empty-state title="No Expiry Alerts" />@endforelse</div>
+                <div class="divide-y divide-med-line">@forelse($expiringBatches as $drug)<div class="flex items-center justify-between gap-3 py-3 first:pt-0 last:pb-0"><div><p class="font-semibold text-med-ink">{{ $drug->medicine?->name ?? 'N/A' }}</p><p class="text-sm text-med-muted">{{ $drug->batch_number }}</p></div><x-ui.badge :variant="$drug->expiryBadgeVariant()">{{ $drug->expiry_date }}</x-ui.badge></div>@empty<x-ui.empty-state title="No Expiry Alerts" />@endforelse</div>
             </x-ui.card>
         @endif
     </div>

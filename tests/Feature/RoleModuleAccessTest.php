@@ -30,9 +30,10 @@ class RoleModuleAccessTest extends TestCase
         Schema::create('roles', function (Blueprint $t) { $t->id(); $t->string('name'); $t->timestamps(); });
         Schema::create('role_user', function (Blueprint $t) { $t->unsignedBigInteger('user_id'); $t->unsignedBigInteger('role_id'); });
         Schema::create('modules', function (Blueprint $t) {
-            $t->id(); $t->string('name'); $t->string('route'); $t->string('license_module'); $t->boolean('is_active')->default(true); $t->timestamps();
+            $t->id(); $t->string('name'); $t->string('label')->nullable(); $t->string('icon')->nullable(); $t->string('route'); $t->string('group')->nullable(); $t->string('sidebar_group')->nullable(); $t->json('sidebar_patterns')->nullable(); $t->string('license_module'); $t->unsignedInteger('sort_order')->default(0); $t->boolean('is_active')->default(true); $t->boolean('is_sidebar_visible')->default(true); $t->timestamps();
         });
         Schema::create('module_role', function (Blueprint $t) { $t->unsignedBigInteger('module_id'); $t->unsignedBigInteger('role_id'); });
+        Schema::create('permissions', function (Blueprint $t) { $t->id(); $t->string('name'); $t->unsignedBigInteger('module_id')->nullable(); });
         (require database_path('migrations/2026_08_27_000004_create_module_user_access_table.php'))->up();
         $this->partialMock(LicenseService::class, function ($mock) {
             $mock->shouldReceive('moduleEnabled')->andReturnUsing(fn ($module) => $module === 'pharmacy');
@@ -73,6 +74,35 @@ class RoleModuleAccessTest extends TestCase
             $module = new Module(['name' => $name, 'route' => 'pharmacy.finance.report', 'license_module' => 'pharmacy']);
             $this->assertFalse(app(SidebarService::class)->canShowItem($user, $module));
         }
+    }
+
+    public function test_sidebar_shows_one_item_per_label_when_user_has_multiple_role_destinations(): void
+    {
+        $user = User::create(['name' => 'Finance User', 'email' => 'finance@example.test', 'password' => 'password']);
+        foreach ([
+            ['accountant_bills', 'Bills', 'accountant.bills.index', 'billing', 110],
+            ['finance_bills', 'Bills', 'finance.bills.index', 'billing', 111],
+            ['accountant_payments', 'Payments', 'accountant.payments.index', 'payments_finance', 130],
+            ['finance_payments', 'Payments', 'finance.payments.index', 'payments_finance', 131],
+        ] as [$name, $label, $route, $group, $sortOrder]) {
+            Module::create([
+                'name' => $name,
+                'label' => $label,
+                'route' => $route,
+                'license_module' => 'billing',
+                'sidebar_group' => $group,
+                'sort_order' => $sortOrder,
+            ]);
+        }
+
+        $sidebar = $this->partialMock(SidebarService::class, function ($mock): void {
+            $mock->shouldReceive('canShowItem')->andReturn(true);
+        });
+
+        $groups = collect($sidebar->groupsFor($user))->keyBy('key');
+
+        $this->assertSame(['accountant.bills.index'], $groups['billing']['items']->pluck('route')->all());
+        $this->assertSame(['accountant.payments.index'], $groups['payments_finance']['items']->pluck('route')->all());
     }
 
     public function test_explicit_revocation_is_not_reactivated(): void

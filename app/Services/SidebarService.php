@@ -29,7 +29,10 @@ class SidebarService
             ->get()
             ->filter(fn (Module $module) => $this->canShowItem($user, $module))
             ->unique('route')
-            ->groupBy(fn (Module $module) => $module->sidebar_group ?: $module->group ?: 'administration');
+            ->groupBy(fn (Module $module) => $module->sidebar_group ?: $module->group ?: 'administration')
+            ->map(fn (Collection $groupItems) => $groupItems
+                ->unique(fn (Module $module) => strtolower(trim((string) ($module->label ?: $module->route))))
+                ->values());
 
         return $groupConfig
             ->map(function (array $group, string $groupKey) use ($items) {

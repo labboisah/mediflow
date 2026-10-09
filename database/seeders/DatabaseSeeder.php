@@ -31,7 +31,7 @@ class DatabaseSeeder extends Seeder
         $this->call(MedicalDirectorSeeder::class);
 
         // Create admin user
-        $this->call(AdminUserSeeder::class);
+        //$this->call(AdminUserSeeder::class);
 
         // Preserve current user access while module access management is introduced
         $this->call(ModuleUserAccessSeeder::class);

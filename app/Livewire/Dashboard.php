@@ -220,7 +220,7 @@ class Dashboard extends Component
                 ->get(),
             'expiringBatches' => $canManagePharmacy ? MedicineBatch::with('medicine')
                 ->whereDate('expiry_date', '>=', today())
-                ->whereDate('expiry_date', '<=', today()->addDays(60))
+                ->whereDate('expiry_date', '<=', today()->addYears(3))
                 ->orderBy('expiry_date')
                 ->limit(8)
                 ->get() : collect(),
