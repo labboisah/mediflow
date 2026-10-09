@@ -5,7 +5,7 @@
         </x-slot:actions>
 
         <div class="grid gap-5 xl:grid-cols-[minmax(320px,0.85fr)_minmax(0,1.35fr)]">
-            <div class="space-y-5">
+            <div class="order-2 space-y-5 xl:order-1">
             <x-ui.card title="Medicine Selection" subtitle="Search available, unexpired batches and add them to the cart.">
                 <div class="space-y-4">
                     <x-ui.input label="Search Medicine" type="search" wire:model.live.debounce.300ms="search" placeholder="Name, generic, company, or batch" />
@@ -49,7 +49,7 @@
             </x-ui.card>
             </div>
 
-            <div class="space-y-5">
+            <div class="order-1 space-y-5 xl:order-2">
                 <x-ui.card title="Cart" subtitle="Review medicines and services before collecting payment.">
                     <x-slot:actions>
                         @if(count($cart) > 0)
